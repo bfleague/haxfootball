@@ -1,7 +1,7 @@
 import { $effect } from "@common/hooks";
 import { Team } from "@common/models";
 
-export function $blockTeam(team: Team) {
+export function $trapTeamInEndZone(team: Team) {
     $effect(($) => {
         const cf = $.CollisionFlags;
         const players = $.room.getPlayerList();
@@ -24,7 +24,7 @@ export function $blockTeam(team: Team) {
     });
 }
 
-export function $freeTeams() {
+export function $untrapAllTeams() {
     $effect(($) => {
         const cf = $.CollisionFlags;
         $.room
@@ -45,7 +45,7 @@ export function $freeTeams() {
     });
 }
 
-export function $blockMiddleLineForTeam(team: Team) {
+export function $trapTeamInMidField(team: Team) {
     $effect(($) => {
         const cf = $.CollisionFlags;
         const bit = team === Team.RED ? cf.c2 : cf.c3;
@@ -78,7 +78,7 @@ export function $unlockBall() {
     });
 }
 
-export function $stopBall() {
+export function $haltBall() {
     $effect(($) => {
         $.setBall({ xspeed: 0, yspeed: 0 });
     });

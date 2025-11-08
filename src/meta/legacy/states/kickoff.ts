@@ -2,19 +2,18 @@ import { $effect, $next } from "@common/hooks";
 import { Team } from "@common/models";
 import { opposite } from "@common/utils";
 import {
-    $blockMiddleLineForTeam,
-    $blockTeam,
-    $freeTeams,
+    $trapTeamInMidField,
+    $trapTeamInEndZone,
+    $untrapAllTeams,
     $setBallKickForce,
     $setBallMoveable,
     $setBallUnmoveable,
-    $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import type { GameState } from "@common/engine";
 
 export function Kickoff({ forTeam = Team.RED }: { forTeam?: Team }) {
-    $blockMiddleLineForTeam(forTeam);
-    $blockTeam(opposite(forTeam));
+    $trapTeamInMidField(forTeam);
+    $trapTeamInEndZone(opposite(forTeam));
     $setBallKickForce("strong");
     $setBallUnmoveable();
 
@@ -35,8 +34,7 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: Team }) {
     }
 
     function dispose() {
-        $freeTeams();
-        $unlockBall();
+        $untrapAllTeams();
         $setBallMoveable();
     }
 
