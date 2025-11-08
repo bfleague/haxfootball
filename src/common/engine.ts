@@ -236,7 +236,7 @@ export function createEngine<Cfg>(
         }
     }
 
-    function notePlayerBallKick(playerId: number) {
+    function trackPlayerBallKick(playerId: number) {
         lastKicker = playerId;
     }
 
@@ -248,7 +248,7 @@ export function createEngine<Cfg>(
         start,
         stop,
         tick,
-        trackPlayerBallKick: notePlayerBallKick,
+        trackPlayerBallKick,
         isRunning,
     };
 }
