@@ -86,31 +86,83 @@ export function createEngine<Cfg>(
         ? opts.onStats
         : () => {};
 
+    function runOutsideTick<T>(fn: () => T): T {
+        const uninstall = installRuntime({
+            room,
+            config: opts.config,
+            onStat: onStats,
+        });
+
+        setRuntimeRoom(room);
+
+        let caught: unknown | null = null;
+        try {
+            return fn();
+        } catch (err) {
+            caught = err;
+            throw err;
+        } finally {
+            const flushed = flushRuntime();
+            uninstall();
+            if (!caught && flushed.transition) {
+                throw new Error(
+                    "$next cannot be used during state setup/cleanup",
+                );
+            }
+        }
+    }
+
+    function ensureFactory(name: string) {
+        const factory = registry[name];
+        if (!factory) throw new Error(`State "${name}" is not registered`);
+        return factory;
+    }
+
+    function createState(
+        name: string,
+        params?: any,
+        factory?: StateFactory<any>,
+    ) {
+        const resolved = factory ?? ensureFactory(name);
+        return runOutsideTick(() => resolved(params ?? {}));
+    }
+
+    function disposeState(
+        target: { api: ReturnType<StateFactory<any>> } | null,
+    ) {
+        if (!target || !target.api.dispose) return;
+        const dispose = target.api.dispose;
+        runOutsideTick(() => {
+            dispose();
+        });
+    }
+
     function applyTransition() {
         if (!pendingTransition) return;
-        if (current && current.api.dispose) current.api.dispose();
-        const factory = registry[pendingTransition.to];
-        if (!factory)
-            throw new Error(
-                `State "${pendingTransition.to}" is not registered`,
-            );
-        current = {
-            name: pendingTransition.to,
-            api: factory(pendingTransition.params),
-        };
+        const next = pendingTransition;
         pendingTransition = null;
+
+        const factory = ensureFactory(next.to);
+        disposeState(current);
+
+        current = {
+            name: next.to,
+            api: createState(next.to, next.params, factory),
+        };
     }
 
     function start(name: string, params?: any) {
         if (running) stop();
-        const factory = registry[name];
-        if (!factory) throw new Error(`State "${name}" is not registered`);
-        current = { name, api: factory(params) };
+        const factory = ensureFactory(name);
+        current = {
+            name,
+            api: createState(name, params, factory),
+        };
         running = true;
     }
 
     function stop() {
-        if (current && current.api.dispose) current.api.dispose();
+        disposeState(current);
         current = null;
         running = false;
     }

@@ -3,6 +3,7 @@ import { createEngine, type Engine } from "@common/engine";
 import { legacyRegistry } from "@meta/legacy/meta";
 import { defaultLegacyConfig, type Config } from "@meta/legacy/config";
 import { Team } from "@common/models";
+import baseStadium from "@meta/legacy/stadiums/base";
 
 export const config: RoomConfigObject = {
     roomName: "HaxFootball",
@@ -37,7 +38,8 @@ const matchModule = createModule()
     .onPlayerJoin((room, player) => {
         room.setAdmin(player, true);
     })
-    .onRoomLink((_, url) => {
+    .onRoomLink((room, url) => {
+        room.setStadium(baseStadium);
         console.log(`Room link: ${url}`);
     });
 
