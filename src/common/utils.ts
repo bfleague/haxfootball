@@ -3,14 +3,22 @@ import { Team } from "@common/models";
 export function opposite(t: Team): Team {
     if (t === Team.RED) return Team.BLUE;
     if (t === Team.BLUE) return Team.RED;
+
     return t;
 }
 
-export function getDistance(
-    a: { x: number; y: number },
-    b: { x: number; y: number },
-): number {
+type PointLike = { x: number; y: number; radius?: number | null };
+
+export function getDistance(a: PointLike, b: PointLike): number {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
-    return Math.hypot(dx, dy);
+
+    const center = Math.hypot(dx, dy);
+
+    const ar = typeof a.radius === "number" ? a.radius : 0;
+    const br = typeof b.radius === "number" ? b.radius : 0;
+
+    const surfaceDistance = center - ar - br;
+
+    return surfaceDistance > 0 ? surfaceDistance : 0;
 }

@@ -1,9 +1,8 @@
 import { createModule } from "@core/module";
 import { createEngine, type Engine } from "@common/engine";
-import { legacyRegistry } from "@meta/legacy/meta";
+import { registry, stadium } from "@meta/legacy/meta";
 import { defaultLegacyConfig, type Config } from "@meta/legacy/config";
 import { Team } from "@common/models";
-import baseStadium from "@meta/legacy/stadiums/base";
 
 export const config: RoomConfigObject = {
     roomName: "HaxFootball",
@@ -14,9 +13,17 @@ export const config: RoomConfigObject = {
 
 let engine: Engine<Config> | null = null;
 
+const mainModule = createModule()
+    .onRoomLink((_, url) => {
+        console.log(`Room link: ${url}`);
+    })
+    .onPlayerJoin((room, player) => {
+        room.setAdmin(player, true);
+    });
+
 const matchModule = createModule()
     .onGameStart((room) => {
-        engine = createEngine(room, legacyRegistry, {
+        engine = createEngine(room, registry, {
             config: defaultLegacyConfig,
             onStats: (key) => {
                 console.log(`Stat recorded: ${key}`);
@@ -35,12 +42,8 @@ const matchModule = createModule()
         if (engine) engine.stop();
         engine = null;
     })
-    .onPlayerJoin((room, player) => {
-        room.setAdmin(player, true);
-    })
-    .onRoomLink((room, url) => {
-        room.setStadium(baseStadium);
-        console.log(`Room link: ${url}`);
+    .onRoomLink((room, _) => {
+        room.setStadium(stadium);
     });
 
-export const modules = [matchModule];
+export const modules = [mainModule, matchModule];

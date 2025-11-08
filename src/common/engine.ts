@@ -20,15 +20,24 @@ export interface EngineOptions<Cfg> {
 /**
  * Transient snapshot used by states each tick.
  */
+export interface GameStatePlayer {
+    id: number;
+    team: Team;
+    x: number;
+    y: number;
+    radius: number;
+    isKickingBall: boolean;
+}
+
+export interface GameStateBall {
+    x: number;
+    y: number;
+    radius: number;
+}
+
 export interface GameState {
-    players: Array<{
-        id: number;
-        team: Team;
-        x: number;
-        y: number;
-        isKickingBall: boolean;
-    }>;
-    ball: { x: number; y: number };
+    players: GameStatePlayer[];
+    ball: GameStateBall;
 }
 
 export interface Engine<Cfg = unknown> {
@@ -40,30 +49,45 @@ export interface Engine<Cfg = unknown> {
     readonly _configBrand?: Cfg;
 }
 
-/**
- * Builds a snapshot of players and ball for the current tick.
- * Position may be null for spectators; in that case use (0,0).
- */
+function getPlayerRadius(room: Room, playerId: number): number {
+    const disc = room.getPlayerDiscProperties(playerId);
+
+    return disc && typeof disc.radius === "number" ? disc.radius : 0;
+}
+
+function getBallSnapshot(room: Room): { x: number; y: number; radius: number } {
+    const ballPos = room.getBallPosition();
+    const disc = room.getDiscProperties(0);
+
+    const radius = disc && typeof disc.radius === "number" ? disc.radius : 0;
+
+    return {
+        x: ballPos ? ballPos.x : 0,
+        y: ballPos ? ballPos.y : 0,
+        radius,
+    };
+}
+
 function buildGameState(room: Room, kickerId: number | null): GameState {
     const list = room.getPlayerList();
-    const ballPos = room.getBallPosition();
-    const bx = ballPos ? ballPos.x : 0;
-    const by = ballPos ? ballPos.y : 0;
+    const ball = getBallSnapshot(room);
 
     const players = list.map((p) => {
         const hasPos = !!p.position;
         const px = hasPos ? p.position.x : 0;
         const py = hasPos ? p.position.y : 0;
+
         return {
             id: p.id,
             team: p.team as Team,
             x: px,
             y: py,
+            radius: getPlayerRadius(room, p.id),
             isKickingBall: kickerId === p.id,
         };
     });
 
-    return { players, ball: { x: bx, y: by } };
+    return { players, ball };
 }
 
 /**
@@ -103,7 +127,9 @@ export function createEngine<Cfg>(
             throw err;
         } finally {
             const flushed = flushRuntime();
+
             uninstall();
+
             if (!caught && flushed.transition) {
                 throw new Error(
                     "$next cannot be used during state setup/cleanup",
@@ -114,7 +140,9 @@ export function createEngine<Cfg>(
 
     function ensureFactory(name: string) {
         const factory = registry[name];
+
         if (!factory) throw new Error(`State "${name}" is not registered`);
+
         return factory;
     }
 
@@ -124,6 +152,7 @@ export function createEngine<Cfg>(
         factory?: StateFactory<any>,
     ) {
         const resolved = factory ?? ensureFactory(name);
+
         return runOutsideTick(() => resolved(params ?? {}));
     }
 
@@ -131,7 +160,9 @@ export function createEngine<Cfg>(
         target: { api: ReturnType<StateFactory<any>> } | null,
     ) {
         if (!target || !target.api.dispose) return;
+
         const dispose = target.api.dispose;
+
         runOutsideTick(() => {
             dispose();
         });
@@ -153,16 +184,20 @@ export function createEngine<Cfg>(
 
     function start(name: string, params?: any) {
         if (running) stop();
+
         const factory = ensureFactory(name);
+
         current = {
             name,
             api: createState(name, params, factory),
         };
+
         running = true;
     }
 
     function stop() {
         disposeState(current);
+
         current = null;
         running = false;
     }
@@ -176,6 +211,7 @@ export function createEngine<Cfg>(
             config: opts.config,
             onStat: onStats,
         });
+
         setRuntimeRoom(room);
 
         // Build state, consume the "kicker" one-tick flag.
@@ -191,6 +227,7 @@ export function createEngine<Cfg>(
 
         // Flush $effects and apply transition if any.
         const flushed = flushRuntime();
+
         uninstall();
 
         if (flushed.transition) {
