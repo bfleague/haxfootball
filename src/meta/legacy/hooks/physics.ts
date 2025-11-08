@@ -24,7 +24,7 @@ export function $blockTeam(team: Team) {
     });
 }
 
-export function $unblockTeams() {
+export function $freeTeams() {
     $effect(($) => {
         const cf = $.CollisionFlags;
         $.room
@@ -44,8 +44,6 @@ export function $unblockTeams() {
             });
     });
 }
-
-export const $freeTeams = $unblockTeams;
 
 export function $blockMiddleLineForTeam(team: Team) {
     $effect(($) => {
@@ -77,5 +75,45 @@ export function $lockBall() {
 export function $unlockBall() {
     $effect(($) => {
         $.setBall({ invMass: 1 });
+    });
+}
+
+export function $stopBall() {
+    $effect(($) => {
+        $.setBall({ xspeed: 0, yspeed: 0 });
+    });
+}
+
+export function $setBallKickForce(force: "fast" | "strong" | "normal") {
+    const getInvMass = (f: string) => {
+        switch (f) {
+            case "fast":
+                return 1.5;
+            case "strong":
+                return 1.2;
+            case "normal":
+            default:
+                return 1;
+        }
+    };
+
+    $effect(($) => {
+        $.setBall({ invMass: getInvMass(force) });
+    });
+}
+
+export function $setBallMoveable() {
+    $effect(($) => {
+        $.room.getPlayerList().forEach((p) => {
+            $.setPlayerDisc(p.id, { invMass: 0.5 });
+        });
+    });
+}
+
+export function $setBallUnmoveable() {
+    $effect(($) => {
+        $.room.getPlayerList().forEach((p) => {
+            $.setPlayerDisc(p.id, { invMass: 1e26 });
+        });
     });
 }

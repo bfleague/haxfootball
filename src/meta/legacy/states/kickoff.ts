@@ -5,7 +5,9 @@ import {
     $blockMiddleLineForTeam,
     $blockTeam,
     $freeTeams,
-    $lockBall,
+    $setBallKickForce,
+    $setBallMoveable,
+    $setBallUnmoveable,
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import type { GameState } from "@common/engine";
@@ -13,14 +15,15 @@ import type { GameState } from "@common/engine";
 export function Kickoff({ forTeam = Team.RED }: { forTeam?: Team }) {
     $blockMiddleLineForTeam(forTeam);
     $blockTeam(opposite(forTeam));
-    $lockBall();
+    $setBallKickForce("strong");
+    $setBallUnmoveable();
 
     function run(state: GameState) {
         const kicker = state.players.find((p) => p.isKickingBall);
 
         if (kicker) {
             $effect(($) => {
-                $.send("Kickoff taken!");
+                $.send("Kickoff kicked!");
                 $.stat("KICKOFF_MADE");
             });
 
@@ -34,6 +37,7 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: Team }) {
     function dispose() {
         $freeTeams();
         $unlockBall();
+        $setBallMoveable();
     }
 
     return { run, dispose };
