@@ -9,5 +9,8 @@
 // the room object as parameter.
 // The state machine only runs when the game is started, and stops
 // when the game is stopped.
+// Stats, logs, and other outputs are returned to the room module
+// that started the state machine at each `next` call, so it can
+// handle them accordingly (e.g., send to players, store in database, etc).
 import { Kickoff } from "./states/kickoff";
 import { KickoffCatch } from "./states/kickoff-catch";
