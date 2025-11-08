@@ -16,10 +16,13 @@
         "skipLibCheck": true,
         "allowJs": true,
         "noEmit": true,
+        "baseUrl": ".",
         "paths": {
+            "@common/*": ["./src/common/*"],
             "@core/*": ["./src/core/*"],
             "@haxball/*": ["./src/haxball/*"],
             "@environment/*": ["./src/environments/*"],
+            "@meta/*": ["./src/meta/*"],
             "@room/*": ["./src/room/*"],
             "@types/*": ["./src/types/*"]
         }

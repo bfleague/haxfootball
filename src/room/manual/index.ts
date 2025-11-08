@@ -1,4 +1,8 @@
 import { createModule } from "@core/module";
+import { createEngine, type Engine } from "@common/engine";
+import { legacyRegistry } from "@meta/legacy/meta";
+import { defaultLegacyConfig, type Config } from "@meta/legacy/config";
+import { Team } from "@common/models";
 
 export const config: RoomConfigObject = {
     roomName: "HaxFootball",
@@ -7,22 +11,34 @@ export const config: RoomConfigObject = {
     public: false,
 };
 
-// Just a test module to demonstrate module creation. In real use-cases,
-// modules would be more complex and handle various events and states.
-// They would also likely be split into separate files for better organization,
-// and they would also call the state machine defined in `src/meta/legacy/meta.ts`.
-const testModule = createModule()
+let engine: Engine<Config> | null = null;
+
+const matchModule = createModule()
+    .onGameStart((room) => {
+        engine = createEngine(room, legacyRegistry, {
+            config: defaultLegacyConfig,
+            onStats: (key) => {
+                console.log(`Stat recorded: ${key}`);
+            },
+        });
+
+        engine.start("KICKOFF", { forTeam: Team.RED });
+    })
+    .onGameTick(() => {
+        if (engine) engine.tick();
+    })
+    .onPlayerBallKick((_room, player) => {
+        if (engine) engine.notePlayerBallKick(player.id);
+    })
+    .onGameStop(() => {
+        if (engine) engine.stop();
+        engine = null;
+    })
     .onPlayerJoin((room, player) => {
         room.setAdmin(player, true);
-    })
-    .onGameStart((room) => {
-        room.send({
-            message: "Game has started! Good luck to all players!",
-            style: "bold",
-        });
     })
     .onRoomLink((_, url) => {
         console.log(`Room link: ${url}`);
     });
 
-export const modules = [testModule];
+export const modules = [matchModule];
