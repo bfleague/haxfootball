@@ -1,0 +1,28 @@
+{
+    "name": "haxfootball",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev:node": "tsx ./src/environments/node.ts",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^24.10.0",
+        "prettier": "^3.6.2",
+        "tsx": "^4.20.6",
+        "typescript": "^5.9.3"
+    },
+    "dependencies": {
+        "@koush/wrtc": "^0.5.3",
+        "@peculiar/webcrypto": "^1.5.0",
+        "https-proxy-agent": "^7.0.6",
+        "json5": "^2.2.3",
+        "pako": "^2.1.0",
+        "ws": "^8.18.3",
+        "xhr2": "^0.2.1"
+    }
+}
