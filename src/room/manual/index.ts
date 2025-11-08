@@ -36,7 +36,7 @@ const matchModule = createModule()
         if (engine) engine.tick();
     })
     .onPlayerBallKick((_room, player) => {
-        if (engine) engine.notePlayerBallKick(player.id);
+        if (engine) engine.trackPlayerBallKick(player.id);
     })
     .onGameStop(() => {
         if (engine) engine.stop();

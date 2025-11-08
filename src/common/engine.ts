@@ -44,7 +44,7 @@ export interface Engine<Cfg = unknown> {
     start: (name: string, params?: any) => void;
     stop: () => void;
     tick: () => void;
-    notePlayerBallKick: (playerId: number) => void;
+    trackPlayerBallKick: (playerId: number) => void;
     isRunning: () => boolean;
     readonly _configBrand?: Cfg;
 }
@@ -244,5 +244,11 @@ export function createEngine<Cfg>(
         return running;
     }
 
-    return { start, stop, tick, notePlayerBallKick, isRunning };
+    return {
+        start,
+        stop,
+        tick,
+        trackPlayerBallKick: notePlayerBallKick,
+        isRunning,
+    };
 }
