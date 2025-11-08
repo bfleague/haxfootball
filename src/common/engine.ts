@@ -68,7 +68,7 @@ function getBallSnapshot(room: Room): { x: number; y: number; radius: number } {
     };
 }
 
-function buildGameState(room: Room, kickerId: number | null): GameState {
+function buildGameState(room: Room, kickerIds: Set<number>): GameState {
     const list = room.getPlayerList();
     const ball = getBallSnapshot(room);
 
@@ -83,7 +83,7 @@ function buildGameState(room: Room, kickerId: number | null): GameState {
             x: px,
             y: py,
             radius: getPlayerRadius(room, p.id),
-            isKickingBall: kickerId === p.id,
+            isKickingBall: kickerIds.has(p.id),
         };
     });
 
@@ -102,7 +102,7 @@ export function createEngine<Cfg>(
     let current: { name: string; api: ReturnType<StateFactory<any>> } | null =
         null;
     let pendingTransition: { to: string; params: any } | null = null;
-    let lastKicker: number | null = null;
+    let kickerSet: Set<number> = new Set();
     let running = false;
 
     // Always have a concrete stats handler; defaults to no-op.
@@ -200,6 +200,7 @@ export function createEngine<Cfg>(
 
         current = null;
         running = false;
+        kickerSet.clear();
     }
 
     function tick() {
@@ -215,8 +216,9 @@ export function createEngine<Cfg>(
         setRuntimeRoom(room);
 
         // Build state, consume the "kicker" one-tick flag.
-        const gs = buildGameState(room, lastKicker);
-        lastKicker = null;
+        const currentKickers = kickerSet;
+        kickerSet = new Set();
+        const gs = buildGameState(room, currentKickers);
 
         // Run state logic; `$next` throws a sentinel to halt local flow.
         try {
@@ -237,7 +239,7 @@ export function createEngine<Cfg>(
     }
 
     function trackPlayerBallKick(playerId: number) {
-        lastKicker = playerId;
+        kickerSet.add(playerId);
     }
 
     function isRunning() {
