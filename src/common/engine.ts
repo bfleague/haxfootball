@@ -122,6 +122,7 @@ export function createEngine<Cfg>(
         : () => {};
 
     function runOutsideTick<T>(fn: () => T): T {
+        room.invalidateCaches();
         const uninstall = installRuntime({
             room,
             config: opts.config,
@@ -221,6 +222,7 @@ export function createEngine<Cfg>(
     function tick() {
         if (!running || !current) return;
 
+        room.invalidateCaches();
         // Install per-tick runtime ($effect, $next, $config).
         const currentTickNumber = tickNumber;
 

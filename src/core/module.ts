@@ -166,86 +166,30 @@ export function createModule() {
 export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
     const room = new Room(roomObject);
 
-    roomObject.onPlayerJoin = (player) =>
-        modules.forEach((module) => module.call("onPlayerJoin", room, player));
+    const emit =
+        (eventName: string) =>
+        (...args: any[]) => {
+            room.invalidateCaches();
+            modules.forEach((module) => module.call(eventName, room, ...args));
+        };
 
-    roomObject.onPlayerLeave = (player) =>
-        modules.forEach((module) => module.call("onPlayerLeave", room, player));
-
-    roomObject.onTeamVictory = (scores) =>
-        modules.forEach((module) => module.call("onTeamVictory", room, scores));
-
-    roomObject.onPlayerChat = (player, message) => {
-        modules.forEach((module) =>
-            module.call("onPlayerChat", room, player, message),
-        );
-    };
-
-    roomObject.onPlayerBallKick = (player) =>
-        modules.forEach((module) =>
-            module.call("onPlayerBallKick", room, player),
-        );
-
-    roomObject.onTeamGoal = (team) =>
-        modules.forEach((module) => module.call("onTeamGoal", room, team));
-
-    roomObject.onGameStart = (byPlayer) =>
-        modules.forEach((module) => module.call("onGameStart", room, byPlayer));
-
-    roomObject.onGameStop = (byPlayer) =>
-        modules.forEach((module) => module.call("onGameStop", room, byPlayer));
-
-    roomObject.onPlayerAdminChange = (changedPlayer, byPlayer) =>
-        modules.forEach((module) =>
-            module.call("onPlayerAdminChange", room, changedPlayer, byPlayer),
-        );
-
-    roomObject.onPlayerTeamChange = (changedPlayer, byPlayer) =>
-        modules.forEach((module) =>
-            module.call("onPlayerTeamChange", room, changedPlayer, byPlayer),
-        );
-
-    roomObject.onPlayerKicked = (kickedPlayer, reason, ban, byPlayer) =>
-        modules.forEach((module) =>
-            module.call(
-                "onPlayerKicked",
-                room,
-                kickedPlayer,
-                reason,
-                ban,
-                byPlayer,
-            ),
-        );
-
-    roomObject.onGameTick = () =>
-        modules.forEach((module) => module.call("onGameTick", room));
-
-    roomObject.onGamePause = (byPlayer) =>
-        modules.forEach((module) => module.call("onGamePause", room, byPlayer));
-
-    roomObject.onGameUnpause = (byPlayer) =>
-        modules.forEach((module) =>
-            module.call("onGameUnpause", room, byPlayer),
-        );
-
-    roomObject.onPositionsReset = () =>
-        modules.forEach((module) => module.call("onPositionsReset", room));
-
-    roomObject.onPlayerActivity = (player) =>
-        modules.forEach((module) =>
-            module.call("onPlayerActivity", room, player),
-        );
-
-    roomObject.onStadiumChange = (newStadiumName, byPlayer) =>
-        modules.forEach((module) =>
-            module.call("onStadiumChange", room, newStadiumName, byPlayer),
-        );
-
-    roomObject.onRoomLink = (url) =>
-        modules.forEach((module) => module.call("onRoomLink", room, url));
-
-    roomObject.onKickRateLimitSet = (min, rate, burst, byPlayer) =>
-        modules.forEach((module) =>
-            module.call("onKickRateLimitSet", room, min, rate, burst, byPlayer),
-        );
+    roomObject.onPlayerJoin = emit("onPlayerJoin");
+    roomObject.onPlayerLeave = emit("onPlayerLeave");
+    roomObject.onTeamVictory = emit("onTeamVictory");
+    roomObject.onPlayerChat = emit("onPlayerChat");
+    roomObject.onPlayerBallKick = emit("onPlayerBallKick");
+    roomObject.onTeamGoal = emit("onTeamGoal");
+    roomObject.onGameStart = emit("onGameStart");
+    roomObject.onGameStop = emit("onGameStop");
+    roomObject.onPlayerAdminChange = emit("onPlayerAdminChange");
+    roomObject.onPlayerTeamChange = emit("onPlayerTeamChange");
+    roomObject.onPlayerKicked = emit("onPlayerKicked");
+    roomObject.onGameTick = emit("onGameTick");
+    roomObject.onGamePause = emit("onGamePause");
+    roomObject.onGameUnpause = emit("onGameUnpause");
+    roomObject.onPositionsReset = emit("onPositionsReset");
+    roomObject.onPlayerActivity = emit("onPlayerActivity");
+    roomObject.onStadiumChange = emit("onStadiumChange");
+    roomObject.onRoomLink = emit("onRoomLink");
+    roomObject.onKickRateLimitSet = emit("onKickRateLimitSet");
 }

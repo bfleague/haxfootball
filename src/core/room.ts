@@ -1,7 +1,44 @@
 import { StadiumObject } from "@haxball/stadium";
 
 export class Room {
+    private playerListCache: PlayerObject[] | null = null;
+    private discPropsCache = new Map<number, DiscPropertiesObject | null>();
+    private playerDiscPropsCache = new Map<
+        number,
+        DiscPropertiesObject | null
+    >();
+
     constructor(private room: RoomObject) {}
+
+    private invalidateAllCaches() {
+        this.playerListCache = null;
+        this.discPropsCache.clear();
+        this.playerDiscPropsCache.clear();
+    }
+
+    private invalidatePlayerListCache() {
+        this.playerListCache = null;
+    }
+
+    private invalidateDiscCache(discIndex?: number) {
+        if (typeof discIndex === "number") {
+            this.discPropsCache.delete(discIndex);
+        } else {
+            this.discPropsCache.clear();
+        }
+    }
+
+    private invalidatePlayerDiscCache(playerId?: number) {
+        if (typeof playerId === "number") {
+            this.playerDiscPropsCache.delete(playerId);
+        } else {
+            this.playerDiscPropsCache.clear();
+        }
+    }
+
+    public invalidateCaches(): void {
+        this.invalidateAllCaches();
+    }
 
     public send({
         message,
@@ -34,6 +71,7 @@ export class Room {
     public setAdmin(player: number | PlayerObject, admin: boolean): void {
         const playerId = typeof player === "number" ? player : player.id;
         this.room.setPlayerAdmin(playerId, admin);
+        this.invalidatePlayerListCache();
     }
 
     public setTeam(player: PlayerObject, team: TeamID): void;
@@ -41,6 +79,7 @@ export class Room {
     public setTeam(player: number | PlayerObject, team: TeamID): void {
         const playerId = typeof player === "number" ? player : player.id;
         this.room.setPlayerTeam(playerId, team);
+        this.invalidatePlayerListCache();
     }
 
     public kick(player: PlayerObject, reason?: string): void;
@@ -48,6 +87,7 @@ export class Room {
     public kick(player: number | PlayerObject, reason = ""): void {
         const playerId = typeof player === "number" ? player : player.id;
         this.room.kickPlayer(playerId, reason, false);
+        this.invalidateCaches();
     }
 
     public ban(player: PlayerObject, reason?: string): void;
@@ -55,14 +95,17 @@ export class Room {
     public ban(player: number | PlayerObject, reason = ""): void {
         const playerId = typeof player === "number" ? player : player.id;
         this.room.kickPlayer(playerId, reason, true);
+        this.invalidateCaches();
     }
 
     public clearBan(playerId: number): void {
         this.room.clearBan(playerId);
+        this.invalidateCaches();
     }
 
     public clearBans(): void {
         this.room.clearBans();
+        this.invalidateCaches();
     }
 
     public getPlayer(playerId: number): PlayerObject | null {
@@ -70,7 +113,10 @@ export class Room {
     }
 
     public getPlayerList(): PlayerObject[] {
-        return this.room.getPlayerList();
+        if (!this.playerListCache) {
+            this.playerListCache = this.room.getPlayerList();
+        }
+        return this.playerListCache;
     }
 
     public reorderPlayers(
@@ -78,6 +124,7 @@ export class Room {
         moveToTop: boolean = true,
     ): void {
         this.room.reorderPlayers(playerIds, moveToTop);
+        this.invalidatePlayerListCache();
     }
 
     public setAvatar(player: PlayerObject, avatar: string | null): void;
@@ -88,22 +135,27 @@ export class Room {
     ): void {
         const playerId = typeof player === "number" ? player : player.id;
         this.room.setPlayerAvatar(playerId, avatar);
+        this.invalidatePlayerListCache();
     }
 
     public startGame(): void {
         this.room.startGame();
+        this.invalidateCaches();
     }
 
     public stopGame(): void {
         this.room.stopGame();
+        this.invalidateCaches();
     }
 
     public pauseGame(paused: boolean = true): void {
         this.room.pauseGame(paused);
+        this.invalidateCaches();
     }
 
     public unpauseGame(): void {
         this.room.pauseGame(false);
+        this.invalidateCaches();
     }
 
     public getScores(): ScoresObject | null {
@@ -120,18 +172,20 @@ export class Room {
 
     public setStadium(stadiumFileContents: StadiumObject): void {
         this.room.setCustomStadium(JSON.stringify(stadiumFileContents));
+        this.invalidateCaches();
     }
 
     public setTeamsLock(locked: boolean): void {
         this.room.setTeamsLock(locked);
+        this.invalidatePlayerListCache();
     }
 
     public lockTeams(): void {
-        this.room.setTeamsLock(true);
+        this.setTeamsLock(true);
     }
 
     public unlockTeams(): void {
-        this.room.setTeamsLock(false);
+        this.setTeamsLock(false);
     }
 
     public setTeamColors(
@@ -168,7 +222,13 @@ export class Room {
     }
 
     public getDiscProperties(discIndex: number): DiscPropertiesObject | null {
-        return this.room.getDiscProperties(discIndex);
+        if (this.discPropsCache.has(discIndex)) {
+            return this.discPropsCache.get(discIndex) ?? null;
+        }
+
+        const value = this.room.getDiscProperties(discIndex);
+        this.discPropsCache.set(discIndex, value);
+        return value;
     }
 
     public setDiscProperties(
@@ -176,6 +236,7 @@ export class Room {
         properties: DiscPropertiesObject,
     ): void {
         this.room.setDiscProperties(discIndex, properties);
+        this.invalidateDiscCache(discIndex);
     }
 
     public getPlayerDiscProperties(
@@ -188,7 +249,13 @@ export class Room {
         player: number | PlayerObject,
     ): DiscPropertiesObject | null {
         const playerId = typeof player === "number" ? player : player.id;
-        return this.room.getPlayerDiscProperties(playerId);
+        if (this.playerDiscPropsCache.has(playerId)) {
+            return this.playerDiscPropsCache.get(playerId) ?? null;
+        }
+
+        const value = this.room.getPlayerDiscProperties(playerId);
+        this.playerDiscPropsCache.set(playerId, value);
+        return value;
     }
 
     public setPlayerDiscProperties(
@@ -205,6 +272,7 @@ export class Room {
     ): void {
         const playerId = typeof player === "number" ? player : player.id;
         this.room.setPlayerDiscProperties(playerId, properties);
+        this.invalidatePlayerDiscCache(playerId);
     }
 
     public startRecording(): void {
