@@ -10,6 +10,7 @@ import {
     $setBallUnmoveable,
 } from "@meta/legacy/hooks/physics";
 import type { GameState } from "@common/engine";
+import { t } from "@lingui/core/macro";
 
 export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
     $trapTeamInMidField(forTeam);
@@ -22,7 +23,7 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
 
         if (kicker) {
             $effect(($) => {
-                $.send("Kickoff kicked!");
+                $.send(t`Kickoff kicked!`);
                 $.stat("KICKOFF_MADE");
             });
 

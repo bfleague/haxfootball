@@ -2,6 +2,7 @@ import { $effect, $next } from "@common/hooks";
 import { type FieldTeam } from "@common/models";
 import { opposite, findBallCatcher } from "@common/utils";
 import type { GameState } from "@common/engine";
+import { t } from "@lingui/core/macro";
 // import type { Config } from "@meta/legacy/config";
 
 export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
@@ -17,7 +18,7 @@ export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (catcher) {
             $effect(($) => {
-                $.send("Kickoff caught!");
+                $.send(t`Kickoff caught!`);
                 $.stat("KICKOFF_CAUGHT");
             });
 

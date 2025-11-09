@@ -1,0 +1,27 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-11-09 18:43-0300\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. placeholder {0}: player.name
+#: src/meta/legacy/states/kickoff-caught.ts:32
+msgid "{0} caught by {catcherNames}!"
+msgstr "{0} caught by {catcherNames}!"
+
+#: src/meta/legacy/states/kickoff-catch.ts:21
+msgid "Kickoff caught!"
+msgstr "Kickoff caught!"
+
+#: src/meta/legacy/states/kickoff.ts:26
+msgid "Kickoff kicked!"
+msgstr "Kickoff kicked!"
