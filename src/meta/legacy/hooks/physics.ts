@@ -4,7 +4,7 @@ import { Team } from "@common/models";
 export function $trapTeamInEndZone(team: Team) {
     $effect(($) => {
         const cf = $.CollisionFlags;
-        const players = $.room.getPlayerList();
+        const players = $.getPlayerList();
 
         const target =
             team === Team.RED
@@ -12,7 +12,7 @@ export function $trapTeamInEndZone(team: Team) {
                 : players.filter((p) => p.team === Team.BLUE);
 
         target.forEach((p) => {
-            const disc = $.room.getPlayerDiscProperties(p.id);
+            const disc = $.getPlayerDiscProperties(p.id);
 
             if (!disc) return;
 
@@ -27,8 +27,7 @@ export function $trapTeamInEndZone(team: Team) {
 export function $untrapAllTeams() {
     $effect(($) => {
         const cf = $.CollisionFlags;
-        $.room
-            .getPlayerList()
+        $.getPlayerList()
             .map((p) => ({
                 id: p.id,
                 base:
@@ -50,11 +49,10 @@ export function $trapTeamInMidField(team: Team) {
         const cf = $.CollisionFlags;
         const bit = team === Team.RED ? cf.c2 : cf.c3;
 
-        $.room
-            .getPlayerList()
+        $.getPlayerList()
             .filter((p) => p.team === team)
             .forEach((p) => {
-                const disc = $.room.getPlayerDiscProperties(p.id);
+                const disc = $.getPlayerDiscProperties(p.id);
 
                 if (!disc) return;
 
@@ -104,7 +102,7 @@ export function $setBallKickForce(force: "fast" | "strong" | "normal") {
 
 export function $setBallMoveable() {
     $effect(($) => {
-        $.room.getPlayerList().forEach((p) => {
+        $.getPlayerList().forEach((p) => {
             $.setPlayerDisc(p.id, { invMass: 0.5 });
         });
     });
@@ -112,7 +110,7 @@ export function $setBallMoveable() {
 
 export function $setBallUnmoveable() {
     $effect(($) => {
-        $.room.getPlayerList().forEach((p) => {
+        $.getPlayerList().forEach((p) => {
             $.setPlayerDisc(p.id, { invMass: 1e26 });
         });
     });

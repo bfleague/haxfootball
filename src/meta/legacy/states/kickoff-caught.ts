@@ -14,7 +14,7 @@ export function KickoffCaught({
     const cfg = $config<Config>();
 
     $effect(($) => {
-        $.room.setAvatar(playerId, AVATARS.BALL);
+        $.setAvatar(playerId, AVATARS.BALL);
     });
 
     function run(state: GameState) {
@@ -39,7 +39,7 @@ export function KickoffCaught({
 
     function dispose() {
         $effect(($) => {
-            $.room.setAvatar(playerId, null);
+            $.setAvatar(playerId, null);
         });
     }
 
