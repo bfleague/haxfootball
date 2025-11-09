@@ -28,6 +28,8 @@ type DiscPropsPatch = Partial<DiscProps>;
 
 export type MutationBuffer = ReturnType<typeof createMutationBuffer>;
 
+const BALL_DEFAULT_INDEX = 0;
+
 const mergeProps =
     <T extends Record<string, any>>(map: Map<number, T>) =>
     (key: number, props: T) => {
@@ -117,7 +119,7 @@ let RUNTIME: {
 } | null = null;
 
 /**
- * Install a per-tick runtime. Ensures stat handler always exists.
+ * Install a per-tick runtime.
  */
 export function installRuntime(ctx: {
     room: Room;
@@ -234,7 +236,8 @@ export function flushRuntime(): {
         stat: (k: string) => RUNTIME!.onStat(k),
         setPlayerDisc: (playerId: number, props: DiscProps) =>
             mutations.queuePlayerDisc(playerId, props),
-        setBall: (props: DiscProps) => mutations.queueDisc(0, props), // default ball disc index
+        setBall: (props: DiscProps) =>
+            mutations.queueDisc(BALL_DEFAULT_INDEX, props),
     }) as EffectApi;
 
     for (let i = 0; i < RUNTIME.effects.length; i++) {

@@ -234,7 +234,6 @@ export function createEngine<Cfg>(
         sharedTickMutations = createMutationBuffer(room);
 
         try {
-            // Install per-tick runtime ($effect, $next, $config).
             const currentTickNumber = tickNumber;
 
             const uninstall = installRuntime({
