@@ -1,6 +1,5 @@
 import { Room } from "@core/room";
 
-// Derive types from the Room wrapper to avoid importing globals.
 type DiscProps = Parameters<Room["setDiscProperties"]>[1];
 type CFType = Room["collisionFlags"];
 type SendOptions = Parameters<Room["send"]>[0];
