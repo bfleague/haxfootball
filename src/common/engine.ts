@@ -1,4 +1,10 @@
-import { installRuntime, flushRuntime, setRuntimeRoom } from "@common/runtime";
+import {
+    installRuntime,
+    flushRuntime,
+    setRuntimeRoom,
+    createMutationBuffer,
+    type MutationBuffer,
+} from "@common/runtime";
 import { Room } from "@core/room";
 import { Team, type FieldTeam, isFieldTeam } from "@common/models";
 
@@ -115,6 +121,7 @@ export function createEngine<Cfg>(
     let kickerSet: Set<number> = new Set();
     let running = false;
     let tickNumber = 0;
+    let sharedTickMutations: MutationBuffer | null = null;
 
     // Always have a concrete stats handler; defaults to no-op.
     const onStats: (key: string) => void = opts.onStats
@@ -128,6 +135,7 @@ export function createEngine<Cfg>(
             config: opts.config,
             onStat: onStats,
             tickNumber,
+            mutations: sharedTickMutations ?? undefined,
         });
 
         setRuntimeRoom(room);
@@ -223,41 +231,57 @@ export function createEngine<Cfg>(
         if (!running || !current) return;
 
         room.invalidateCaches();
-        // Install per-tick runtime ($effect, $next, $config).
-        const currentTickNumber = tickNumber;
+        sharedTickMutations = createMutationBuffer(room);
 
-        const uninstall = installRuntime({
-            room,
-            config: opts.config,
-            onStat: onStats,
-            tickNumber: currentTickNumber,
-        });
-
-        setRuntimeRoom(room);
-
-        // Build state, consume the "kicker" one-tick flag.
-        const currentKickers = kickerSet;
-        kickerSet = new Set();
-        const gs = buildGameState(room, currentKickers, currentTickNumber);
-
-        // Run state logic; `$next` throws a sentinel to halt local flow.
         try {
-            current.api.run(gs);
-        } catch (err) {
-            if (err !== "__NEXT__") throw err;
+            // Install per-tick runtime ($effect, $next, $config).
+            const currentTickNumber = tickNumber;
+
+            const uninstall = installRuntime({
+                room,
+                config: opts.config,
+                onStat: onStats,
+                tickNumber: currentTickNumber,
+                mutations: sharedTickMutations ?? undefined,
+            });
+
+            setRuntimeRoom(room);
+
+            // Build state, consume the "kicker" one-tick flag.
+            const currentKickers = kickerSet;
+            kickerSet = new Set();
+            const gs = buildGameState(room, currentKickers, currentTickNumber);
+
+            let flushed: {
+                transition: { to: string; params: any } | null;
+            } | null = null;
+
+            try {
+                // Run state logic; `$next` throws a sentinel to halt local flow.
+                try {
+                    current.api.run(gs);
+                } catch (err) {
+                    if (err !== "__NEXT__") throw err;
+                }
+
+                // Flush $effects and apply transition if any.
+                flushed = flushRuntime();
+            } finally {
+                uninstall();
+            }
+
+            if (flushed && flushed.transition) {
+                pendingTransition = flushed.transition;
+                applyTransition();
+            }
+
+            tickNumber += 1;
+        } finally {
+            if (sharedTickMutations) {
+                sharedTickMutations.flush();
+                sharedTickMutations = null;
+            }
         }
-
-        // Flush $effects and apply transition if any.
-        const flushed = flushRuntime();
-
-        uninstall();
-
-        if (flushed.transition) {
-            pendingTransition = flushed.transition;
-            applyTransition();
-        }
-
-        tickNumber += 1;
     }
 
     function trackPlayerBallKick(playerId: number) {
