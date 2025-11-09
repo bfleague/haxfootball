@@ -13,6 +13,8 @@
         "noUnusedParameters": true,
         "isolatedModules": true,
         "esModuleInterop": true,
+        "module": "esnext",
+        "moduleResolution": "node",
         "skipLibCheck": true,
         "allowJs": true,
         "noEmit": true,
@@ -24,7 +26,8 @@
             "@environment/*": ["./src/environments/*"],
             "@meta/*": ["./src/meta/*"],
             "@room/*": ["./src/room/*"],
-            "@types/*": ["./src/types/*"]
+            "@types/*": ["./src/types/*"],
+            "@dev/*": ["./src/dev/*"]
         }
     },
     "exclude": ["prettier.config.js"]
