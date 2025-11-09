@@ -1,20 +1,18 @@
-import { $effect, $config, $next } from "@common/hooks";
+import { $effect, $next } from "@common/hooks";
 import { type FieldTeam } from "@common/models";
-import { opposite, getDistance } from "@common/utils";
+import { opposite, findCatchingBallPlayer } from "@common/utils";
 import type { GameState } from "@common/engine";
-import type { Config } from "@meta/legacy/config";
+// import type { Config } from "@meta/legacy/config";
 
 export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
-    const cfg = $config<Config>();
+    // const cfg = $config<Config>();
 
     function run(state: GameState) {
         const receivingTeam = opposite(kickingTeam);
 
-        const catcher = state.players.find(
-            (p) =>
-                p.team === receivingTeam &&
-                (p.isKickingBall ||
-                    getDistance(p, state.ball) <= cfg.TOUCHING_DISTANCE),
+        const catcher = findCatchingBallPlayer(
+            state.ball,
+            state.players.filter((p) => p.team === receivingTeam),
         );
 
         if (catcher) {

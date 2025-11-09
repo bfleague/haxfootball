@@ -1,7 +1,3 @@
-export interface Config {
-    TOUCHING_DISTANCE: number;
-}
+export interface Config {}
 
-export const defaultConfig: Config = {
-    TOUCHING_DISTANCE: 14,
-};
+export const defaultConfig: Config = {};
