@@ -39,6 +39,7 @@ export interface GameStateBall {
 export interface GameState {
     players: GameStatePlayer[];
     ball: GameStateBall;
+    tickNumber: number;
 }
 
 export interface Engine<Cfg = unknown> {
@@ -69,7 +70,11 @@ function getBallSnapshot(room: Room): { x: number; y: number; radius: number } {
     };
 }
 
-function buildGameState(room: Room, kickerIds: Set<number>): GameState {
+function buildGameState(
+    room: Room,
+    kickerIds: Set<number>,
+    tickNumber: number,
+): GameState {
     const list = room.getPlayerList();
     const ball = getBallSnapshot(room);
 
@@ -79,8 +84,7 @@ function buildGameState(room: Room, kickerIds: Set<number>): GameState {
             const hasPos = !!p.position;
             const px = hasPos ? p.position.x : 0;
             const py = hasPos ? p.position.y : 0;
-            const team: FieldTeam =
-                p.team === Team.RED ? Team.RED : Team.BLUE;
+            const team: FieldTeam = p.team === Team.RED ? Team.RED : Team.BLUE;
 
             return {
                 id: p.id,
@@ -93,7 +97,7 @@ function buildGameState(room: Room, kickerIds: Set<number>): GameState {
             };
         });
 
-    return { players, ball };
+    return { players, ball, tickNumber };
 }
 
 /**
@@ -110,6 +114,7 @@ export function createEngine<Cfg>(
     let pendingTransition: { to: string; params: any } | null = null;
     let kickerSet: Set<number> = new Set();
     let running = false;
+    let tickNumber = 0;
 
     // Always have a concrete stats handler; defaults to no-op.
     const onStats: (key: string) => void = opts.onStats
@@ -121,6 +126,7 @@ export function createEngine<Cfg>(
             room,
             config: opts.config,
             onStat: onStats,
+            tickNumber,
         });
 
         setRuntimeRoom(room);
@@ -193,6 +199,8 @@ export function createEngine<Cfg>(
 
         const factory = ensureFactory(name);
 
+        tickNumber = 0;
+
         current = {
             name,
             api: createState(name, params, factory),
@@ -207,16 +215,20 @@ export function createEngine<Cfg>(
         current = null;
         running = false;
         kickerSet.clear();
+        tickNumber = 0;
     }
 
     function tick() {
         if (!running || !current) return;
 
         // Install per-tick runtime ($effect, $next, $config).
+        const currentTickNumber = tickNumber;
+
         const uninstall = installRuntime({
             room,
             config: opts.config,
             onStat: onStats,
+            tickNumber: currentTickNumber,
         });
 
         setRuntimeRoom(room);
@@ -224,7 +236,7 @@ export function createEngine<Cfg>(
         // Build state, consume the "kicker" one-tick flag.
         const currentKickers = kickerSet;
         kickerSet = new Set();
-        const gs = buildGameState(room, currentKickers);
+        const gs = buildGameState(room, currentKickers, currentTickNumber);
 
         // Run state logic; `$next` throws a sentinel to halt local flow.
         try {
@@ -242,6 +254,8 @@ export function createEngine<Cfg>(
             pendingTransition = flushed.transition;
             applyTransition();
         }
+
+        tickNumber += 1;
     }
 
     function trackPlayerBallKick(playerId: number) {

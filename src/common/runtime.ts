@@ -30,6 +30,7 @@ export interface EffectApi extends RoomMethodApi {
         sound?: ChatSoundString,
     ): void;
     send(options: SendOptions): void;
+    getTickNumber: () => number;
     CollisionFlags: CFType;
     stat: (key: string) => void;
     setPlayerDisc: (playerId: number, props: DiscProps) => void;
@@ -42,6 +43,7 @@ let RUNTIME: {
     effects: Array<(api: EffectApi) => void>;
     transition: { to: string; params: any } | null;
     onStat: (k: string) => void;
+    tickNumber: number;
 } | null = null;
 
 /**
@@ -51,6 +53,7 @@ export function installRuntime(ctx: {
     room: Room;
     config: unknown;
     onStat?: (k: string) => void;
+    tickNumber?: number;
 }) {
     const onStat = ctx.onStat ? ctx.onStat : () => {};
 
@@ -60,6 +63,7 @@ export function installRuntime(ctx: {
         effects: [],
         transition: null,
         onStat,
+        tickNumber: typeof ctx.tickNumber === "number" ? ctx.tickNumber : 0,
     };
 
     return function uninstall() {
@@ -140,6 +144,7 @@ export function flushRuntime(): {
                 sound: sound ?? "normal",
             });
         },
+        getTickNumber: () => RUNTIME!.tickNumber,
         CollisionFlags: cf,
         stat: (k: string) => RUNTIME!.onStat(k),
         setPlayerDisc: (playerId: number, props: DiscProps) =>
