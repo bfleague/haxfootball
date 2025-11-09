@@ -22,3 +22,7 @@ export function getDistance(a: PointLike, b: PointLike): number {
 
     return surfaceDistance > 0 ? surfaceDistance : 0;
 }
+
+export const AVATARS = {
+    BALL: "🏈",
+};

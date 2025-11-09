@@ -1,4 +1,4 @@
-import { $effect, $config } from "@common/hooks";
+import { $effect, $config, $next } from "@common/hooks";
 import { Team } from "@common/models";
 import { opposite, getDistance } from "@common/utils";
 import type { GameState } from "@common/engine";
@@ -21,7 +21,11 @@ export function KickoffCatch({ kickingTeam }: { kickingTeam: Team }) {
             $effect(($) => {
                 $.send("Kickoff caught!");
                 $.stat("KICKOFF_CAUGHT");
-                $.stopGame();
+            });
+
+            $next({
+                to: "KICKOFF_CAUGHT",
+                params: { playerId: catcher.id, receivingTeam },
             });
         }
     }

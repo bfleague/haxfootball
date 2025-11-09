@@ -22,6 +22,7 @@ export interface EngineOptions<Cfg> {
  */
 export interface GameStatePlayer {
     id: number;
+    name: string;
     team: Team;
     x: number;
     y: number;
@@ -79,6 +80,7 @@ function buildGameState(room: Room, kickerIds: Set<number>): GameState {
 
         return {
             id: p.id,
+            name: p.name,
             team: p.team as Team,
             x: px,
             y: py,

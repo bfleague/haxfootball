@@ -6,9 +6,11 @@ export enum Team {
 
 export interface Player {
     id: number;
+    name: string;
     team: Team;
     x: number;
     y: number;
+    radius: number;
     isKickingBall: boolean;
 }
 
