@@ -116,6 +116,7 @@ let RUNTIME: {
     tickNumber: number;
     mutations: MutationBuffer;
     ownsMutations: boolean;
+    stopRequested: boolean;
 } | null = null;
 
 /**
@@ -140,6 +141,7 @@ export function installRuntime(ctx: {
         tickNumber: typeof ctx.tickNumber === "number" ? ctx.tickNumber : 0,
         mutations,
         ownsMutations: !ctx.mutations,
+        stopRequested: false,
     };
 
     return function uninstall() {
@@ -193,8 +195,9 @@ export function $config<Cfg>(): Cfg {
  */
 export function flushRuntime(): {
     transition: { to: string; params: any } | null;
+    stopRequested: boolean;
 } {
-    if (!RUNTIME) return { transition: null };
+    if (!RUNTIME) return { transition: null, stopRequested: false };
 
     const room = RUNTIME.room;
     const cf = room.collisionFlags;
@@ -231,6 +234,10 @@ export function flushRuntime(): {
             mutations.queueTeam(player, team),
         setAdmin: (player: PlayerRef, admin: AdminValue) =>
             mutations.queueAdmin(player, admin),
+        stopGame: () => {
+            RUNTIME!.stopRequested = true;
+            room.stopGame();
+        },
         getTickNumber: () => RUNTIME!.tickNumber,
         CollisionFlags: cf,
         stat: (k: string) => RUNTIME!.onStat(k),
@@ -250,9 +257,10 @@ export function flushRuntime(): {
     }
 
     const tr = RUNTIME.transition;
+    const stopRequested = RUNTIME.stopRequested;
 
     RUNTIME.effects = [];
     RUNTIME.transition = null;
 
-    return { transition: tr };
+    return { transition: tr, stopRequested };
 }

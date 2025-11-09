@@ -120,6 +120,7 @@ export function createEngine<Cfg>(
     let pendingTransition: { to: string; params: any } | null = null;
     let kickerSet: Set<number> = new Set();
     let running = false;
+    let disableStateExecution = false;
     let tickNumber = 0;
     let sharedTickMutations: MutationBuffer | null = null;
 
@@ -155,6 +156,11 @@ export function createEngine<Cfg>(
                 throw new Error(
                     "$next cannot be used during state setup/cleanup",
                 );
+            }
+
+            if (flushed.stopRequested) {
+                disableStateExecution = true;
+                running = false;
             }
         }
     }
@@ -209,6 +215,7 @@ export function createEngine<Cfg>(
         const factory = ensureFactory(name);
 
         tickNumber = 0;
+        disableStateExecution = false;
 
         current = {
             name,
@@ -225,10 +232,11 @@ export function createEngine<Cfg>(
         running = false;
         kickerSet.clear();
         tickNumber = 0;
+        disableStateExecution = false;
     }
 
     function tick() {
-        if (!running || !current) return;
+        if (!running || !current || disableStateExecution) return;
 
         room.invalidateCaches();
         sharedTickMutations = createMutationBuffer(room);
@@ -253,6 +261,7 @@ export function createEngine<Cfg>(
 
             let flushed: {
                 transition: { to: string; params: any } | null;
+                stopRequested: boolean;
             } | null = null;
 
             try {
@@ -269,7 +278,11 @@ export function createEngine<Cfg>(
                 uninstall();
             }
 
-            if (flushed && flushed.transition) {
+            if (flushed?.stopRequested) {
+                pendingTransition = null;
+                disableStateExecution = true;
+                running = false;
+            } else if (flushed && flushed.transition) {
                 pendingTransition = flushed.transition;
                 applyTransition();
             }
