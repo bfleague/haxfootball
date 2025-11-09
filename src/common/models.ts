@@ -4,10 +4,16 @@ export enum Team {
     BLUE = 2,
 }
 
+export type FieldTeam = Team.RED | Team.BLUE;
+
+export function isFieldTeam(team: Team | number): team is FieldTeam {
+    return team === Team.RED || team === Team.BLUE;
+}
+
 export interface Player {
     id: number;
     name: string;
-    team: Team;
+    team: FieldTeam;
     x: number;
     y: number;
     radius: number;

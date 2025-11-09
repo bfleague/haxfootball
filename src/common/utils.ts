@@ -1,10 +1,7 @@
-import { Team } from "@common/models";
+import { Team, type FieldTeam } from "@common/models";
 
-export function opposite(t: Team): Team {
-    if (t === Team.RED) return Team.BLUE;
-    if (t === Team.BLUE) return Team.RED;
-
-    return t;
+export function opposite(t: FieldTeam): FieldTeam {
+    return t === Team.RED ? Team.BLUE : Team.RED;
 }
 
 type PointLike = { x: number; y: number; radius?: number | null };

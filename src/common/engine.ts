@@ -1,6 +1,6 @@
 import { installRuntime, flushRuntime, setRuntimeRoom } from "@common/runtime";
 import { Room } from "@core/room";
-import { Team } from "@common/models";
+import { Team, type FieldTeam, isFieldTeam } from "@common/models";
 
 /**
  * Metas register state factories by string key.
@@ -23,7 +23,7 @@ export interface EngineOptions<Cfg> {
 export interface GameStatePlayer {
     id: number;
     name: string;
-    team: Team;
+    team: FieldTeam;
     x: number;
     y: number;
     radius: number;
@@ -73,21 +73,25 @@ function buildGameState(room: Room, kickerIds: Set<number>): GameState {
     const list = room.getPlayerList();
     const ball = getBallSnapshot(room);
 
-    const players = list.map((p) => {
-        const hasPos = !!p.position;
-        const px = hasPos ? p.position.x : 0;
-        const py = hasPos ? p.position.y : 0;
+    const players = list
+        .filter((p) => isFieldTeam(p.team))
+        .map((p) => {
+            const hasPos = !!p.position;
+            const px = hasPos ? p.position.x : 0;
+            const py = hasPos ? p.position.y : 0;
+            const team: FieldTeam =
+                p.team === Team.RED ? Team.RED : Team.BLUE;
 
-        return {
-            id: p.id,
-            name: p.name,
-            team: p.team as Team,
-            x: px,
-            y: py,
-            radius: getPlayerRadius(room, p.id),
-            isKickingBall: kickerIds.has(p.id),
-        };
-    });
+            return {
+                id: p.id,
+                name: p.name,
+                team,
+                x: px,
+                y: py,
+                radius: getPlayerRadius(room, p.id),
+                isKickingBall: kickerIds.has(p.id),
+            };
+        });
 
     return { players, ball };
 }

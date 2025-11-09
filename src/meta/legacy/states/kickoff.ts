@@ -1,5 +1,5 @@
 import { $effect, $next } from "@common/hooks";
-import { Team } from "@common/models";
+import { Team, type FieldTeam } from "@common/models";
 import { opposite } from "@common/utils";
 import {
     $trapTeamInMidField,
@@ -11,7 +11,7 @@ import {
 } from "@meta/legacy/hooks/physics";
 import type { GameState } from "@common/engine";
 
-export function Kickoff({ forTeam = Team.RED }: { forTeam?: Team }) {
+export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
     $trapTeamInMidField(forTeam);
     $trapTeamInEndZone(opposite(forTeam));
     $setBallKickForce("strong");

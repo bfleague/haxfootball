@@ -1,5 +1,5 @@
 import { $effect, $config } from "@common/hooks";
-import { Team } from "@common/models";
+import type { FieldTeam } from "@common/models";
 import { opposite, getDistance, AVATARS } from "@common/utils";
 import type { GameState } from "@common/engine";
 import type { Config } from "@meta/legacy/config";
@@ -9,7 +9,7 @@ export function KickoffCaught({
     receivingTeam,
 }: {
     playerId: number;
-    receivingTeam: Team;
+    receivingTeam: FieldTeam;
 }) {
     const cfg = $config<Config>();
 

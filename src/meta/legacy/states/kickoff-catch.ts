@@ -1,10 +1,10 @@
 import { $effect, $config, $next } from "@common/hooks";
-import { Team } from "@common/models";
+import { type FieldTeam } from "@common/models";
 import { opposite, getDistance } from "@common/utils";
 import type { GameState } from "@common/engine";
 import type { Config } from "@meta/legacy/config";
 
-export function KickoffCatch({ kickingTeam }: { kickingTeam: Team }) {
+export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
     const cfg = $config<Config>();
 
     function run(state: GameState) {
