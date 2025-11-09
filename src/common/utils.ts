@@ -30,9 +30,11 @@ export function getDistance(a: PointLike, b: PointLike): number {
     return surfaceDistance > 0 ? surfaceDistance : 0;
 }
 
-export function findCatchingBallPlayers<
-    T extends MaybeKickableIdentifiedPointLike,
->(ball: PointLike, players: T[], maxDistance = DEFAULT_TOUCHING_DISTANCE): T[] {
+export function findBallCatchers<T extends MaybeKickableIdentifiedPointLike>(
+    ball: PointLike,
+    players: T[],
+    maxDistance = DEFAULT_TOUCHING_DISTANCE,
+): T[] {
     return players.filter((p) => {
         const distance = getDistance(p, ball);
 
@@ -40,9 +42,7 @@ export function findCatchingBallPlayers<
     });
 }
 
-export function findCatchingBallPlayer<
-    T extends MaybeKickableIdentifiedPointLike,
->(
+export function findBallCatcher<T extends MaybeKickableIdentifiedPointLike>(
     ball: PointLike,
     players: T[],
     maxDistance = DEFAULT_TOUCHING_DISTANCE,
@@ -58,9 +58,7 @@ export function findCatchingBallPlayer<
     return null;
 }
 
-export function findCollidingPlayers<
-    T extends MaybeKickableIdentifiedPointLike,
->(
+export function findCatchers<T extends MaybeKickableIdentifiedPointLike>(
     a: MaybeKickableIdentifiedPointLike,
     players: T[],
     maxDistance = DEFAULT_TOUCHING_DISTANCE,
@@ -73,7 +71,7 @@ export function findCollidingPlayers<
     });
 }
 
-export function findCollidingPlayer<T extends MaybeKickableIdentifiedPointLike>(
+export function findCatcher<T extends MaybeKickableIdentifiedPointLike>(
     a: MaybeKickableIdentifiedPointLike,
     players: T[],
     maxDistance = DEFAULT_TOUCHING_DISTANCE,

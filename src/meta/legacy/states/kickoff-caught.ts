@@ -1,6 +1,6 @@
 import { $effect } from "@common/hooks";
 import type { FieldTeam } from "@common/models";
-import { opposite, AVATARS, findCollidingPlayers } from "@common/utils";
+import { opposite, AVATARS, findCatchers } from "@common/utils";
 import type { GameState } from "@common/engine";
 
 export function KickoffCaught({
@@ -19,7 +19,7 @@ export function KickoffCaught({
 
         if (!player) return;
 
-        const catchers = findCollidingPlayers(
+        const catchers = findCatchers(
             player,
             state.players.filter((p) => p.team === opposite(receivingTeam)),
         );

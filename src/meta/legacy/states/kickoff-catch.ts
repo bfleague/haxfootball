@@ -1,6 +1,6 @@
 import { $effect, $next } from "@common/hooks";
 import { type FieldTeam } from "@common/models";
-import { opposite, findCatchingBallPlayer } from "@common/utils";
+import { opposite, findBallCatcher } from "@common/utils";
 import type { GameState } from "@common/engine";
 // import type { Config } from "@meta/legacy/config";
 
@@ -10,7 +10,7 @@ export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
     function run(state: GameState) {
         const receivingTeam = opposite(kickingTeam);
 
-        const catcher = findCatchingBallPlayer(
+        const catcher = findBallCatcher(
             state.ball,
             state.players.filter((p) => p.team === receivingTeam),
         );
