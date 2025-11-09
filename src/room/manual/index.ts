@@ -1,7 +1,7 @@
 import { createModule } from "@core/module";
 import { createEngine, type Engine } from "@common/engine";
 import { registry, stadium } from "@meta/legacy/meta";
-import { defaultLegacyConfig, type Config } from "@meta/legacy/config";
+import { defaultConfig, type Config } from "@meta/legacy/config";
 import { Team } from "@common/models";
 
 export const config: RoomConfigObject = {
@@ -24,7 +24,7 @@ const mainModule = createModule()
 const matchModule = createModule()
     .onGameStart((room) => {
         engine = createEngine(room, registry, {
-            config: defaultLegacyConfig,
+            config: defaultConfig,
             onStats: (key) => {
                 console.log(`Stat recorded: ${key}`);
             },

@@ -2,6 +2,6 @@ export interface Config {
     TOUCHING_DISTANCE: number;
 }
 
-export const defaultLegacyConfig: Config = {
+export const defaultConfig: Config = {
     TOUCHING_DISTANCE: 14,
 };
