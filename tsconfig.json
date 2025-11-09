@@ -27,7 +27,8 @@
             "@meta/*": ["./src/meta/*"],
             "@room/*": ["./src/room/*"],
             "@types/*": ["./src/types/*"],
-            "@dev/*": ["./src/dev/*"]
+            "@dev/*": ["./src/dev/*"],
+            "@i18n": ["./src/i18n.ts"]
         }
     },
     "exclude": ["prettier.config.js"]

@@ -9,5 +9,5 @@ module.exports = {
     ],
     format: "po",
     compileNamespace: "ts",
-    runtimeConfigModule: ["@common/i18n", "i18n"],
+    runtimeConfigModule: ["@i18n", "i18n"],
 };

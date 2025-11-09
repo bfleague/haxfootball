@@ -37,6 +37,19 @@ export function activateLocale(locale: SupportedLocale = defaultLocale) {
     return i18n;
 }
 
+export function initI18n(languageEnv?: string | null) {
+    const locale = resolveLocale(languageEnv);
+    const normalizedEnv = languageEnv?.trim().toLowerCase();
+
+    if (normalizedEnv && !normalizedEnv.startsWith(locale)) {
+        console.warn(
+            `[i18n] LANGUAGE "${languageEnv}" is not supported. Falling back to "${locale}".`,
+        );
+    }
+
+    activateLocale(locale);
+}
+
 activateLocale(defaultLocale);
 
 export { i18n };

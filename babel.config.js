@@ -29,6 +29,7 @@ module.exports = {
                     "@room": "./src/room",
                     "@types": "./src/types",
                     "@dev": "./src/dev",
+                    "@i18n": "./src/i18n",
                 },
             },
         ],
