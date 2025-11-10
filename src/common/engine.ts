@@ -14,8 +14,8 @@ import { Team, type FieldTeam, isFieldTeam } from "@common/models";
 export interface StateApi {
     run: (state: GameState) => void;
     dispose?: () => void;
-    join?: (player: PlayerObject, byPlayer: PlayerObject | null) => void;
-    leave?: (player: PlayerObject) => void;
+    join?: (player: GameStatePlayer) => void;
+    leave?: (player: GameStatePlayer) => void;
 }
 
 export type StateFactory<SParams = any> = (params: SParams) => StateApi;
@@ -85,6 +85,29 @@ function getBallSnapshot(room: Room): { x: number; y: number; radius: number } {
     };
 }
 
+function createGameStatePlayerSnapshot(
+    room: Room,
+    player: PlayerObject,
+    kickerIds: Set<number>,
+): GameStatePlayer | null {
+    if (!isFieldTeam(player.team)) return null;
+
+    const hasPos = !!player.position;
+    const px = hasPos ? player.position.x : 0;
+    const py = hasPos ? player.position.y : 0;
+    const team: FieldTeam = player.team === Team.RED ? Team.RED : Team.BLUE;
+
+    return {
+        id: player.id,
+        name: player.name,
+        team,
+        x: px,
+        y: py,
+        radius: getPlayerRadius(room, player.id),
+        isKickingBall: kickerIds.has(player.id),
+    };
+}
+
 function buildGameState(
     room: Room,
     kickerIds: Set<number>,
@@ -94,23 +117,8 @@ function buildGameState(
     const ball = getBallSnapshot(room);
 
     const players = list
-        .filter((p) => isFieldTeam(p.team))
-        .map((p) => {
-            const hasPos = !!p.position;
-            const px = hasPos ? p.position.x : 0;
-            const py = hasPos ? p.position.y : 0;
-            const team: FieldTeam = p.team === Team.RED ? Team.RED : Team.BLUE;
-
-            return {
-                id: p.id,
-                name: p.name,
-                team,
-                x: px,
-                y: py,
-                radius: getPlayerRadius(room, p.id),
-                isKickingBall: kickerIds.has(p.id),
-            };
-        });
+        .map((p) => createGameStatePlayerSnapshot(room, p, kickerIds))
+        .filter((p): p is GameStatePlayer => p !== null);
 
     return { players, ball, tickNumber };
 }
@@ -308,27 +316,26 @@ export function createEngine<Cfg>(
 
     function handlePlayerTeamChange(
         player: PlayerObject,
-        byPlayer: PlayerObject | null,
+        _byPlayer: PlayerObject | null,
     ) {
-        if (
-            !running ||
-            !current ||
-            !current.api.join ||
-            !isFieldTeam(player.team)
-        ) {
-            return;
-        }
+        if (!running || !current || !current.api.join) return;
+
+        const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
+        if (!snapshot) return;
 
         runOutsideTick(() => {
-            current!.api.join!(player, byPlayer);
+            current!.api.join!(snapshot);
         });
     }
 
     function handlePlayerLeave(player: PlayerObject) {
         if (!running || !current || !current.api.leave) return;
 
+        const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
+        if (!snapshot) return;
+
         runOutsideTick(() => {
-            current!.api.leave!(player);
+            current!.api.leave!(snapshot);
         });
     }
 

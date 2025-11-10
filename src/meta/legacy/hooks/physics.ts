@@ -1,6 +1,24 @@
 import { $effect } from "@common/hooks";
 import { Team } from "@common/models";
 
+export function $trapPlayerInEndZone(playerId: number) {
+    $effect(($) => {
+        const cf = $.CollisionFlags;
+        const player = $.getPlayerList().find((p) => p.id === playerId);
+
+        if (!player) return;
+
+        const disc = $.getPlayerDiscProperties(player.id);
+
+        if (!disc) return;
+
+        const current = typeof disc.cGroup === "number" ? disc.cGroup : 0;
+        const bit = player.team === Team.RED ? cf.c0 : cf.c1;
+
+        $.setPlayerDisc(player.id, { cGroup: current | bit });
+    });
+}
+
 export function $trapTeamInEndZone(team: Team) {
     $effect(($) => {
         const cf = $.CollisionFlags;
@@ -41,6 +59,24 @@ export function $untrapAllTeams() {
             .forEach(({ id, base }) => {
                 $.setPlayerDisc(id, { cGroup: base });
             });
+    });
+}
+
+export function $trapPlayerInMidField(playerId: number) {
+    $effect(($) => {
+        const cf = $.CollisionFlags;
+        const player = $.getPlayerList().find((p) => p.id === playerId);
+
+        if (!player) return;
+
+        const disc = $.getPlayerDiscProperties(player.id);
+
+        if (!disc) return;
+
+        const current = typeof disc.cGroup === "number" ? disc.cGroup : 0;
+        const bit = player.team === Team.RED ? cf.c2 : cf.c3;
+
+        $.setPlayerDisc(player.id, { cGroup: current | bit });
     });
 }
 
