@@ -11,10 +11,14 @@ import { Team, type FieldTeam, isFieldTeam } from "@common/models";
 /**
  * Metas register state factories by string key.
  */
-export type StateFactory<SParams = any> = (params: SParams) => {
+export interface StateApi {
     run: (state: GameState) => void;
     dispose?: () => void;
-};
+    join?: (player: PlayerObject, byPlayer: PlayerObject | null) => void;
+    leave?: (player: PlayerObject) => void;
+}
+
+export type StateFactory<SParams = any> = (params: SParams) => StateApi;
 
 export type StateRegistry = Record<string, StateFactory<any>>;
 
@@ -53,6 +57,11 @@ export interface Engine<Cfg = unknown> {
     stop: () => void;
     tick: () => void;
     trackPlayerBallKick: (playerId: number) => void;
+    handlePlayerTeamChange: (
+        player: PlayerObject,
+        byPlayer: PlayerObject | null,
+    ) => void;
+    handlePlayerLeave: (player: PlayerObject) => void;
     isRunning: () => boolean;
     readonly _configBrand?: Cfg;
 }
@@ -115,8 +124,7 @@ export function createEngine<Cfg>(
     registry: StateRegistry,
     opts: EngineOptions<Cfg>,
 ): Engine<Cfg> {
-    let current: { name: string; api: ReturnType<StateFactory<any>> } | null =
-        null;
+    let current: { name: string; api: StateApi } | null = null;
     let pendingTransition: { to: string; params: any } | null = null;
     let kickerSet: Set<number> = new Set();
     let running = false;
@@ -183,9 +191,7 @@ export function createEngine<Cfg>(
         return runOutsideTick(() => resolved(params ?? {}));
     }
 
-    function disposeState(
-        target: { api: ReturnType<StateFactory<any>> } | null,
-    ) {
+    function disposeState(target: { api: StateApi } | null) {
         if (!target || !target.api.dispose) return;
 
         const dispose = target.api.dispose;
@@ -300,6 +306,32 @@ export function createEngine<Cfg>(
         kickerSet.add(playerId);
     }
 
+    function handlePlayerTeamChange(
+        player: PlayerObject,
+        byPlayer: PlayerObject | null,
+    ) {
+        if (
+            !running ||
+            !current ||
+            !current.api.join ||
+            !isFieldTeam(player.team)
+        ) {
+            return;
+        }
+
+        runOutsideTick(() => {
+            current!.api.join!(player, byPlayer);
+        });
+    }
+
+    function handlePlayerLeave(player: PlayerObject) {
+        if (!running || !current || !current.api.leave) return;
+
+        runOutsideTick(() => {
+            current!.api.leave!(player);
+        });
+    }
+
     function isRunning() {
         return running;
     }
@@ -309,6 +341,8 @@ export function createEngine<Cfg>(
         stop,
         tick,
         trackPlayerBallKick,
+        handlePlayerTeamChange,
+        handlePlayerLeave,
         isRunning,
     };
 }
