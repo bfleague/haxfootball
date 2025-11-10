@@ -3,12 +3,11 @@ import { type FieldTeam } from "@common/models";
 import { opposite, findBallCatcher } from "@common/utils";
 import type { GameState } from "@common/engine";
 import { t } from "@lingui/core/macro";
-// import type { Config } from "@meta/legacy/config";
 
 export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
-    // const cfg = $config<Config>();
-
     function run(state: GameState) {
+        // TODO: Out of bounds check
+
         const receivingTeam = opposite(kickingTeam);
 
         const catcher = findBallCatcher(

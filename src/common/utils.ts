@@ -10,6 +10,8 @@ export function opposite(t: FieldTeam): FieldTeam {
     return t === Team.RED ? Team.BLUE : Team.RED;
 }
 
+export type FieldPosition = { yards: number; side: FieldTeam };
+
 export type PointLike = { x: number; y: number; radius?: number | null };
 type IdentifiedPointLike = PointLike & { id: number };
 type MaybeKickableIdentifiedPointLike = IdentifiedPointLike & {
@@ -204,4 +206,35 @@ export function distributeOnLine<T extends PointLike>(
             y,
         };
     });
+}
+
+export function calculateFieldPosition(
+    x: number,
+    startX: number,
+    endX: number,
+    yardLength: number,
+): FieldPosition {
+    if (x < startX) return { side: Team.RED, yards: 1 };
+    if (x > endX) return { side: Team.BLUE, yards: 1 };
+
+    const yardsFromCenter = Math.round(x / yardLength);
+    const yardsComplement = 50 - Math.abs(yardsFromCenter);
+
+    return {
+        side: yardsFromCenter < 0 ? Team.RED : Team.BLUE,
+        yards: yardsComplement || 1,
+    };
+}
+
+export function calculatePositionFromFieldPosition(
+    position: FieldPosition,
+    startX: number,
+    endX: number,
+    yardLength: number,
+): number {
+    if (position.side === Team.RED) {
+        return startX + yardLength * position.yards;
+    } else {
+        return endX - yardLength * position.yards;
+    }
 }
