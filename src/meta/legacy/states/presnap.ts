@@ -1,0 +1,161 @@
+import { Team, type FieldTeam } from "@common/models";
+import type { GameState, GameStatePlayer } from "@common/engine";
+import { distributeOnLine, FieldPosition, getDistance } from "@common/utils";
+import {
+    BALL_OFFSET_YARDS,
+    ballWithRadius,
+    calculateSnapBallPosition,
+} from "@meta/legacy/utils/stadium";
+import { $effect, $next } from "@common/runtime";
+import {
+    $lockBall,
+    $setBallMoveable,
+    $setBallUnmoveable,
+    $unlockBall,
+} from "@meta/legacy/hooks/physics";
+import { t } from "@lingui/core/macro";
+
+const HIKING_DISTANCE_LIMIT = 30;
+
+const DEFAULT_INITIAL_RELATIVE_OFFENSIVE_POSITIONS = {
+    start: { x: 150, y: -100 },
+    end: { x: 100, y: 100 },
+};
+
+const DEFAULT_INITIAL_RELATIVE_DEFENSIVE_POSITIONS = {
+    start: { x: -100, y: -100 },
+    end: { x: -100, y: 100 },
+};
+
+function $setInitialPlayerPositions(
+    offensiveTeam: FieldTeam,
+    ballPos: Position,
+) {
+    $effect(($) => {
+        distributeOnLine(
+            $.getPlayerList()
+                .filter((p) => p.team === offensiveTeam)
+                .sort((a, b) => a.position.y - b.position.y)
+                .map((p) => ({ ...p.position, id: p.id })),
+            {
+                start: {
+                    x:
+                        ballPos.x +
+                        DEFAULT_INITIAL_RELATIVE_OFFENSIVE_POSITIONS.start.x *
+                            (offensiveTeam === Team.RED ? -1 : 1),
+                    y: DEFAULT_INITIAL_RELATIVE_OFFENSIVE_POSITIONS.start.y,
+                },
+                end: {
+                    x:
+                        ballPos.x +
+                        DEFAULT_INITIAL_RELATIVE_OFFENSIVE_POSITIONS.end.x *
+                            (offensiveTeam === Team.RED ? -1 : 1),
+                    y: DEFAULT_INITIAL_RELATIVE_OFFENSIVE_POSITIONS.end.y,
+                },
+            },
+        ).forEach(({ id, x, y }) => {
+            $.setPlayerDiscProperties(id, {
+                x,
+                y,
+            });
+        });
+
+        const defensiveTeam = offensiveTeam === Team.RED ? Team.BLUE : Team.RED;
+
+        distributeOnLine(
+            $.getPlayerList()
+                .filter((p) => p.team === defensiveTeam)
+                .sort((a, b) => a.position.y - b.position.y)
+                .map((p) => ({ ...p.position, id: p.id })),
+            {
+                start: {
+                    x:
+                        ballPos.x +
+                        DEFAULT_INITIAL_RELATIVE_DEFENSIVE_POSITIONS.start.x *
+                            (offensiveTeam === Team.RED ? -1 : 1),
+                    y: DEFAULT_INITIAL_RELATIVE_DEFENSIVE_POSITIONS.start.y,
+                },
+                end: {
+                    x:
+                        ballPos.x +
+                        DEFAULT_INITIAL_RELATIVE_DEFENSIVE_POSITIONS.end.x *
+                            (offensiveTeam === Team.RED ? -1 : 1),
+                    y: DEFAULT_INITIAL_RELATIVE_DEFENSIVE_POSITIONS.end.y,
+                },
+            },
+        ).forEach(({ id, x, y }) => {
+            $.setPlayerDiscProperties(id, {
+                x,
+                y,
+            });
+        });
+    });
+}
+
+export function Presnap({
+    offensiveTeam,
+    fieldPos,
+}: {
+    offensiveTeam: FieldTeam;
+    fieldPos: FieldPosition;
+}) {
+    const ballPosWithOffset = calculateSnapBallPosition(
+        offensiveTeam,
+        fieldPos,
+        BALL_OFFSET_YARDS,
+    );
+
+    const ballPos = calculateSnapBallPosition(offensiveTeam, fieldPos);
+
+    $setBallUnmoveable();
+    $lockBall();
+
+    $effect(($) => {
+        $.setBall({ ...ballPosWithOffset, xspeed: 0, yspeed: 0 });
+    });
+
+    $setInitialPlayerPositions(offensiveTeam, ballPos);
+
+    function chat(player: GameStatePlayer, message: string) {
+        const isHikeCommand = message.toLowerCase().includes("hike");
+
+        if (!isHikeCommand) {
+            return;
+        }
+
+        if (player.team !== offensiveTeam) {
+            return;
+        }
+
+        if (
+            getDistance(player, ballWithRadius(ballPosWithOffset)) >
+            HIKING_DISTANCE_LIMIT
+        ) {
+            $effect(($) => {
+                $.send(t`You are too far from the ball to hike it!`, player.id);
+            });
+
+            return;
+        }
+
+        $effect(($) => {
+            $.send(t`${player.name} hikes the ball!`);
+        });
+
+        $next({
+            to: "SNAP",
+            params: { offensiveTeam, fieldPos, quarterbackId: player.id },
+        });
+    }
+
+    function run(state: GameState) {
+        // TODO: Prehike logic
+    }
+
+    function dispose() {
+        $setBallMoveable();
+        $unlockBall();
+    }
+
+    return { run, dispose, chat };
+}

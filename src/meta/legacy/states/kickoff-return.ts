@@ -5,7 +5,7 @@ import type { GameState, GameStatePlayer } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import { getFieldPosition } from "@meta/legacy/utils/stadium";
 
-export function KickoffCaught({
+export function KickoffReturn({
     playerId,
     receivingTeam,
 }: {
@@ -22,7 +22,7 @@ export function KickoffCaught({
             const fieldPos = getFieldPosition(player.x);
 
             $next({
-                to: "PREHIKE",
+                to: "PRESNAP",
                 params: {
                     offensiveTeam: receivingTeam,
                     fieldPos,
@@ -49,12 +49,12 @@ export function KickoffCaught({
             const fieldPos = getFieldPosition(player.x);
 
             $effect(($) => {
-                $.send(t`${player.name} caught by ${catcherNames}!`);
-                $.stat("KICKOFF_TACKLED");
+                $.send(t`${player.name} tackled by ${catcherNames}!`);
+                $.stat("KICKOFF_RETURN_TACKLED");
             });
 
             $next({
-                to: "PREHIKE",
+                to: "PRESNAP",
                 params: {
                     offensiveTeam: receivingTeam,
                     fieldPos,

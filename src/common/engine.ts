@@ -16,6 +16,7 @@ export interface StateApi {
     dispose?: () => void;
     join?: (player: GameStatePlayer) => void;
     leave?: (player: GameStatePlayer) => void;
+    chat?: (player: GameStatePlayer, message: string) => void;
 }
 
 export type StateFactory<SParams = any> = (params: SParams) => StateApi;
@@ -57,6 +58,7 @@ export interface Engine<Cfg = unknown> {
     stop: () => void;
     tick: () => void;
     trackPlayerBallKick: (playerId: number) => void;
+    handlePlayerChat: (player: PlayerObject, message: string) => void;
     handlePlayerTeamChange: (
         player: PlayerObject,
         byPlayer: PlayerObject | null,
@@ -145,7 +147,10 @@ export function createEngine<Cfg>(
         ? opts.onStats
         : () => {};
 
-    function runOutsideTick<T>(fn: () => T): T {
+    function runOutsideTick<T>(
+        fn: () => T,
+        optsRun?: { allowTransition?: boolean },
+    ): T {
         room.invalidateCaches();
         const uninstall = installRuntime({
             room,
@@ -157,18 +162,22 @@ export function createEngine<Cfg>(
 
         setRuntimeRoom(room);
 
-        let caught: unknown | null = null;
+        const allowTransition = optsRun?.allowTransition ?? false;
+        let result!: T;
         try {
-            return fn();
+            result = fn();
         } catch (err) {
-            caught = err;
-            throw err;
+            if (err === "__NEXT__" && allowTransition) {
+                result = undefined as T;
+            } else {
+                throw err;
+            }
         } finally {
             const flushed = flushRuntime();
 
             uninstall();
 
-            if (!caught && flushed.transition) {
+            if (!allowTransition && flushed.transition) {
                 throw new Error(
                     "$next cannot be used during state setup/cleanup",
                 );
@@ -177,8 +186,13 @@ export function createEngine<Cfg>(
             if (flushed.stopRequested) {
                 disableStateExecution = true;
                 running = false;
+            } else if (allowTransition && flushed.transition) {
+                pendingTransition = flushed.transition;
+                applyTransition();
             }
         }
+
+        return result;
     }
 
     function ensureFactory(name: string) {
@@ -314,6 +328,20 @@ export function createEngine<Cfg>(
         kickerSet.add(playerId);
     }
 
+    function handlePlayerChat(player: PlayerObject, message: string) {
+        if (!running || !current || !current.api.chat) return;
+
+        const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
+        if (!snapshot) return;
+
+        runOutsideTick(
+            () => {
+                current!.api.chat!(snapshot, message);
+            },
+            { allowTransition: true },
+        );
+    }
+
     function handlePlayerTeamChange(
         player: PlayerObject,
         _byPlayer: PlayerObject | null,
@@ -348,6 +376,7 @@ export function createEngine<Cfg>(
         stop,
         tick,
         trackPlayerBallKick,
+        handlePlayerChat,
         handlePlayerTeamChange,
         handlePlayerLeave,
         isRunning,

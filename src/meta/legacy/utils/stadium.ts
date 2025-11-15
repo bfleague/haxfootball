@@ -3,6 +3,7 @@ import {
     calculateFieldPosition,
     calculatePositionFromFieldPosition,
     FieldPosition,
+    PointLike,
 } from "@common/utils";
 
 const MapMeasures = {
@@ -53,6 +54,7 @@ const MapMeasures = {
     YARDS_BETWEEN_0_MARK_AND_GOAL_LINE: 10,
 };
 
+export const BALL_RADIUS = 7.125;
 export const BALL_OFFSET_YARDS = 2;
 
 export function getFieldPosition(
@@ -78,11 +80,27 @@ export function getPositionFromFieldPosition(
     );
 }
 
-export function getBallPositionWithOffset(
+export function calculateSnapBallPosition(
     forTeam: Team,
-    ballPos: number,
-    offsetYards = BALL_OFFSET_YARDS,
+    fieldPos: FieldPosition,
+    offsetYards = 0,
     yardLength = MapMeasures.YARD,
-): number {
-    return ballPos + yardLength * offsetYards * (forTeam === Team.RED ? -1 : 1);
+): Position {
+    return {
+        x:
+            getPositionFromFieldPosition(fieldPos) +
+            yardLength * offsetYards * (forTeam === Team.RED ? -1 : 1),
+        y: 0,
+    };
+}
+
+export function ballWithRadius(
+    position: Position,
+    radius = BALL_RADIUS,
+): PointLike {
+    return {
+        x: position.x,
+        y: position.y,
+        radius,
+    };
 }

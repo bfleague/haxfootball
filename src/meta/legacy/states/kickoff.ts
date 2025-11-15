@@ -12,7 +12,6 @@ import {
     $trapPlayerInEndZone,
 } from "@meta/legacy/hooks/physics";
 import type { GameState, GameStatePlayer } from "@common/engine";
-import { t } from "@lingui/core/macro";
 
 const KICKOFF_START_LINE = {
     [Team.RED]: {
@@ -71,12 +70,11 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
 
         if (kicker) {
             $effect(($) => {
-                $.send(t`Kickoff kicked!`);
-                $.stat("KICKOFF_MADE");
+                $.stat("KICKOFF");
             });
 
             $next({
-                to: "KICKOFF_CATCH",
+                to: "KICKOFF_IN_FLIGHT",
                 params: { kickingTeam: forTeam },
             });
         }

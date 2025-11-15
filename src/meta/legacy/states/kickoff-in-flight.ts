@@ -4,7 +4,7 @@ import { opposite, findBallCatcher } from "@common/utils";
 import type { GameState } from "@common/engine";
 import { t } from "@lingui/core/macro";
 
-export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
+export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
     function run(state: GameState) {
         // TODO: Out of bounds check
 
@@ -17,12 +17,12 @@ export function KickoffCatch({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`Kickoff caught!`);
-                $.stat("KICKOFF_CAUGHT");
+                $.send(t`Kickoff return attempt by ${catcher.name}!`);
+                $.stat("KICKOFF_RETURNED");
             });
 
             $next({
-                to: "KICKOFF_CAUGHT",
+                to: "KICKOFF_RETURN",
                 params: { playerId: catcher.id, receivingTeam },
             });
         }
