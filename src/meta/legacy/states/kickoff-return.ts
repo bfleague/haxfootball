@@ -135,6 +135,7 @@ export function KickoffReturn({
         $effect(($) => {
             $.setAvatar(playerId, null);
         });
+
         $setBallActive();
     }
 

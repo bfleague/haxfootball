@@ -3,6 +3,7 @@ import { createEngine, type Engine } from "@common/engine";
 import { registry, stadium } from "@meta/legacy/meta";
 import { defaultConfig, type Config } from "@meta/legacy/config";
 import { Team } from "@common/models";
+import { initializeGlobalState } from "@meta/legacy/global";
 
 export const config: RoomConfigObject = {
     roomName: "HaxFootball",
@@ -23,6 +24,8 @@ const mainModule = createModule()
 
 const matchModule = createModule()
     .onGameStart((room) => {
+        initializeGlobalState();
+
         engine = createEngine(room, registry, {
             config: defaultConfig,
             onStats: (key) => {

@@ -10,6 +10,8 @@ import {
 } from "@meta/legacy/hooks/physics";
 import { $effect } from "@common/hooks";
 import { getPositionFromFieldPosition } from "@meta/legacy/utils/stadium";
+import { $global } from "@meta/legacy/hooks/global";
+import { SCORES } from "@meta/legacy/utils/game";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {
     start: { x: -50, y: -150 },
@@ -23,7 +25,9 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
     $setBallKickForce("strong");
     $setBallUnmoveable();
 
-    // TODO: Safety points
+    $global((state) =>
+        state.incrementScore(opposite(kickingTeam), SCORES.SAFETY),
+    );
 
     const safetyFieldPos: FieldPosition = {
         yards: YARD_LINE_FOR_SAFETY,

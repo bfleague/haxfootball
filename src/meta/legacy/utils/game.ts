@@ -23,6 +23,12 @@ export type NextDownState = {
     event: DownEvent;
 };
 
+export const SCORES = {
+    SAFETY: 2,
+    TOUCHDOWN: 6,
+    FIELD_GOAL: 3,
+};
+
 export const DISTANCE_TO_FIRST_DOWN = 20;
 export const MAX_DOWNS = 4;
 export const FIRST_DOWN = 1;

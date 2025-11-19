@@ -7,7 +7,7 @@ import { Safety } from "./states/safety";
 import { Snap } from "./states/snap";
 import { SnapInFlight } from "./states/snap-in-flight";
 
-export { default as stadium } from "@meta/legacy/stadiums/base";
+export { default as stadium } from "@meta/legacy/stadium";
 
 export const registry = {
     KICKOFF: Kickoff,
