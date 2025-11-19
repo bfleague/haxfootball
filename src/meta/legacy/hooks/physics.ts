@@ -151,3 +151,15 @@ export function $setBallUnmoveable() {
         });
     });
 }
+
+export function $setBallMoveableByPlayer(playerId: number) {
+    $effect(($) => {
+        $.setPlayerDisc(playerId, { invMass: 0.5 });
+    });
+}
+
+export function $setBallUnmoveableByPlayer(playerId: number) {
+    $effect(($) => {
+        $.setPlayerDisc(playerId, { invMass: 1e26 });
+    });
+}

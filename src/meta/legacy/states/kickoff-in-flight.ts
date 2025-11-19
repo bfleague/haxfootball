@@ -1,12 +1,17 @@
 import { $effect, $next } from "@common/hooks";
 import { type FieldTeam } from "@common/models";
 import { opposite, findBallCatcher } from "@common/utils";
-import type { GameState } from "@common/engine";
+import type { GameState, GameStatePlayer } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import { getFieldPosition, isOutOfBounds } from "../utils/stadium";
-import { getInitialDownState } from "../utils/game";
+import { getInitialDownState } from "@meta/legacy/utils/game";
+import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 
 export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
+    function join(player: GameStatePlayer) {
+        $setBallMoveableByPlayer(player.id);
+    }
+
     function run(state: GameState) {
         if (isOutOfBounds(state.ball)) {
             const fieldPos = getFieldPosition(state.ball.x);
@@ -47,5 +52,5 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         }
     }
 
-    return { run };
+    return { run, join };
 }
