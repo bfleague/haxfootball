@@ -1,33 +1,32 @@
 import { $effect, $next } from "@common/hooks";
-import { type FieldTeam } from "@common/models";
 import { opposite, findBallCatcher } from "@common/utils";
 import type { GameState } from "@common/engine";
 import { t } from "@lingui/core/macro";
-import { getFieldPosition, isOutOfBounds } from "../utils/stadium";
-import { getInitialDownState } from "../utils/game";
+import { getFieldPosition, isOutOfBounds } from "@meta/legacy/utils/stadium";
+import { DownState } from "@meta/legacy/utils/game";
 
-export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
+export function SnapInFlight({ downState }: { downState: DownState }) {
+    const { offensiveTeam } = downState;
+
     function run(state: GameState) {
         if (isOutOfBounds(state.ball)) {
             const fieldPos = getFieldPosition(state.ball.x);
 
             $effect(($) => {
-                $.send(t`Kickoff went out of bounds!`);
-                $.stat("KICKOFF_OUT_OF_BOUNDS");
+                $.send(t`Ball went out of bounds!`);
+                $.stat("BALL_OUT_OF_BOUNDS");
             });
 
             $next({
                 to: "PRESNAP",
                 params: {
-                    downState: getInitialDownState(
-                        opposite(kickingTeam),
-                        fieldPos,
-                    ),
+                    offensiveTeam,
+                    fieldPos,
                 },
             });
         }
 
-        const receivingTeam = opposite(kickingTeam);
+        const receivingTeam = opposite(offensiveTeam);
 
         const catcher = findBallCatcher(
             state.ball,
@@ -36,15 +35,17 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`Kickoff return attempt by ${catcher.name}!`);
-                $.stat("KICKOFF_RETURNED");
+                $.send(t`Pass caught by ${catcher.name}!`);
+                $.stat("PASS_CATCHED");
             });
 
             $next({
-                to: "KICKOFF_RETURN",
-                params: { playerId: catcher.id, receivingTeam },
+                to: "LIVE_BALL",
+                params: { playerId: catcher.id, offensiveTeam },
             });
         }
+
+        // TODO: Catch by offensive team and interceptions
     }
 
     return { run };

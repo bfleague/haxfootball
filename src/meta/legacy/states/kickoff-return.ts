@@ -3,7 +3,13 @@ import type { FieldTeam } from "@common/models";
 import { opposite, AVATARS, findCatchers } from "@common/utils";
 import type { GameState, GameStatePlayer } from "@common/engine";
 import { t } from "@lingui/core/macro";
-import { getFieldPosition } from "@meta/legacy/utils/stadium";
+import {
+    getFieldPosition,
+    isInMainField,
+    isOutOfBounds,
+    TOUCHBACK_YARD_LINE,
+} from "@meta/legacy/utils/stadium";
+import { getInitialDownState } from "../utils/game";
 
 export function KickoffReturn({
     playerId,
@@ -17,27 +23,85 @@ export function KickoffReturn({
     });
 
     function leave(player: GameStatePlayer) {
-        // TODO: Touchback position if in endzone
         if (player.id === playerId) {
-            const fieldPos = getFieldPosition(player.x);
+            if (isInMainField(player)) {
+                const fieldPos = getFieldPosition(player.x);
 
-            $next({
-                to: "PRESNAP",
-                params: {
-                    offensiveTeam: receivingTeam,
-                    fieldPos,
-                },
-            });
+                $effect(($) => {
+                    $.send(
+                        t`${player.name} left the room during kickoff return!`,
+                    );
+
+                    $.stat("KICKOFF_RETURN_LEFT_ROOM");
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: getInitialDownState(receivingTeam, fieldPos),
+                    },
+                });
+            } else {
+                $effect(($) => {
+                    $.send(
+                        t`${player.name} left the room in the end zone for a touchback!`,
+                    );
+
+                    $.stat("KICKOFF_RETURN_TOUCHBACK_LEFT_ROOM");
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: getInitialDownState(receivingTeam, {
+                            yards: TOUCHBACK_YARD_LINE,
+                            side: receivingTeam,
+                        }),
+                    },
+                });
+            }
         }
     }
 
     function run(state: GameState) {
-        // TODO: Out of bounds check
-        // TODO: Touchback
-        // TODO: Safety
-
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
+
+        if (isOutOfBounds(player)) {
+            const fieldPos = getFieldPosition(player.x);
+
+            if (isInMainField(player)) {
+                $effect(($) => {
+                    $.send(
+                        t`${player.name} went out of bounds during kickoff return!`,
+                    );
+
+                    $.stat("KICKOFF_RETURN_OUT_OF_BOUNDS");
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: getInitialDownState(receivingTeam, fieldPos),
+                    },
+                });
+            } else {
+                $effect(($) => {
+                    $.send(
+                        t`${player.name} went out of bounds in the end zone for a safety!`,
+                    );
+
+                    $.stat("KICKOFF_RETURN_SAFETY");
+                });
+
+                $next({
+                    to: "SAFETY",
+                    params: {
+                        kickingTeam: receivingTeam,
+                    },
+                });
+            }
+        }
 
         const catchers = findCatchers(
             player,
@@ -45,6 +109,8 @@ export function KickoffReturn({
         );
 
         if (catchers.length > 0) {
+            // TODO: Touchback / Safety when tackled
+
             const catcherNames = catchers.map((p) => p.name).join(", ");
             const fieldPos = getFieldPosition(player.x);
 
@@ -56,8 +122,7 @@ export function KickoffReturn({
             $next({
                 to: "PRESNAP",
                 params: {
-                    offensiveTeam: receivingTeam,
-                    fieldPos,
+                    downState: getInitialDownState(receivingTeam, fieldPos),
                 },
             });
         }

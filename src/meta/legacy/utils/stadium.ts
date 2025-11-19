@@ -57,6 +57,17 @@ const MapMeasures = {
 export const BALL_RADIUS = 7.125;
 export const BALL_OFFSET_YARDS = 2;
 
+export const SPECIAL_HIDDEN_POSITION = {
+    x: 2000,
+    y: 2000,
+};
+
+export const TOUCHBACK_YARD_LINE = 25;
+
+const SPECIAL_DISC_IDS = {
+    LOS: [7, 8],
+} as const;
+
 export function getFieldPosition(
     x: number,
     startX = MapMeasures.RED_END_ZONE_START_POSITION_X,
@@ -64,6 +75,13 @@ export function getFieldPosition(
     yardLength = MapMeasures.YARD,
 ): FieldPosition {
     return calculateFieldPosition(x, startX, endX, yardLength);
+}
+
+export function isInMainField(position: Position): boolean {
+    return (
+        position.x >= MapMeasures.INNER_FIELD.topLeft.x &&
+        position.x <= MapMeasures.INNER_FIELD.bottomRight.x
+    );
 }
 
 export function getPositionFromFieldPosition(
@@ -103,4 +121,61 @@ export function ballWithRadius(
         y: position.y,
         radius,
     };
+}
+
+export function isOutOfBounds(position: Position): boolean {
+    return (
+        position.x < MapMeasures.OUTER_FIELD.topLeft.x ||
+        position.x > MapMeasures.OUTER_FIELD.bottomRight.x ||
+        position.y < MapMeasures.OUTER_FIELD.topLeft.y ||
+        position.y > MapMeasures.OUTER_FIELD.bottomRight.y
+    );
+}
+
+export function getLineOfScrimmage(): { id: number }[];
+export function getLineOfScrimmage(
+    fieldPos: FieldPosition,
+): { id: number; position: Position }[];
+export function getLineOfScrimmage(
+    fieldPos?: FieldPosition,
+): { id: number; position?: Position }[] {
+    if (fieldPos === undefined) {
+        return [
+            { id: SPECIAL_DISC_IDS.LOS[0] },
+            { id: SPECIAL_DISC_IDS.LOS[1] },
+        ];
+    }
+
+    const x = getPositionFromFieldPosition(fieldPos);
+    const offset = 2;
+    const upperHashY = MapMeasures.INNER_FIELD.topLeft.y + offset;
+    const lowerHashY = MapMeasures.INNER_FIELD.bottomRight.y - offset;
+
+    return [
+        { id: SPECIAL_DISC_IDS.LOS[0], position: { x, y: upperHashY } },
+        { id: SPECIAL_DISC_IDS.LOS[1], position: { x, y: lowerHashY } },
+    ];
+}
+
+export function xDistanceToYards(xDistance: number): number {
+    return Math.round(xDistance / MapMeasures.YARD);
+}
+
+export function calculateDirectionalGain(
+    offensiveTeam: Team,
+    xGained: number,
+): number {
+    return offensiveTeam === Team.RED ? xGained : -xGained;
+}
+
+export function calculateYardsGained(
+    offensiveTeam: Team,
+    fromFieldPos: FieldPosition,
+    toFieldPos: FieldPosition,
+): number {
+    const fromX = getPositionFromFieldPosition(fromFieldPos);
+    const toX = getPositionFromFieldPosition(toFieldPos);
+    const xGained = toX - fromX;
+
+    return xDistanceToYards(calculateDirectionalGain(offensiveTeam, xGained));
 }

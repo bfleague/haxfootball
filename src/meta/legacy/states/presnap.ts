@@ -1,6 +1,6 @@
 import { Team, type FieldTeam } from "@common/models";
 import type { GameState, GameStatePlayer } from "@common/engine";
-import { distributeOnLine, FieldPosition, getDistance } from "@common/utils";
+import { distributeOnLine, getDistance } from "@common/utils";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
@@ -14,6 +14,12 @@ import {
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import { t } from "@lingui/core/macro";
+import {
+    $setLineOfScrimmage,
+    $unsetLineOfScrimmage,
+} from "@meta/legacy/hooks/game";
+import { DownState, MAX_DOWNS } from "@meta/legacy/utils/game";
+import assert from "node:assert";
 
 const HIKING_DISTANCE_LIMIT = 30;
 
@@ -92,13 +98,16 @@ function $setInitialPlayerPositions(
     });
 }
 
-export function Presnap({
-    offensiveTeam,
-    fieldPos,
-}: {
-    offensiveTeam: FieldTeam;
-    fieldPos: FieldPosition;
-}) {
+export function Presnap({ downState }: { downState: DownState }) {
+    const { offensiveTeam, downAndDistance, fieldPos } = downState;
+
+    assert(
+        downAndDistance.down >= 1 &&
+            downAndDistance.down <= MAX_DOWNS &&
+            downAndDistance.distance >= 0,
+        "Invalid down and distance",
+    );
+
     const ballPosWithOffset = calculateSnapBallPosition(
         offensiveTeam,
         fieldPos,
@@ -109,6 +118,7 @@ export function Presnap({
 
     $setBallUnmoveable();
     $lockBall();
+    $setLineOfScrimmage(fieldPos);
 
     $effect(($) => {
         $.setBall({ ...ballPosWithOffset, xspeed: 0, yspeed: 0 });
@@ -144,7 +154,11 @@ export function Presnap({
 
         $next({
             to: "SNAP",
-            params: { offensiveTeam, fieldPos, quarterbackId: player.id },
+            params: {
+                downState,
+                fieldPos,
+                quarterbackId: player.id,
+            },
         });
     }
 
@@ -155,6 +169,7 @@ export function Presnap({
     function dispose() {
         $setBallMoveable();
         $unlockBall();
+        $unsetLineOfScrimmage();
     }
 
     return { run, dispose, chat };

@@ -362,9 +362,12 @@ export function createEngine<Cfg>(
         const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
         if (!snapshot) return;
 
-        runOutsideTick(() => {
-            current!.api.leave!(snapshot);
-        });
+        runOutsideTick(
+            () => {
+                current!.api.leave!(snapshot);
+            },
+            { allowTransition: true },
+        );
     }
 
     function isRunning() {
