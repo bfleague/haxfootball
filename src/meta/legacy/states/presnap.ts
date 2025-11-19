@@ -15,7 +15,9 @@ import {
 } from "@meta/legacy/hooks/physics";
 import { t } from "@lingui/core/macro";
 import {
+    $setFirstDownLine,
     $setLineOfScrimmage,
+    $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import { DownState, MAX_DOWNS } from "@meta/legacy/utils/game";
@@ -119,6 +121,7 @@ export function Presnap({ downState }: { downState: DownState }) {
     $setBallUnmoveable();
     $lockBall();
     $setLineOfScrimmage(fieldPos);
+    $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
 
     $effect(($) => {
         $.setBall({ ...ballPosWithOffset, xspeed: 0, yspeed: 0 });
@@ -156,7 +159,6 @@ export function Presnap({ downState }: { downState: DownState }) {
             to: "SNAP",
             params: {
                 downState,
-                fieldPos,
                 quarterbackId: player.id,
             },
         });
@@ -170,6 +172,7 @@ export function Presnap({ downState }: { downState: DownState }) {
         $setBallMoveable();
         $unlockBall();
         $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
     }
 
     return { run, dispose, chat };

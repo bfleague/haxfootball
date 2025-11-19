@@ -1,8 +1,12 @@
 import type { GameState } from "@common/engine";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
-import { $setLineOfScrimmage, $unsetLineOfScrimmage } from "../hooks/game";
-import { DownState } from "../utils/game";
-import { findBallCatcher } from "@common/utils";
+import {
+    $setFirstDownLine,
+    $setLineOfScrimmage,
+    $unsetFirstDownLine,
+    $unsetLineOfScrimmage,
+} from "@meta/legacy/hooks/game";
+import { DownState } from "@meta/legacy/utils/game";
 import { $effect, $next } from "@common/runtime";
 
 export function Snap({
@@ -12,39 +16,32 @@ export function Snap({
     quarterbackId: number;
     downState: DownState;
 }) {
-    const { fieldPos, offensiveTeam } = downState;
+    const { fieldPos, offensiveTeam, downAndDistance } = downState;
 
     $setBallMoveable();
     $unlockBall();
     $setLineOfScrimmage(fieldPos);
+    $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
 
     function run(state: GameState) {
-        // TODO: Snap logic
+        const quarterback = state.players.find((p) => p.id === quarterbackId);
+        if (!quarterback) return;
 
-        const catcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.id !== quarterbackId),
-        );
+        if (quarterback.isKickingBall) {
+            $effect(($) => {
+                $.stat("SNAP_KICKED_BALL");
+            });
 
-        if (catcher) {
-            if (catcher.team === offensiveTeam) {
-                $effect(($) => {
-                    $.send(`Pass caught by ${catcher.name}!`);
-                    $.stat("PASS_CATCHED");
-                });
-
-                $next({
-                    to: "LIVE_BALL",
-                    params: { playerId: catcher.id, downState },
-                });
-            }
+            $next({
+                to: "SNAP_IN_FLIGHT",
+                params: { downState },
+            });
         }
     }
 
     function dispose() {
-        // TODO: Cleanup logic
-
         $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
     }
 
     return { run, dispose };

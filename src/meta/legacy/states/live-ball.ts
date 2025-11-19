@@ -8,7 +8,13 @@ import {
     isOutOfBounds,
 } from "@meta/legacy/utils/stadium";
 import { t } from "@lingui/core/macro";
-import { $setLineOfScrimmage, $unsetLineOfScrimmage } from "../hooks/game";
+import {
+    $setFirstDownLine,
+    $setLineOfScrimmage,
+    $unsetFirstDownLine,
+    $unsetLineOfScrimmage,
+} from "@meta/legacy/hooks/game";
+import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 
 export function LiveBall({
     playerId,
@@ -17,9 +23,12 @@ export function LiveBall({
     playerId: number;
     downState: DownState;
 }) {
-    const { offensiveTeam, fieldPos } = downState;
+    const { offensiveTeam, fieldPos, downAndDistance } = downState;
 
     $setLineOfScrimmage(fieldPos);
+    $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
+
+    $setBallInactive();
 
     // TODO: Fumble
 
@@ -175,6 +184,8 @@ export function LiveBall({
         });
 
         $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+        $setBallActive();
     }
 
     return { run, dispose };

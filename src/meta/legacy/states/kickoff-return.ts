@@ -9,7 +9,8 @@ import {
     isOutOfBounds,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
-import { getInitialDownState } from "../utils/game";
+import { getInitialDownState } from "@meta/legacy/utils/game";
+import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 
 export function KickoffReturn({
     playerId,
@@ -21,6 +22,8 @@ export function KickoffReturn({
     $effect(($) => {
         $.setAvatar(playerId, AVATARS.BALL);
     });
+
+    $setBallInactive();
 
     function leave(player: GameStatePlayer) {
         if (player.id === playerId) {
@@ -132,6 +135,7 @@ export function KickoffReturn({
         $effect(($) => {
             $.setAvatar(playerId, null);
         });
+        $setBallActive();
     }
 
     return { run, leave, dispose };

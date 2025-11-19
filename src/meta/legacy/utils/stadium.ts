@@ -64,8 +64,13 @@ export const SPECIAL_HIDDEN_POSITION = {
 
 export const TOUCHBACK_YARD_LINE = 25;
 
+export const BALL_DISC_ID = 0;
+export const BALL_ACTIVE_COLOR = 0x631515;
+export const BALL_INACTIVE_COLOR = 0x808080;
+
 const SPECIAL_DISC_IDS = {
     LOS: [7, 8],
+    FIRST_DOWN: [5, 6],
 } as const;
 
 export function getFieldPosition(
@@ -154,6 +159,43 @@ export function getLineOfScrimmage(
     return [
         { id: SPECIAL_DISC_IDS.LOS[0], position: { x, y: upperHashY } },
         { id: SPECIAL_DISC_IDS.LOS[1], position: { x, y: lowerHashY } },
+    ];
+}
+
+export function getFirstDownLine(): { id: number }[];
+export function getFirstDownLine(
+    offensiveTeam: Team,
+    fieldPos: FieldPosition,
+    distance: number,
+): { id: number; position: Position }[];
+export function getFirstDownLine(
+    offensiveTeam?: Team,
+    fieldPos?: FieldPosition,
+    distance?: number,
+): { id: number; position?: Position }[] {
+    if (
+        offensiveTeam === undefined ||
+        fieldPos === undefined ||
+        distance === undefined
+    ) {
+        return [
+            { id: SPECIAL_DISC_IDS.FIRST_DOWN[0] },
+            { id: SPECIAL_DISC_IDS.FIRST_DOWN[1] },
+        ];
+    }
+
+    const losX = getPositionFromFieldPosition(fieldPos);
+    const yardsInX = distance * MapMeasures.YARD;
+    const direction = offensiveTeam === Team.RED ? 1 : -1;
+    const x = losX + yardsInX * direction;
+
+    const offset = 2;
+    const upperHashY = MapMeasures.INNER_FIELD.topLeft.y + offset;
+    const lowerHashY = MapMeasures.INNER_FIELD.bottomRight.y - offset;
+
+    return [
+        { id: SPECIAL_DISC_IDS.FIRST_DOWN[0], position: { x, y: upperHashY } },
+        { id: SPECIAL_DISC_IDS.FIRST_DOWN[1], position: { x, y: lowerHashY } },
     ];
 }
 

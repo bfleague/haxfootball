@@ -45,12 +45,13 @@ export function getInitialDownState(
 
 export function advanceDownState(
     current: DownState,
-    newFieldPos: FieldPosition,
+    newFieldPos?: FieldPosition,
 ): NextDownState {
+    const actualFieldPos = newFieldPos ?? current.fieldPos;
     const yardsGained = calculateYardsGained(
         current.offensiveTeam,
         current.fieldPos,
-        newFieldPos,
+        actualFieldPos,
     );
 
     const newDistance = current.downAndDistance.distance - yardsGained;
@@ -59,7 +60,7 @@ export function advanceDownState(
         return {
             downState: {
                 offensiveTeam: current.offensiveTeam,
-                fieldPos: newFieldPos,
+                fieldPos: actualFieldPos,
                 downAndDistance: {
                     down: FIRST_DOWN,
                     distance: DISTANCE_TO_FIRST_DOWN,
@@ -75,7 +76,7 @@ export function advanceDownState(
         return {
             downState: {
                 offensiveTeam: opposite(current.offensiveTeam),
-                fieldPos: newFieldPos,
+                fieldPos: actualFieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
             },
             event: { type: "TURNOVER_ON_DOWNS" },
@@ -85,7 +86,7 @@ export function advanceDownState(
     return {
         downState: {
             offensiveTeam: current.offensiveTeam,
-            fieldPos: newFieldPos,
+            fieldPos: actualFieldPos,
             downAndDistance: {
                 down: newDown,
                 distance: newDistance,
