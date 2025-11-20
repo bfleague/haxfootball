@@ -43,7 +43,7 @@ export function KickoffReturn({
                     params: {
                         downState: getInitialDownState(receivingTeam, fieldPos),
                     },
-                    wait: ticks({ seconds: 2 }),
+                    wait: ticks({ seconds: 1 }),
                 });
             } else {
                 $effect(($) => {
@@ -62,7 +62,7 @@ export function KickoffReturn({
                             side: receivingTeam,
                         }),
                     },
-                    wait: ticks({ seconds: 2 }),
+                    wait: ticks({ seconds: 1 }),
                 });
             }
         }
@@ -97,7 +97,7 @@ export function KickoffReturn({
                     params: {
                         downState: getInitialDownState(receivingTeam, fieldPos),
                     },
-                    wait: ticks({ seconds: 2 }),
+                    wait: ticks({ seconds: 1 }),
                 });
             } else {
                 $effect(($) => {
@@ -121,6 +121,7 @@ export function KickoffReturn({
                     params: {
                         kickingTeam: receivingTeam,
                     },
+                    wait: ticks({ seconds: 2 }),
                 });
             }
         }
@@ -162,6 +163,7 @@ export function KickoffReturn({
                 params: {
                     downState: getInitialDownState(receivingTeam, fieldPos),
                 },
+                wait: ticks({ seconds: 1 }),
             });
         }
     }

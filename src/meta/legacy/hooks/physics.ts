@@ -12,10 +12,9 @@ export function $trapPlayerInEndZone(playerId: number) {
 
         if (!disc) return;
 
-        const current = typeof disc.cGroup === "number" ? disc.cGroup : 0;
         const bit = player.team === Team.RED ? cf.c0 : cf.c1;
 
-        $.setPlayerDisc(player.id, { cGroup: current | bit });
+        $.setPlayerDisc(player.id, { cGroup: bit });
     });
 }
 
@@ -34,10 +33,9 @@ export function $trapTeamInEndZone(team: Team) {
 
             if (!disc) return;
 
-            const current = typeof disc.cGroup === "number" ? disc.cGroup : 0;
             const bit = team === Team.RED ? cf.c0 : cf.c1;
 
-            $.setPlayerDisc(p.id, { cGroup: current | bit });
+            $.setPlayerDisc(p.id, { cGroup: bit });
         });
     });
 }
@@ -73,10 +71,9 @@ export function $trapPlayerInMidField(playerId: number) {
 
         if (!disc) return;
 
-        const current = typeof disc.cGroup === "number" ? disc.cGroup : 0;
         const bit = player.team === Team.RED ? cf.c2 : cf.c3;
 
-        $.setPlayerDisc(player.id, { cGroup: current | bit });
+        $.setPlayerDisc(player.id, { cGroup: bit });
     });
 }
 
@@ -92,10 +89,7 @@ export function $trapTeamInMidField(team: Team) {
 
                 if (!disc) return;
 
-                const current =
-                    typeof disc.cGroup === "number" ? disc.cGroup : 0;
-
-                $.setPlayerDisc(p.id, { cGroup: current | bit });
+                $.setPlayerDisc(p.id, { cGroup: bit });
             });
     });
 }
@@ -161,5 +155,11 @@ export function $setBallMoveableByPlayer(playerId: number) {
 export function $setBallUnmoveableByPlayer(playerId: number) {
     $effect(($) => {
         $.setPlayerDisc(playerId, { invMass: 1e26 });
+    });
+}
+
+export function $setBallInMiddleOfField() {
+    $effect(($) => {
+        $.setBall({ x: 0, y: 0, xspeed: 0, yspeed: 0 });
     });
 }

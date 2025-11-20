@@ -10,6 +10,7 @@ import {
     $setBallUnmoveable,
     $trapPlayerInMidField,
     $trapPlayerInEndZone,
+    $setBallInMiddleOfField,
 } from "@meta/legacy/hooks/physics";
 import type { GameState, GameStatePlayer } from "@common/engine";
 
@@ -29,6 +30,7 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
     $trapTeamInEndZone(opposite(forTeam));
     $setBallKickForce("strong");
     $setBallUnmoveable();
+    $setBallInMiddleOfField();
 
     $effect(($) => {
         const players = $.getPlayerList()

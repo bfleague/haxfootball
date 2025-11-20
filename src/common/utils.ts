@@ -5,6 +5,7 @@ export const AVATARS = {
     CANCEL: "❌",
     MUSCLE: "💪",
     CLOWN: "🤡",
+    CELEBRATION: "🎉",
 };
 
 export const DEFAULT_TOUCHING_DISTANCE = 0.5;

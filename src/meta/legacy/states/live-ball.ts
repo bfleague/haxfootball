@@ -1,9 +1,11 @@
 import type { GameState } from "@common/engine";
-import { advanceDownState, DownState } from "@meta/legacy/utils/game";
+import { advanceDownState, DownState, SCORES } from "@meta/legacy/utils/game";
 import { $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
 import {
+    calculateDirectionalGain,
     getFieldPosition,
+    getPositionFromFieldPosition,
     isInMainField,
     isOutOfBounds,
 } from "@meta/legacy/utils/stadium";
@@ -15,6 +17,7 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
+import { $global } from "@meta/legacy/hooks/global";
 
 export function LiveBall({
     playerId,
@@ -39,7 +42,41 @@ export function LiveBall({
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
 
-        // TODO: Touchdown
+        const goalLineX = getPositionFromFieldPosition({
+            side: opposite(offensiveTeam),
+            yards: 0,
+        });
+
+        const isTouchdown =
+            !isOutOfBounds(player) &&
+            !isInMainField(player) &&
+            calculateDirectionalGain(offensiveTeam, player.x - goalLineX) >= 0;
+
+        if (isTouchdown) {
+            $global((state) =>
+                state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
+            );
+
+            $effect(($) => {
+                $.send(t`Touchdown ${player.name}!`);
+                $.stat("LIVE_BALL_TOUCHDOWN");
+                $.setAvatar(playerId, AVATARS.CELEBRATION);
+            });
+
+            $dispose(() => {
+                $effect(($) => {
+                    $.setAvatar(playerId, null);
+                });
+            });
+
+            $next({
+                to: "KICKOFF",
+                params: {
+                    forTeam: offensiveTeam,
+                },
+                wait: ticks({ seconds: 3 }),
+            });
+        }
 
         if (isOutOfBounds(player)) {
             const fieldPos = getFieldPosition(player.x);
@@ -103,7 +140,7 @@ export function LiveBall({
                     params: {
                         downState: nextDownState,
                     },
-                    wait: ticks({ seconds: 2 }),
+                    wait: ticks({ seconds: 1 }),
                 });
             } else {
                 $effect(($) => {
@@ -206,7 +243,7 @@ export function LiveBall({
                 params: {
                     downState: nextDownState,
                 },
-                wait: ticks({ seconds: 2 }),
+                wait: ticks({ seconds: 1 }),
             });
         }
     }
