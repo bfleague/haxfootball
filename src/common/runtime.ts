@@ -26,6 +26,12 @@ type RoomMethodApi = Pick<Room, RoomMethodKeys>;
 type DiscPropsPatch = Partial<DiscProps>;
 
 export type MutationBuffer = ReturnType<typeof createMutationBuffer>;
+export type Transition = {
+    to: string;
+    params: any;
+    wait?: number;
+    disposal?: "IMMEDIATE" | "DELAYED";
+};
 
 const BALL_DEFAULT_INDEX = 0;
 
@@ -110,7 +116,7 @@ let RUNTIME: {
     room: Room;
     config: unknown;
     effects: Array<(api: EffectApi) => void>;
-    transition: { to: string; params: any } | null;
+    transition: Transition | null;
     onStat: (k: string) => void;
     tickNumber: number;
     mutations: MutationBuffer;
@@ -166,15 +172,33 @@ export function $effect(fn: (api: EffectApi) => void) {
 
 /**
  * Schedule a transition to another state after effects are flushed.
+ * Optionally delay the transition by a number of ticks.
  * Throws a sentinel so code after `$next` doesn't run within the tick.
  */
-export function $next(args: { to: string; params?: any }): never {
+export function $next(args: {
+    to: string;
+    params?: any;
+    wait?: number;
+    disposal?: "IMMEDIATE" | "DELAYED";
+}): never {
     if (!RUNTIME) throw new Error("$next used outside of runtime");
 
-    RUNTIME.transition = {
+    const wait =
+        typeof args.wait === "number" && args.wait > 0
+            ? Math.floor(args.wait)
+            : 0;
+
+    const transition: Transition = {
         to: args.to,
         params: args.params ? args.params : {},
+        disposal: args.disposal === "IMMEDIATE" ? "IMMEDIATE" : "DELAYED",
     };
+
+    if (wait > 0) {
+        transition.wait = wait;
+    }
+
+    RUNTIME.transition = transition;
 
     // eslint-disable-next-line no-throw-literal
     throw "__NEXT__";
@@ -193,7 +217,7 @@ export function $config<Cfg>(): Cfg {
  * Execute queued effects and return any pending transition.
  */
 export function flushRuntime(): {
-    transition: { to: string; params: any } | null;
+    transition: Transition | null;
     stopRequested: boolean;
 } {
     if (!RUNTIME) return { transition: null, stopRequested: false };

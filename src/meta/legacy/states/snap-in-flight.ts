@@ -1,10 +1,12 @@
 import { $effect, $next } from "@common/hooks";
-import { findBallCatcher } from "@common/utils";
+import { findBallCatcher, ticks } from "@common/utils";
 import type { GameState } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import { isOutOfBounds } from "@meta/legacy/utils/stadium";
 import { advanceDownState, DownState } from "@meta/legacy/utils/game";
 import {
+    $setBallActive,
+    $setBallInactive,
     $setFirstDownLine,
     $setLineOfScrimmage,
     $unsetFirstDownLine,
@@ -21,6 +23,8 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         if (isOutOfBounds(state.ball)) {
             const { downState: nextDownState, event } =
                 advanceDownState(downState);
+
+            $setBallInactive();
 
             $effect(($) => {
                 switch (event.type) {
@@ -53,6 +57,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                 params: {
                     downState: nextDownState,
                 },
+                wait: ticks({ seconds: 2 }),
             });
         }
 
@@ -79,6 +84,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
     function dispose() {
         $unsetLineOfScrimmage();
         $unsetFirstDownLine();
+        $setBallActive();
     }
 
     return { run, dispose };

@@ -1,7 +1,7 @@
 import type { GameState } from "@common/engine";
 import { advanceDownState, DownState } from "@meta/legacy/utils/game";
 import { $effect, $next } from "@common/runtime";
-import { AVATARS, findCatchers, opposite } from "@common/utils";
+import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
 import {
     getFieldPosition,
     isInMainField,
@@ -25,15 +25,17 @@ export function LiveBall({
 }) {
     const { offensiveTeam, fieldPos, downAndDistance } = downState;
 
+    const avatarsToClear: number[] = [];
+
     $setLineOfScrimmage(fieldPos);
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
-
     $setBallInactive();
 
     // TODO: Fumble
 
     $effect(($) => {
         $.setAvatar(playerId, AVATARS.BALL);
+        avatarsToClear.push(playerId);
     });
 
     function run(state: GameState) {
@@ -89,6 +91,9 @@ export function LiveBall({
                         default:
                             break;
                     }
+
+                    $.setAvatar(playerId, AVATARS.CANCEL);
+                    avatarsToClear.push(playerId);
                 });
 
                 $next({
@@ -96,6 +101,7 @@ export function LiveBall({
                     params: {
                         downState: nextDownState,
                     },
+                    wait: ticks({ seconds: 2 }),
                 });
             } else {
                 $effect(($) => {
@@ -104,6 +110,9 @@ export function LiveBall({
                     );
 
                     $.stat("LIVE_BALL_OUT_OF_BOUNDS_SAFETY");
+
+                    $.setAvatar(playerId, AVATARS.CLOWN);
+                    avatarsToClear.push(playerId);
                 });
 
                 $next({
@@ -111,6 +120,7 @@ export function LiveBall({
                     params: {
                         kickingTeam: opposite(offensiveTeam),
                     },
+                    wait: ticks({ seconds: 2 }),
                 });
             }
         }
@@ -167,6 +177,14 @@ export function LiveBall({
                     default:
                         break;
                 }
+
+                $.setAvatar(playerId, AVATARS.CANCEL);
+
+                catchers.forEach((p) => {
+                    $.setAvatar(p.id, AVATARS.MUSCLE);
+                });
+
+                avatarsToClear.push(...catchers.map((p) => p.id));
             });
 
             $next({
@@ -174,13 +192,16 @@ export function LiveBall({
                 params: {
                     downState: nextDownState,
                 },
+                wait: ticks({ seconds: 2 }),
             });
         }
     }
 
     function dispose() {
         $effect(($) => {
-            $.setAvatar(playerId, null);
+            avatarsToClear.forEach((id) => {
+                $.setAvatar(id, null);
+            });
         });
 
         $unsetLineOfScrimmage();

@@ -2,6 +2,9 @@ import { Team, type FieldTeam } from "@common/models";
 
 export const AVATARS = {
     BALL: "🏈",
+    CANCEL: "❌",
+    MUSCLE: "💪",
+    CLOWN: "🤡",
 };
 
 export const DEFAULT_TOUCHING_DISTANCE = 0.5;
@@ -237,4 +240,34 @@ export function calculatePositionFromFieldPosition(
     } else {
         return endX - yardLength * position.yards;
     }
+}
+
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
+    T,
+    Exclude<keyof T, Keys>
+> &
+    {
+        [K in Keys]-?: Required<Pick<T, K>> &
+            Partial<Pick<T, Exclude<Keys, K>>>;
+    }[Keys];
+
+export type TimeInput = RequireAtLeastOne<{
+    hours?: number;
+    minutes?: number;
+    seconds?: number;
+    milliseconds?: number;
+}>;
+
+export function ticks(time: TimeInput): number {
+    const hours = time.hours ?? 0;
+    const minutes = time.minutes ?? 0;
+    const seconds = time.seconds ?? 0;
+    const milliseconds = time.milliseconds ?? 0;
+
+    const totalSeconds = (hours * 60 + minutes) * 60 + seconds;
+    const ticksFromSeconds = totalSeconds * 60;
+
+    const ticksFromMs = Math.round((milliseconds * 60) / 1000);
+
+    return ticksFromSeconds + ticksFromMs;
 }

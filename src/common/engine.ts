@@ -4,6 +4,7 @@ import {
     setRuntimeRoom,
     createMutationBuffer,
     type MutationBuffer,
+    type Transition,
 } from "@common/runtime";
 import { Room } from "@core/room";
 import { Team, type FieldTeam, isFieldTeam } from "@common/models";
@@ -135,7 +136,13 @@ export function createEngine<Cfg>(
     opts: EngineOptions<Cfg>,
 ): Engine<Cfg> {
     let current: { name: string; api: StateApi } | null = null;
-    let pendingTransition: { to: string; params: any } | null = null;
+    let pendingTransition: Transition | null = null;
+    let delayedTransition: {
+        to: string;
+        params: any;
+        remainingTicks: number;
+        disposal: "IMMEDIATE" | "DELAYED";
+    } | null = null;
     let kickerSet: Set<number> = new Set();
     let running = false;
     let disableStateExecution = false;
@@ -184,11 +191,12 @@ export function createEngine<Cfg>(
             }
 
             if (flushed.stopRequested) {
+                pendingTransition = null;
+                delayedTransition = null;
                 disableStateExecution = true;
                 running = false;
             } else if (allowTransition && flushed.transition) {
-                pendingTransition = flushed.transition;
-                applyTransition();
+                scheduleTransition(flushed.transition);
             }
         }
 
@@ -237,6 +245,34 @@ export function createEngine<Cfg>(
         };
     }
 
+    function scheduleTransition(transition: Transition) {
+        const wait =
+            typeof transition.wait === "number" && transition.wait > 0
+                ? transition.wait
+                : 0;
+        const disposal =
+            transition.disposal === "IMMEDIATE" ? "IMMEDIATE" : "DELAYED";
+
+        if (wait > 0) {
+            delayedTransition = {
+                to: transition.to,
+                params: transition.params,
+                remainingTicks: wait,
+                disposal,
+            };
+
+            if (disposal === "IMMEDIATE") {
+                disposeState(current);
+                current = null;
+            }
+            pendingTransition = null;
+            return;
+        }
+
+        pendingTransition = transition;
+        applyTransition();
+    }
+
     function start(name: string, params?: any) {
         if (running) stop();
 
@@ -244,6 +280,8 @@ export function createEngine<Cfg>(
 
         tickNumber = 0;
         disableStateExecution = false;
+        pendingTransition = null;
+        delayedTransition = null;
 
         current = {
             name,
@@ -261,10 +299,32 @@ export function createEngine<Cfg>(
         kickerSet.clear();
         tickNumber = 0;
         disableStateExecution = false;
+        pendingTransition = null;
+        delayedTransition = null;
     }
 
     function tick() {
-        if (!running || !current || disableStateExecution) return;
+        if (!running || disableStateExecution) return;
+
+        if (delayedTransition) {
+            if (delayedTransition.remainingTicks > 0) {
+                delayedTransition.remainingTicks -= 1;
+                tickNumber += 1;
+                return;
+            }
+
+            pendingTransition = {
+                to: delayedTransition.to,
+                params: delayedTransition.params,
+            };
+            delayedTransition = null;
+            applyTransition();
+        }
+
+        if (!current) {
+            tickNumber += 1;
+            return;
+        }
 
         room.invalidateCaches();
         sharedTickMutations = createMutationBuffer(room);
@@ -288,7 +348,7 @@ export function createEngine<Cfg>(
             const gs = buildGameState(room, currentKickers, currentTickNumber);
 
             let flushed: {
-                transition: { to: string; params: any } | null;
+                transition: Transition | null;
                 stopRequested: boolean;
             } | null = null;
 
@@ -308,11 +368,11 @@ export function createEngine<Cfg>(
 
             if (flushed?.stopRequested) {
                 pendingTransition = null;
+                delayedTransition = null;
                 disableStateExecution = true;
                 running = false;
             } else if (flushed && flushed.transition) {
-                pendingTransition = flushed.transition;
-                applyTransition();
+                scheduleTransition(flushed.transition);
             }
 
             tickNumber += 1;
