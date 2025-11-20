@@ -1,6 +1,6 @@
 import type { GameState } from "@common/engine";
 import { advanceDownState, DownState } from "@meta/legacy/utils/game";
-import { $effect, $next } from "@common/runtime";
+import { $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
 import {
     getFieldPosition,
@@ -25,8 +25,6 @@ export function LiveBall({
 }) {
     const { offensiveTeam, fieldPos, downAndDistance } = downState;
 
-    const avatarsToClear: number[] = [];
-
     $setLineOfScrimmage(fieldPos);
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
     $setBallInactive();
@@ -35,7 +33,6 @@ export function LiveBall({
 
     $effect(($) => {
         $.setAvatar(playerId, AVATARS.BALL);
-        avatarsToClear.push(playerId);
     });
 
     function run(state: GameState) {
@@ -93,7 +90,12 @@ export function LiveBall({
                     }
 
                     $.setAvatar(playerId, AVATARS.CANCEL);
-                    avatarsToClear.push(playerId);
+                });
+
+                $dispose(() => {
+                    $effect(($) => {
+                        $.setAvatar(playerId, null);
+                    });
                 });
 
                 $next({
@@ -110,9 +112,13 @@ export function LiveBall({
                     );
 
                     $.stat("LIVE_BALL_OUT_OF_BOUNDS_SAFETY");
-
                     $.setAvatar(playerId, AVATARS.CLOWN);
-                    avatarsToClear.push(playerId);
+                });
+
+                $dispose(() => {
+                    $effect(($) => {
+                        $.setAvatar(playerId, null);
+                    });
                 });
 
                 $next({
@@ -183,8 +189,16 @@ export function LiveBall({
                 catchers.forEach((p) => {
                     $.setAvatar(p.id, AVATARS.MUSCLE);
                 });
+            });
 
-                avatarsToClear.push(...catchers.map((p) => p.id));
+            $dispose(() => {
+                $effect(($) => {
+                    $.setAvatar(playerId, null);
+
+                    catchers.forEach((p) => {
+                        $.setAvatar(p.id, null);
+                    });
+                });
             });
 
             $next({
@@ -199,9 +213,7 @@ export function LiveBall({
 
     function dispose() {
         $effect(($) => {
-            avatarsToClear.forEach((id) => {
-                $.setAvatar(id, null);
-            });
+            $.setAvatar(playerId, null);
         });
 
         $unsetLineOfScrimmage();

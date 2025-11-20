@@ -116,6 +116,7 @@ let RUNTIME: {
     room: Room;
     config: unknown;
     effects: Array<(api: EffectApi) => void>;
+    disposals: Array<() => void>;
     transition: Transition | null;
     onStat: (k: string) => void;
     tickNumber: number;
@@ -133,14 +134,17 @@ export function installRuntime(ctx: {
     onStat?: (k: string) => void;
     tickNumber?: number;
     mutations?: MutationBuffer | undefined;
+    disposals?: Array<() => void>;
 }) {
     const onStat = ctx.onStat ? ctx.onStat : () => {};
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
+    const disposals = ctx.disposals ?? [];
 
     RUNTIME = {
         room: ctx.room,
         config: ctx.config,
         effects: [],
+        disposals,
         transition: null,
         onStat,
         tickNumber: typeof ctx.tickNumber === "number" ? ctx.tickNumber : 0,
@@ -168,6 +172,15 @@ export function $effect(fn: (api: EffectApi) => void) {
     if (!RUNTIME) throw new Error("$effect used outside of runtime");
 
     RUNTIME.effects.push(fn);
+}
+
+/**
+ * Register an additional disposer to run when the state is cleaned up.
+ */
+export function $dispose(fn: () => void) {
+    if (!RUNTIME) throw new Error("$dispose used outside of runtime");
+
+    RUNTIME.disposals.push(fn);
 }
 
 /**

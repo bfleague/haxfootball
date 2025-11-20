@@ -1,4 +1,4 @@
-import { $effect, $next } from "@common/hooks";
+import { $dispose, $effect, $next } from "@common/hooks";
 import { findBallCatcher, ticks } from "@common/utils";
 import type { GameState } from "@common/engine";
 import { t } from "@lingui/core/macro";
@@ -25,6 +25,10 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                 advanceDownState(downState);
 
             $setBallInactive();
+
+            $dispose(() => {
+                $setBallActive();
+            });
 
             $effect(($) => {
                 switch (event.type) {
@@ -84,7 +88,6 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
     function dispose() {
         $unsetLineOfScrimmage();
         $unsetFirstDownLine();
-        $setBallActive();
     }
 
     return { run, dispose };

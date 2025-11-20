@@ -135,7 +135,11 @@ export function createEngine<Cfg>(
     registry: StateRegistry,
     opts: EngineOptions<Cfg>,
 ): Engine<Cfg> {
-    let current: { name: string; api: StateApi } | null = null;
+    let current: {
+        name: string;
+        api: StateApi;
+        disposals: Array<() => void>;
+    } | null = null;
     let pendingTransition: Transition | null = null;
     let delayedTransition: {
         to: string;
@@ -156,7 +160,7 @@ export function createEngine<Cfg>(
 
     function runOutsideTick<T>(
         fn: () => T,
-        optsRun?: { allowTransition?: boolean },
+        optsRun?: { allowTransition?: boolean; disposals?: Array<() => void> },
     ): T {
         room.invalidateCaches();
         const uninstall = installRuntime({
@@ -165,6 +169,7 @@ export function createEngine<Cfg>(
             onStat: onStats,
             tickNumber,
             mutations: sharedTickMutations ?? undefined,
+            ...(optsRun?.disposals ? { disposals: optsRun.disposals } : {}),
         });
 
         setRuntimeRoom(room);
@@ -218,17 +223,37 @@ export function createEngine<Cfg>(
     ) {
         const resolved = factory ?? ensureFactory(name);
 
-        return runOutsideTick(() => resolved(params ?? {}));
+        const disposals: Array<() => void> = [];
+
+        const api = runOutsideTick(() => resolved(params ?? {}), { disposals });
+
+        return { api, disposals };
     }
 
-    function disposeState(target: { api: StateApi } | null) {
-        if (!target || !target.api.dispose) return;
+    function disposeState(
+        target: { api: StateApi; disposals: Array<() => void> } | null,
+    ) {
+        if (!target) return;
 
-        const dispose = target.api.dispose;
+        const disposeFns: Array<() => void> = [];
 
-        runOutsideTick(() => {
-            dispose();
-        });
+        if (target.api.dispose) {
+            disposeFns.push(() => target.api.dispose!());
+        }
+
+        disposeFns.push(...target.disposals);
+
+        if (disposeFns.length === 0) return;
+
+        runOutsideTick(
+            () => {
+                for (const fn of disposeFns) {
+                    fn();
+                }
+                target.disposals.length = 0;
+            },
+            { disposals: target.disposals },
+        );
     }
 
     function applyTransition() {
@@ -239,9 +264,12 @@ export function createEngine<Cfg>(
         const factory = ensureFactory(next.to);
         disposeState(current);
 
+        const created = createState(next.to, next.params, factory);
+
         current = {
             name: next.to,
-            api: createState(next.to, next.params, factory),
+            api: created.api,
+            disposals: created.disposals,
         };
     }
 
@@ -283,9 +311,12 @@ export function createEngine<Cfg>(
         pendingTransition = null;
         delayedTransition = null;
 
+        const created = createState(name, params, factory);
+
         current = {
             name,
-            api: createState(name, params, factory),
+            api: created.api,
+            disposals: created.disposals,
         };
 
         running = true;
@@ -338,6 +369,7 @@ export function createEngine<Cfg>(
                 onStat: onStats,
                 tickNumber: currentTickNumber,
                 mutations: sharedTickMutations ?? undefined,
+                disposals: current.disposals,
             });
 
             setRuntimeRoom(room);
@@ -398,7 +430,7 @@ export function createEngine<Cfg>(
             () => {
                 current!.api.chat!(snapshot, message);
             },
-            { allowTransition: true },
+            { allowTransition: true, disposals: current.disposals },
         );
     }
 
@@ -411,9 +443,12 @@ export function createEngine<Cfg>(
         const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
         if (!snapshot) return;
 
-        runOutsideTick(() => {
-            current!.api.join!(snapshot);
-        });
+        runOutsideTick(
+            () => {
+                current!.api.join!(snapshot);
+            },
+            { disposals: current.disposals },
+        );
     }
 
     function handlePlayerLeave(player: PlayerObject) {
@@ -426,7 +461,7 @@ export function createEngine<Cfg>(
             () => {
                 current!.api.leave!(snapshot);
             },
-            { allowTransition: true },
+            { allowTransition: true, disposals: current.disposals },
         );
     }
 

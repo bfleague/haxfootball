@@ -1,6 +1,6 @@
-import { $effect, $next } from "@common/hooks";
+import { $dispose, $effect, $next } from "@common/hooks";
 import type { FieldTeam } from "@common/models";
-import { opposite, AVATARS, findCatchers } from "@common/utils";
+import { opposite, AVATARS, findCatchers, ticks } from "@common/utils";
 import type { GameState, GameStatePlayer } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import {
@@ -43,6 +43,7 @@ export function KickoffReturn({
                     params: {
                         downState: getInitialDownState(receivingTeam, fieldPos),
                     },
+                    wait: ticks({ seconds: 2 }),
                 });
             } else {
                 $effect(($) => {
@@ -61,6 +62,7 @@ export function KickoffReturn({
                             side: receivingTeam,
                         }),
                     },
+                    wait: ticks({ seconds: 2 }),
                 });
             }
         }
@@ -80,6 +82,14 @@ export function KickoffReturn({
                     );
 
                     $.stat("KICKOFF_RETURN_OUT_OF_BOUNDS");
+
+                    $.setAvatar(playerId, AVATARS.CANCEL);
+                });
+
+                $dispose(() => {
+                    $effect(($) => {
+                        $.setAvatar(playerId, null);
+                    });
                 });
 
                 $next({
@@ -87,6 +97,7 @@ export function KickoffReturn({
                     params: {
                         downState: getInitialDownState(receivingTeam, fieldPos),
                     },
+                    wait: ticks({ seconds: 2 }),
                 });
             } else {
                 $effect(($) => {
@@ -95,6 +106,14 @@ export function KickoffReturn({
                     );
 
                     $.stat("KICKOFF_RETURN_SAFETY");
+
+                    $.setAvatar(playerId, AVATARS.CLOWN);
+                });
+
+                $dispose(() => {
+                    $effect(($) => {
+                        $.setAvatar(playerId, null);
+                    });
                 });
 
                 $next({
@@ -120,6 +139,22 @@ export function KickoffReturn({
             $effect(($) => {
                 $.send(t`${player.name} tackled by ${catcherNames}!`);
                 $.stat("KICKOFF_RETURN_TACKLED");
+
+                catchers.forEach((p) => {
+                    $.setAvatar(p.id, AVATARS.MUSCLE);
+                });
+
+                $.setAvatar(playerId, AVATARS.CANCEL);
+            });
+
+            $dispose(() => {
+                $effect(($) => {
+                    $.setAvatar(playerId, null);
+
+                    catchers.forEach((p) => {
+                        $.setAvatar(p.id, null);
+                    });
+                });
             });
 
             $next({
