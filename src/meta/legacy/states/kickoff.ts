@@ -11,6 +11,7 @@ import {
     $trapPlayerInMidField,
     $trapPlayerInEndZone,
     $setBallInMiddleOfField,
+    $setBallUnmoveableByPlayer,
 } from "@meta/legacy/hooks/physics";
 import type { GameState, GameStatePlayer } from "@common/engine";
 
@@ -26,11 +27,11 @@ const KICKOFF_START_LINE = {
 };
 
 export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
+    $setBallInMiddleOfField();
     $trapTeamInMidField(forTeam);
     $trapTeamInEndZone(opposite(forTeam));
     $setBallKickForce("strong");
     $setBallUnmoveable();
-    $setBallInMiddleOfField();
 
     $effect(($) => {
         const players = $.getPlayerList()
@@ -62,8 +63,10 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
             });
 
             $trapPlayerInMidField(player.id);
+            $setBallUnmoveableByPlayer(player.id);
         } else {
             $trapPlayerInEndZone(player.id);
+            $setBallUnmoveableByPlayer(player.id);
         }
     }
 
@@ -85,6 +88,7 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
     function dispose() {
         $untrapAllTeams();
         $setBallMoveable();
+        $setBallKickForce("normal");
     }
 
     return { join, run, dispose };

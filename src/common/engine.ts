@@ -337,6 +337,9 @@ export function createEngine<Cfg>(
     function tick() {
         if (!running || disableStateExecution) return;
 
+        const kicksThisTick = delayedTransition ? new Set<number>() : kickerSet;
+        kickerSet = new Set();
+
         if (delayedTransition) {
             if (delayedTransition.remainingTicks > 0) {
                 delayedTransition.remainingTicks -= 1;
@@ -375,9 +378,7 @@ export function createEngine<Cfg>(
             setRuntimeRoom(room);
 
             // Build state, consume the "kicker" one-tick flag.
-            const currentKickers = kickerSet;
-            kickerSet = new Set();
-            const gs = buildGameState(room, currentKickers, currentTickNumber);
+            const gs = buildGameState(room, kicksThisTick, currentTickNumber);
 
             let flushed: {
                 transition: Transition | null;

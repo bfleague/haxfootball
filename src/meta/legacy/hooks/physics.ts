@@ -1,9 +1,44 @@
 import { $effect } from "@common/hooks";
 import { Team } from "@common/models";
+import type { EffectApi } from "@common/runtime";
+
+const PLAYER_MOVEABLE_INV_MASS = 0.5;
+const PLAYER_UNMOVEABLE_INV_MASS = 1e26;
+
+const getTeamCollisionGroup = (
+    cf: EffectApi["CollisionFlags"],
+    team: Team,
+): number => {
+    switch (team) {
+        case Team.RED:
+            return cf.red;
+        case Team.BLUE:
+            return cf.blue;
+        default:
+            return 0;
+    }
+};
+
+const setCollisionConfig = ($: EffectApi, playerId: number, cGroup: number) => {
+    $.setPlayerDisc(playerId, {
+        cGroup,
+        cMask: $.CollisionFlags.all,
+    });
+};
+
+const setPlayerMoveability = (
+    $: EffectApi,
+    playerId: number,
+    invMass: number,
+) => {
+    $.setPlayerDisc(playerId, {
+        invMass,
+        cMask: $.CollisionFlags.all,
+    });
+};
 
 export function $trapPlayerInEndZone(playerId: number) {
     $effect(($) => {
-        const cf = $.CollisionFlags;
         const player = $.getPlayerList().find((p) => p.id === playerId);
 
         if (!player) return;
@@ -12,16 +47,19 @@ export function $trapPlayerInEndZone(playerId: number) {
 
         if (!disc) return;
 
+        const cf = $.CollisionFlags;
         const bit = player.team === Team.RED ? cf.c0 : cf.c1;
+        const baseTeamGroup = getTeamCollisionGroup(cf, player.team);
 
-        $.setPlayerDisc(player.id, { cGroup: bit });
+        setCollisionConfig($, player.id, bit | baseTeamGroup);
     });
 }
 
 export function $trapTeamInEndZone(team: Team) {
     $effect(($) => {
-        const cf = $.CollisionFlags;
         const players = $.getPlayerList();
+        const cf = $.CollisionFlags;
+        const baseTeamGroup = getTeamCollisionGroup(cf, team);
 
         const target =
             team === Team.RED
@@ -35,7 +73,7 @@ export function $trapTeamInEndZone(team: Team) {
 
             const bit = team === Team.RED ? cf.c0 : cf.c1;
 
-            $.setPlayerDisc(p.id, { cGroup: bit });
+            setCollisionConfig($, p.id, bit | baseTeamGroup);
         });
     });
 }
@@ -43,19 +81,16 @@ export function $trapTeamInEndZone(team: Team) {
 export function $untrapAllTeams() {
     $effect(($) => {
         const cf = $.CollisionFlags;
+        const mask = cf.all;
+
         $.getPlayerList()
             .map((p) => ({
                 id: p.id,
-                base:
-                    p.team === Team.RED
-                        ? cf.red
-                        : p.team === Team.BLUE
-                          ? cf.blue
-                          : 0,
+                base: getTeamCollisionGroup(cf, p.team),
             }))
             .filter((x) => x.base !== 0)
             .forEach(({ id, base }) => {
-                $.setPlayerDisc(id, { cGroup: base });
+                $.setPlayerDisc(id, { cGroup: base, cMask: mask });
             });
     });
 }
@@ -73,7 +108,9 @@ export function $trapPlayerInMidField(playerId: number) {
 
         const bit = player.team === Team.RED ? cf.c2 : cf.c3;
 
-        $.setPlayerDisc(player.id, { cGroup: bit });
+        const baseTeamGroup = getTeamCollisionGroup(cf, player.team);
+
+        setCollisionConfig($, player.id, bit | baseTeamGroup);
     });
 }
 
@@ -81,6 +118,7 @@ export function $trapTeamInMidField(team: Team) {
     $effect(($) => {
         const cf = $.CollisionFlags;
         const bit = team === Team.RED ? cf.c2 : cf.c3;
+        const baseTeamGroup = getTeamCollisionGroup(cf, team);
 
         $.getPlayerList()
             .filter((p) => p.team === team)
@@ -89,7 +127,7 @@ export function $trapTeamInMidField(team: Team) {
 
                 if (!disc) return;
 
-                $.setPlayerDisc(p.id, { cGroup: bit });
+                setCollisionConfig($, p.id, bit | baseTeamGroup);
             });
     });
 }
@@ -133,7 +171,7 @@ export function $setBallKickForce(force: "fast" | "strong" | "normal") {
 export function $setBallMoveable() {
     $effect(($) => {
         $.getPlayerList().forEach((p) => {
-            $.setPlayerDisc(p.id, { invMass: 0.5 });
+            setPlayerMoveability($, p.id, PLAYER_MOVEABLE_INV_MASS);
         });
     });
 }
@@ -141,20 +179,20 @@ export function $setBallMoveable() {
 export function $setBallUnmoveable() {
     $effect(($) => {
         $.getPlayerList().forEach((p) => {
-            $.setPlayerDisc(p.id, { invMass: 1e26 });
+            setPlayerMoveability($, p.id, PLAYER_UNMOVEABLE_INV_MASS);
         });
     });
 }
 
 export function $setBallMoveableByPlayer(playerId: number) {
     $effect(($) => {
-        $.setPlayerDisc(playerId, { invMass: 0.5 });
+        setPlayerMoveability($, playerId, PLAYER_MOVEABLE_INV_MASS);
     });
 }
 
 export function $setBallUnmoveableByPlayer(playerId: number) {
     $effect(($) => {
-        $.setPlayerDisc(playerId, { invMass: 1e26 });
+        setPlayerMoveability($, playerId, PLAYER_UNMOVEABLE_INV_MASS);
     });
 }
 
