@@ -1,4 +1,4 @@
-import { Team } from "@common/models";
+import { Team, type FieldTeam } from "@common/models";
 import {
     calculateFieldPosition,
     calculatePositionFromFieldPosition,
@@ -135,6 +135,31 @@ export function isOutOfBounds(position: Position): boolean {
         position.y < MapMeasures.OUTER_FIELD.topLeft.y ||
         position.y > MapMeasures.OUTER_FIELD.bottomRight.y
     );
+}
+
+function getEndZone(side: FieldTeam) {
+    return side === Team.RED
+        ? MapMeasures.END_ZONE_RED
+        : MapMeasures.END_ZONE_BLUE;
+}
+
+export function intersectsEndZone(
+    position: PointLike,
+    endZoneSide: FieldTeam,
+): boolean {
+    const endZone = getEndZone(endZoneSide);
+    const minX = Math.min(endZone.topLeft.x, endZone.bottomRight.x);
+    const maxX = Math.max(endZone.topLeft.x, endZone.bottomRight.x);
+    const minY = Math.min(endZone.topLeft.y, endZone.bottomRight.y);
+    const maxY = Math.max(endZone.topLeft.y, endZone.bottomRight.y);
+    const radius = Math.max(0, position.radius ?? 0);
+
+    const closestX = Math.min(Math.max(position.x, minX), maxX);
+    const closestY = Math.min(Math.max(position.y, minY), maxY);
+    const dx = position.x - closestX;
+    const dy = position.y - closestY;
+
+    return dx * dx + dy * dy <= radius * radius;
 }
 
 export function getLineOfScrimmage(): { id: number }[];

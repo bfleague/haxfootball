@@ -4,8 +4,8 @@ import {
     calculateDirectionalGain,
     calculateYardsGained,
     getPositionFromFieldPosition,
-    isInMainField,
     isOutOfBounds,
+    intersectsEndZone,
 } from "./stadium";
 
 export type DownAndDistance = {
@@ -115,15 +115,22 @@ export function isTouchdown({
     player: PointLike;
     offensiveTeam: FieldTeam;
 }) {
+    const scoringSide = opposite(offensiveTeam);
     const goalLineX = getPositionFromFieldPosition({
-        side: opposite(offensiveTeam),
+        side: scoringSide,
         yards: 0,
     });
 
+    const radius = Math.max(0, player.radius ?? 0);
+    const brokePlane =
+        calculateDirectionalGain(offensiveTeam, player.x - goalLineX) +
+            radius >=
+        0;
+
     const isTouchdown =
         !isOutOfBounds(player) &&
-        !isInMainField(player) &&
-        calculateDirectionalGain(offensiveTeam, player.x - goalLineX) >= 0;
+        brokePlane &&
+        intersectsEndZone(player, scoringSide);
 
     return isTouchdown;
 }
