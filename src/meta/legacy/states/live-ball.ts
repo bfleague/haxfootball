@@ -1,11 +1,15 @@
 import type { GameState } from "@common/engine";
-import { advanceDownState, DownState, SCORES } from "@meta/legacy/utils/game";
+import {
+    advanceDownState,
+    DownState,
+    processDownEvent,
+    isTouchdown,
+    SCORES,
+} from "@meta/legacy/utils/game";
 import { $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
 import {
-    calculateDirectionalGain,
     getFieldPosition,
-    getPositionFromFieldPosition,
     isInMainField,
     isOutOfBounds,
 } from "@meta/legacy/utils/stadium";
@@ -42,17 +46,12 @@ export function LiveBall({
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
 
-        const goalLineX = getPositionFromFieldPosition({
-            side: opposite(offensiveTeam),
-            yards: 0,
-        });
-
-        const isTouchdown =
-            !isOutOfBounds(player) &&
-            !isInMainField(player) &&
-            calculateDirectionalGain(offensiveTeam, player.x - goalLineX) >= 0;
-
-        if (isTouchdown) {
+        if (
+            isTouchdown({
+                player,
+                offensiveTeam,
+            })
+        ) {
             $global((state) =>
                 state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
             );
@@ -60,7 +59,7 @@ export function LiveBall({
             $effect(($) => {
                 $.send(t`Touchdown ${player.name}!`);
                 $.stat("LIVE_BALL_TOUCHDOWN");
-                $.setAvatar(playerId, AVATARS.CELEBRATION);
+                $.setAvatar(playerId, AVATARS.FIRE);
             });
 
             $dispose(() => {
@@ -87,45 +86,63 @@ export function LiveBall({
                     fieldPos,
                 );
 
+                processDownEvent({
+                    event,
+                    onFirstDown() {
+                        $effect(($) => {
+                            $.send(
+                                t`First down at yard line ${fieldPos.yards}!`,
+                            );
+                            $.stat(
+                                "LIVE_BALL_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE",
+                            );
+                        });
+                    },
+                    onNextDown: {
+                        onYardsGained(yardsGained: number) {
+                            $effect(($) => {
+                                $.send(
+                                    t`Next down at yard line ${fieldPos.yards} after a gain of ${yardsGained} yards!`,
+                                );
+                                $.stat(
+                                    "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE",
+                                );
+                            });
+                        },
+                        onNoGain() {
+                            $effect(($) => {
+                                $.send(
+                                    t`Next down at yard line ${fieldPos.yards} with no gain!`,
+                                );
+                                $.stat(
+                                    "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
+                                );
+                            });
+                        },
+                        onLoss(yardsLost: number) {
+                            $effect(($) => {
+                                $.send(
+                                    t`Next down at yard line ${fieldPos.yards} after a loss of ${yardsLost} yards!`,
+                                );
+                                $.stat(
+                                    "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_LOSS_YARD_LINE",
+                                );
+                            });
+                        },
+                    },
+                    onTurnoverOnDowns() {
+                        $effect(($) => {
+                            $.send(
+                                t`Turnover on downs at yard line ${fieldPos.yards}!`,
+                            );
+                            $.stat(
+                                "LIVE_BALL_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE",
+                            );
+                        });
+                    },
+                });
+
                 $effect(($) => {
-                    switch (event.type) {
-                        case "FIRST_DOWN":
-                            $.send(
-                                t`${player.name} went out of bounds, first down!`,
-                            );
-                            $.stat("LIVE_BALL_OUT_OF_BOUNDS_FIRST_DOWN");
-                            break;
-                        case "NEXT_DOWN":
-                            if (event.yardsGained === 0) {
-                                $.send(
-                                    t`${player.name} went out of bounds with no gain!`,
-                                );
-                            }
-
-                            if (event.yardsGained > 0) {
-                                $.send(
-                                    t`${player.name} went out of bounds for a gain of ${event.yardsGained} yards!`,
-                                );
-                            }
-
-                            if (event.yardsGained < 0) {
-                                $.send(
-                                    t`${player.name} went out of bounds for a loss of ${-event.yardsGained} yards!`,
-                                );
-                            }
-
-                            $.stat("LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN");
-                            break;
-                        case "TURNOVER_ON_DOWNS":
-                            $.send(
-                                t`${player.name} went out of bounds, turnover on downs!`,
-                            );
-                            $.stat("LIVE_BALL_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS");
-                            break;
-                        default:
-                            break;
-                    }
-
                     $.setAvatar(playerId, AVATARS.CANCEL);
                 });
 
@@ -182,45 +199,55 @@ export function LiveBall({
                 fieldPos,
             );
 
+            processDownEvent({
+                event,
+                onFirstDown() {
+                    $effect(($) => {
+                        $.send(
+                            t`${player.name} tackled by ${catcherNames} for a first down at yard line ${fieldPos.yards}!`,
+                        );
+                        $.stat("LIVE_BALL_TACKLE_FIRST_DOWN_YARD_LINE");
+                    });
+                },
+                onNextDown: {
+                    onYardsGained(yardsGained: number) {
+                        $effect(($) => {
+                            $.send(
+                                t`${player.name} tackled by ${catcherNames} for a gain of ${yardsGained} yards, next down at yard line ${fieldPos.yards}!`,
+                            );
+                            $.stat("LIVE_BALL_TACKLE_NEXT_DOWN_YARD_LINE");
+                        });
+                    },
+                    onNoGain() {
+                        $effect(($) => {
+                            $.send(
+                                t`${player.name} tackled by ${catcherNames} with no gain, next down at yard line ${fieldPos.yards}!`,
+                            );
+                            $.stat(
+                                "LIVE_BALL_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE",
+                            );
+                        });
+                    },
+                    onLoss(yardsLost: number) {
+                        $effect(($) => {
+                            $.send(
+                                t`${player.name} tackled by ${catcherNames} for a loss of ${yardsLost} yards, next down at yard line ${fieldPos.yards}!`,
+                            );
+                            $.stat("LIVE_BALL_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
+                        });
+                    },
+                },
+                onTurnoverOnDowns() {
+                    $effect(($) => {
+                        $.send(
+                            t`${player.name} tackled by ${catcherNames}, turnover on downs at yard line ${fieldPos.yards}!`,
+                        );
+                        $.stat("LIVE_BALL_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");
+                    });
+                },
+            });
+
             $effect(($) => {
-                switch (event.type) {
-                    case "FIRST_DOWN":
-                        $.send(
-                            t`${player.name} tackled by ${catcherNames} for a first down!`,
-                        );
-                        $.stat("LIVE_BALL_TACKLE_FIRST_DOWN");
-                        break;
-                    case "NEXT_DOWN":
-                        if (event.yardsGained === 0) {
-                            $.send(
-                                t`${player.name} tackled by ${catcherNames} with no gain!`,
-                            );
-                        }
-
-                        if (event.yardsGained > 0) {
-                            $.send(
-                                t`${player.name} tackled by ${catcherNames} for a gain of ${event.yardsGained} yards!`,
-                            );
-                        }
-
-                        if (event.yardsGained < 0) {
-                            $.send(
-                                t`${player.name} tackled by ${catcherNames} for a loss of ${-event.yardsGained} yards!`,
-                            );
-                        }
-
-                        $.stat("LIVE_BALL_TACKLE_NEXT_DOWN");
-                        break;
-                    case "TURNOVER_ON_DOWNS":
-                        $.send(
-                            t`${player.name} tackled by ${catcherNames}, turnover on downs!`,
-                        );
-                        $.stat("LIVE_BALL_TURNOVER_ON_DOWNS");
-                        break;
-                    default:
-                        break;
-                }
-
                 $.setAvatar(playerId, AVATARS.CANCEL);
 
                 catchers.forEach((p) => {

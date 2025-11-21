@@ -35,15 +35,12 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                     case "FIRST_DOWN":
                         $.send(t`Ball went out of bounds, first down!`);
                         $.stat("SNAP_IN_FLIGHT_OUT_OF_BOUNDS_FIRST_DOWN");
+
                         break;
                     case "NEXT_DOWN":
-                        if (event.yardsGained === 0) {
-                            $.send(t`Ball went out of bounds, no gain!`);
-                            $.stat("SNAP_IN_FLIGHT_OUT_OF_BOUNDS_NO_GAIN");
-                        } else {
-                            $.send(t`Ball went out of bounds, next down!`);
-                            $.stat("SNAP_IN_FLIGHT_OUT_OF_BOUNDS_NEXT_DOWN");
-                        }
+                        $.send(t`Ball went out of bounds, no gain!`);
+                        $.stat("SNAP_IN_FLIGHT_OUT_OF_BOUNDS_NEXT_DOWN");
+
                         break;
                     case "TURNOVER_ON_DOWNS":
                         $.send(
@@ -52,6 +49,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                         $.stat(
                             "SNAP_IN_FLIGHT_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS",
                         );
+
                         break;
                 }
             });

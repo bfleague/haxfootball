@@ -1,6 +1,12 @@
 import { FieldTeam } from "@common/models";
-import { FieldPosition, opposite } from "@common/utils";
-import { calculateYardsGained } from "./stadium";
+import { FieldPosition, opposite, PointLike } from "@common/utils";
+import {
+    calculateDirectionalGain,
+    calculateYardsGained,
+    getPositionFromFieldPosition,
+    isInMainField,
+    isOutOfBounds,
+} from "./stadium";
 
 export type DownAndDistance = {
     down: number;
@@ -100,4 +106,60 @@ export function advanceDownState(
         },
         event: { type: "NEXT_DOWN", yardsGained },
     };
+}
+
+export function isTouchdown({
+    player,
+    offensiveTeam,
+}: {
+    player: PointLike;
+    offensiveTeam: FieldTeam;
+}) {
+    const goalLineX = getPositionFromFieldPosition({
+        side: opposite(offensiveTeam),
+        yards: 0,
+    });
+
+    const isTouchdown =
+        !isOutOfBounds(player) &&
+        !isInMainField(player) &&
+        calculateDirectionalGain(offensiveTeam, player.x - goalLineX) >= 0;
+
+    return isTouchdown;
+}
+
+export function processDownEvent({
+    event,
+    onFirstDown,
+    onNextDown,
+    onTurnoverOnDowns,
+}: {
+    event: DownEvent;
+    onFirstDown: () => void;
+    onNextDown: {
+        onYardsGained: (yardsGained: number) => void;
+        onNoGain: () => void;
+        onLoss: (yardsLost: number) => void;
+    };
+    onTurnoverOnDowns: () => void;
+}) {
+    switch (event.type) {
+        case "FIRST_DOWN":
+            onFirstDown();
+            break;
+        case "NEXT_DOWN":
+            if (event.yardsGained === 0) {
+                onNextDown.onNoGain();
+            } else if (event.yardsGained > 0) {
+                onNextDown.onYardsGained(event.yardsGained);
+            } else {
+                onNextDown.onLoss(-event.yardsGained);
+            }
+            break;
+        case "TURNOVER_ON_DOWNS":
+            onTurnoverOnDowns();
+            break;
+        default:
+            break;
+    }
 }
