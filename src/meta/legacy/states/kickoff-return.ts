@@ -9,8 +9,13 @@ import {
     isOutOfBounds,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
-import { getInitialDownState } from "@meta/legacy/utils/game";
+import {
+    getInitialDownState,
+    isTouchdown,
+    SCORES,
+} from "@meta/legacy/utils/game";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
+import { $global } from "@meta/legacy/hooks/global";
 
 export function KickoffReturn({
     playerId,
@@ -71,6 +76,37 @@ export function KickoffReturn({
     function run(state: GameState) {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
+
+        if (
+            isTouchdown({
+                player,
+                offensiveTeam: receivingTeam,
+            })
+        ) {
+            $global((state) =>
+                state.incrementScore(receivingTeam, SCORES.TOUCHDOWN),
+            );
+
+            $effect(($) => {
+                $.send(t`Kickoff return touchdown by ${player.name}!`);
+                $.stat("KICKOFF_RETURN_TOUCHDOWN");
+                $.setAvatar(playerId, AVATARS.FIRE);
+            });
+
+            $dispose(() => {
+                $effect(($) => {
+                    $.setAvatar(playerId, null);
+                });
+            });
+
+            $next({
+                to: "KICKOFF",
+                params: {
+                    forTeam: receivingTeam,
+                },
+                wait: ticks({ seconds: 3 }),
+            });
+        }
 
         if (isOutOfBounds(player)) {
             const fieldPos = getFieldPosition(player.x);

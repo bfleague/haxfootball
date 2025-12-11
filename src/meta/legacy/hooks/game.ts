@@ -8,6 +8,7 @@ import {
     BALL_DISC_ID,
     BALL_ACTIVE_COLOR,
     BALL_INACTIVE_COLOR,
+    isInMainField,
 } from "@meta/legacy/utils/stadium";
 
 export function $setLineOfScrimmage(fieldPos: FieldPosition) {
@@ -44,6 +45,18 @@ export function $setFirstDownLine(
             fieldPos,
             distance,
         );
+
+        const shouldHide =
+            firstDownLine.length === 0 ||
+            !isInMainField(firstDownLine[0].position);
+
+        if (shouldHide) {
+            getFirstDownLine().forEach(({ id }) => {
+                $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
+            });
+
+            return;
+        }
 
         firstDownLine.forEach(({ id, position }) => {
             $.setDiscProperties(id, {
