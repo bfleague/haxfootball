@@ -46,6 +46,8 @@ export interface GameStateBall {
     x: number;
     y: number;
     radius: number;
+    xspeed: number;
+    yspeed: number;
 }
 
 export interface GameState {
@@ -75,16 +77,20 @@ function getPlayerRadius(room: Room, playerId: number): number {
     return disc && typeof disc.radius === "number" ? disc.radius : 0;
 }
 
-function getBallSnapshot(room: Room): { x: number; y: number; radius: number } {
+function getBallSnapshot(room: Room): GameStateBall {
     const ballPos = room.getBallPosition();
     const disc = room.getDiscProperties(0);
 
     const radius = disc && typeof disc.radius === "number" ? disc.radius : 0;
+    const xspeed = disc && typeof disc.xspeed === "number" ? disc.xspeed : 0;
+    const yspeed = disc && typeof disc.yspeed === "number" ? disc.yspeed : 0;
 
     return {
         x: ballPos ? ballPos.x : 0,
         y: ballPos ? ballPos.y : 0,
         radius,
+        xspeed,
+        yspeed,
     };
 }
 

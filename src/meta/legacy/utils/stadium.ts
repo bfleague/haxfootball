@@ -3,7 +3,9 @@ import {
     calculateFieldPosition,
     calculatePositionFromFieldPosition,
     FieldPosition,
+    Line,
     PointLike,
+    Ray,
 } from "@common/utils";
 
 const MapMeasures = {
@@ -245,4 +247,67 @@ export function calculateYardsGained(
     const xGained = toX - fromX;
 
     return xDistanceToYards(calculateDirectionalGain(offensiveTeam, xGained));
+}
+
+export function getBallPath(
+    ballX: number,
+    ballY: number,
+    xSpeed: number,
+    ySpeed: number,
+): Ray {
+    return {
+        origin: { x: ballX, y: ballY },
+        direction: { x: xSpeed, y: ySpeed },
+    };
+}
+
+export type GoalPostIntersectionResult =
+    | { intersects: true; line: Line }
+    | { intersects: false };
+
+export function intersectsGoalPosts(
+    ray: Ray,
+    team: FieldTeam,
+): GoalPostIntersectionResult {
+    const goalLine =
+        team === Team.RED
+            ? MapMeasures.RED_GOAL_LINE
+            : MapMeasures.BLUE_GOAL_LINE;
+
+    const goalStart = goalLine.start;
+    const goalEnd = goalLine.end;
+
+    const ox = ray.origin.x;
+    const oy = ray.origin.y;
+    const dx = ray.direction.x;
+    const dy = ray.direction.y;
+
+    const x3 = goalStart.x;
+    const y3 = goalStart.y;
+    const x4 = goalEnd.x;
+    const y4 = goalEnd.y;
+
+    const segmentDx = x4 - x3;
+    const segmentDy = y4 - y3;
+
+    const denominator = dx * segmentDy - dy * segmentDx;
+
+    if (Math.abs(denominator) < 1e-10) {
+        return { intersects: false };
+    }
+
+    const t = ((x3 - ox) * segmentDy - (y3 - oy) * segmentDx) / denominator;
+    const u = ((x3 - ox) * dy - (y3 - oy) * dx) / denominator;
+
+    if (t >= 0 && u >= 0 && u <= 1) {
+        return {
+            intersects: true,
+            line: {
+                start: goalStart,
+                end: goalEnd,
+            },
+        };
+    }
+
+    return { intersects: false };
 }

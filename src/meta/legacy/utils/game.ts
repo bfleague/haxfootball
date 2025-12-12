@@ -29,6 +29,15 @@ export type NextDownState = {
     event: DownEvent;
 };
 
+export type DownEventIncrement =
+    | { type: "NEXT_DOWN" }
+    | { type: "TURNOVER_ON_DOWNS" };
+
+export type NextDownStateIncrement = {
+    downState: DownState;
+    event: DownEventIncrement;
+};
+
 export const SCORES = {
     SAFETY: 2,
     TOUCHDOWN: 6,
@@ -52,6 +61,33 @@ export function getInitialDownState(
         offensiveTeam,
         downAndDistance: INITIAL_DOWN_AND_DISTANCE,
         fieldPos,
+    };
+}
+
+export function incrementDownState(current: DownState): NextDownStateIncrement {
+    const newDown = current.downAndDistance.down + 1;
+
+    if (newDown > MAX_DOWNS) {
+        return {
+            downState: {
+                offensiveTeam: opposite(current.offensiveTeam),
+                fieldPos: current.fieldPos,
+                downAndDistance: INITIAL_DOWN_AND_DISTANCE,
+            },
+            event: { type: "TURNOVER_ON_DOWNS" },
+        };
+    }
+
+    return {
+        downState: {
+            offensiveTeam: current.offensiveTeam,
+            fieldPos: current.fieldPos,
+            downAndDistance: {
+                down: newDown,
+                distance: current.downAndDistance.distance,
+            },
+        },
+        event: { type: "NEXT_DOWN" },
     };
 }
 
@@ -162,6 +198,27 @@ export function processDownEvent({
             } else {
                 onNextDown.onLoss(-event.yardsGained);
             }
+            break;
+        case "TURNOVER_ON_DOWNS":
+            onTurnoverOnDowns();
+            break;
+        default:
+            break;
+    }
+}
+
+export function processDownEventIncrement({
+    event,
+    onNextDown,
+    onTurnoverOnDowns,
+}: {
+    event: DownEventIncrement;
+    onNextDown: () => void;
+    onTurnoverOnDowns: () => void;
+}) {
+    switch (event.type) {
+        case "NEXT_DOWN":
+            onNextDown();
             break;
         case "TURNOVER_ON_DOWNS":
             onTurnoverOnDowns();

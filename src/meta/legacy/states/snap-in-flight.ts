@@ -63,24 +63,38 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
             });
         }
 
-        const catcher = findBallCatcher(
+        const offensiveCatcher = findBallCatcher(
             state.ball,
             state.players.filter((p) => p.team === offensiveTeam),
         );
 
-        if (catcher) {
+        if (offensiveCatcher) {
             $effect(($) => {
-                $.send(t`Pass caught by ${catcher.name}!`);
+                $.send(t`Pass caught by ${offensiveCatcher.name}!`);
                 $.stat("PASS_CATCHED");
             });
 
             $next({
                 to: "LIVE_BALL",
-                params: { playerId: catcher.id, downState },
+                params: { playerId: offensiveCatcher.id, downState },
             });
         }
 
-        // TODO: Catch by offensive team and interceptions
+        const defensiveCatcher = findBallCatcher(
+            state.ball,
+            state.players.filter((p) => p.team !== offensiveTeam),
+        );
+
+        if (defensiveCatcher) {
+            $next({
+                to: "BLOCKED_PASS",
+                params: {
+                    blockTime: state.tickNumber,
+                    blockerId: defensiveCatcher.id,
+                    downState,
+                },
+            });
+        }
     }
 
     function dispose() {

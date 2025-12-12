@@ -1,3 +1,5 @@
+import { BlockedPass } from "./states/blocked-pass";
+import { Interception } from "./states/interception";
 import { Kickoff } from "./states/kickoff";
 import { KickoffInFlight } from "./states/kickoff-in-flight";
 import { KickoffReturn } from "./states/kickoff-return";
@@ -18,4 +20,6 @@ export const registry = {
     SAFETY: Safety,
     SNAP_IN_FLIGHT: SnapInFlight,
     LIVE_BALL: LiveBall,
+    BLOCKED_PASS: BlockedPass,
+    INTERCEPTION: Interception,
 };

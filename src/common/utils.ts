@@ -6,6 +6,7 @@ export const AVATARS = {
     MUSCLE: "💪",
     CLOWN: "🤡",
     FIRE: "🔥",
+    CONSTRUCTION: "🚧",
 };
 
 export const DEFAULT_TOUCHING_DISTANCE = 0.5;
@@ -21,6 +22,16 @@ type IdentifiedPointLike = PointLike & { id: number };
 type MaybeKickableIdentifiedPointLike = IdentifiedPointLike & {
     isKickingBall?: boolean;
 };
+
+export interface Line {
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+}
+
+export interface Ray {
+    origin: { x: number; y: number };
+    direction: { x: number; y: number };
+}
 
 export type LineDistributionMode =
     | "space-between"
