@@ -780,6 +780,22 @@ export default {
             color: "f5f5f5",
             cGroup: [],
         },
+        {
+            radius: 7.125,
+            invMass: 0,
+            pos: [2000, 2000],
+            color: "FFAA00",
+            cGroup: [],
+            cMask: [],
+        },
+        {
+            radius: 7.125,
+            invMass: 0,
+            pos: [2000, 2000],
+            color: "FFAA00",
+            cGroup: [],
+            cMask: [],
+        },
     ],
 
     playerPhysics: {
@@ -805,6 +821,7 @@ export default {
     joints: [
         { d0: 5, d1: 6, color: "ff9912", length: [0, 99999] },
         { d0: 7, d1: 8, color: "3e67cf", length: [0, 99999] },
+        { d0: 50, d1: 51, color: "FFAA00", length: [0, 99999] },
 
         { d0: 9, d1: 10, color: "FF0000", length: [0, 99999] },
         { d0: 11, d1: 12, color: "FF0000", length: [0, 99999] },

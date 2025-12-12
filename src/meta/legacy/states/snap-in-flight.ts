@@ -87,10 +87,11 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
 
         if (defensiveCatcher) {
             $next({
-                to: "BLOCKED_PASS",
+                to: "PASS_DEFLECTION",
                 params: {
                     blockTime: state.tickNumber,
                     blockerId: defensiveCatcher.id,
+                    isKickingBall: defensiveCatcher.isKickingBall,
                     downState,
                 },
             });

@@ -73,6 +73,7 @@ export const BALL_INACTIVE_COLOR = 0x808080;
 const SPECIAL_DISC_IDS = {
     LOS: [7, 8],
     FIRST_DOWN: [5, 6],
+    INTERCEPTION_PATH: [50, 51],
 } as const;
 
 export function getFieldPosition(
@@ -226,6 +227,32 @@ export function getFirstDownLine(
     ];
 }
 
+export function getInterceptionPath(): { id: number }[];
+export function getInterceptionPath(
+    line: Line,
+): { id: number; position: Position }[];
+export function getInterceptionPath(
+    line?: Line,
+): { id: number; position?: Position }[] {
+    if (!line) {
+        return [
+            { id: SPECIAL_DISC_IDS.INTERCEPTION_PATH[0] },
+            { id: SPECIAL_DISC_IDS.INTERCEPTION_PATH[1] },
+        ];
+    }
+
+    return [
+        {
+            id: SPECIAL_DISC_IDS.INTERCEPTION_PATH[0],
+            position: { x: line.start.x, y: line.start.y },
+        },
+        {
+            id: SPECIAL_DISC_IDS.INTERCEPTION_PATH[1],
+            position: { x: line.end.x, y: line.end.y },
+        },
+    ];
+}
+
 export function xDistanceToYards(xDistance: number): number {
     return Math.round(xDistance / MapMeasures.YARD);
 }
@@ -261,31 +288,23 @@ export function getBallPath(
     };
 }
 
-export type GoalPostIntersectionResult =
-    | { intersects: true; line: Line }
+export type RaySegmentIntersectionResult =
+    | { intersects: true; point: PointLike }
     | { intersects: false };
 
-export function intersectsGoalPosts(
+export function intersectRayWithSegment(
     ray: Ray,
-    team: FieldTeam,
-): GoalPostIntersectionResult {
-    const goalLine =
-        team === Team.RED
-            ? MapMeasures.RED_GOAL_LINE
-            : MapMeasures.BLUE_GOAL_LINE;
-
-    const goalStart = goalLine.start;
-    const goalEnd = goalLine.end;
-
+    segment: Line,
+): RaySegmentIntersectionResult {
     const ox = ray.origin.x;
     const oy = ray.origin.y;
     const dx = ray.direction.x;
     const dy = ray.direction.y;
 
-    const x3 = goalStart.x;
-    const y3 = goalStart.y;
-    const x4 = goalEnd.x;
-    const y4 = goalEnd.y;
+    const x3 = segment.start.x;
+    const y3 = segment.start.y;
+    const x4 = segment.end.x;
+    const y4 = segment.end.y;
 
     const segmentDx = x4 - x3;
     const segmentDy = y4 - y3;
@@ -302,10 +321,39 @@ export function intersectsGoalPosts(
     if (t >= 0 && u >= 0 && u <= 1) {
         return {
             intersects: true,
-            line: {
-                start: goalStart,
-                end: goalEnd,
+            point: {
+                x: ox + t * dx,
+                y: oy + t * dy,
             },
+        };
+    }
+
+    return { intersects: false };
+}
+
+export type GoalPostIntersectionResult =
+    | { intersects: true; line: Line; point: PointLike }
+    | { intersects: false };
+
+export function intersectsGoalPosts(
+    ray: Ray,
+    team: FieldTeam,
+): GoalPostIntersectionResult {
+    const goalLine =
+        team === Team.RED
+            ? MapMeasures.RED_GOAL_LINE
+            : MapMeasures.BLUE_GOAL_LINE;
+
+    const intersection = intersectRayWithSegment(ray, goalLine);
+
+    if (intersection.intersects) {
+        return {
+            intersects: true,
+            line: {
+                start: goalLine.start,
+                end: goalLine.end,
+            },
+            point: intersection.point,
         };
     }
 

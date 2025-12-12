@@ -1,9 +1,10 @@
 import { $effect } from "@common/runtime";
-import { FieldPosition } from "@common/utils";
+import { FieldPosition, Line } from "@common/utils";
 import { Team } from "@common/models";
 import {
     getLineOfScrimmage,
     getFirstDownLine,
+    getInterceptionPath,
     SPECIAL_HIDDEN_POSITION,
     BALL_DISC_ID,
     BALL_ACTIVE_COLOR,
@@ -72,6 +73,25 @@ export function $unsetFirstDownLine() {
         const firstDownLine = getFirstDownLine();
 
         firstDownLine.forEach(({ id }) => {
+            $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
+        });
+    });
+}
+
+export function $showInterceptionPath(line: Line) {
+    $effect(($) => {
+        getInterceptionPath(line).forEach(({ id, position }) => {
+            $.setDiscProperties(id, {
+                x: position.x,
+                y: position.y,
+            });
+        });
+    });
+}
+
+export function $hideInterceptionPath() {
+    $effect(($) => {
+        getInterceptionPath().forEach(({ id }) => {
             $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
         });
     });

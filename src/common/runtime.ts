@@ -1,4 +1,5 @@
 import { Room } from "@core/room";
+import type { GameState } from "./engine";
 
 type DiscProps = Parameters<Room["setDiscProperties"]>[1];
 type CFType = Room["collisionFlags"];
@@ -123,6 +124,7 @@ let RUNTIME: {
     mutations: MutationBuffer;
     ownsMutations: boolean;
     stopRequested: boolean;
+    beforeGameState: GameState | null;
 } | null = null;
 
 /**
@@ -135,6 +137,7 @@ export function installRuntime(ctx: {
     tickNumber?: number;
     mutations?: MutationBuffer | undefined;
     disposals?: Array<() => void>;
+    beforeGameState?: GameState | null;
 }) {
     const onStat = ctx.onStat ? ctx.onStat : () => {};
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
@@ -151,6 +154,8 @@ export function installRuntime(ctx: {
         mutations,
         ownsMutations: !ctx.mutations,
         stopRequested: false,
+        beforeGameState:
+            ctx.beforeGameState === undefined ? null : ctx.beforeGameState,
     };
 
     return function uninstall() {
@@ -224,6 +229,19 @@ export function $config<Cfg>(): Cfg {
     if (!RUNTIME) throw new Error("$config used outside of runtime");
 
     return RUNTIME.config as Cfg;
+}
+
+/**
+ * Access the last GameState snapshot before the current state/tick.
+ * Throws if the snapshot is unavailable.
+ */
+export function $before(): GameState {
+    if (!RUNTIME) throw new Error("$before used outside of runtime");
+    if (!RUNTIME.beforeGameState) {
+        throw new Error("$before GameState is unavailable");
+    }
+
+    return RUNTIME.beforeGameState;
 }
 
 /**

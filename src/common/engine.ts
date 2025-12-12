@@ -158,6 +158,7 @@ export function createEngine<Cfg>(
     let disableStateExecution = false;
     let tickNumber = 0;
     let sharedTickMutations: MutationBuffer | null = null;
+    let lastGameState: GameState | null = null;
 
     // Always have a concrete stats handler; defaults to no-op.
     const onStats: (key: string) => void = opts.onStats
@@ -166,7 +167,11 @@ export function createEngine<Cfg>(
 
     function runOutsideTick<T>(
         fn: () => T,
-        optsRun?: { allowTransition?: boolean; disposals?: Array<() => void> },
+        optsRun?: {
+            allowTransition?: boolean;
+            disposals?: Array<() => void>;
+            beforeGameState?: GameState | null;
+        },
     ): T {
         room.invalidateCaches();
         const uninstall = installRuntime({
@@ -176,6 +181,10 @@ export function createEngine<Cfg>(
             tickNumber,
             mutations: sharedTickMutations ?? undefined,
             ...(optsRun?.disposals ? { disposals: optsRun.disposals } : {}),
+            beforeGameState:
+                optsRun && "beforeGameState" in optsRun
+                    ? optsRun.beforeGameState
+                    : lastGameState,
         });
 
         setRuntimeRoom(room);
@@ -231,7 +240,10 @@ export function createEngine<Cfg>(
 
         const disposals: Array<() => void> = [];
 
-        const api = runOutsideTick(() => resolved(params ?? {}), { disposals });
+        const api = runOutsideTick(() => resolved(params ?? {}), {
+            disposals,
+            beforeGameState: lastGameState,
+        });
 
         return { api, disposals };
     }
@@ -258,7 +270,7 @@ export function createEngine<Cfg>(
                 }
                 target.disposals.length = 0;
             },
-            { disposals: target.disposals },
+            { disposals: target.disposals, beforeGameState: lastGameState },
         );
     }
 
@@ -316,6 +328,7 @@ export function createEngine<Cfg>(
         disableStateExecution = false;
         pendingTransition = null;
         delayedTransition = null;
+        lastGameState = null;
 
         const created = createState(name, params, factory);
 
@@ -338,6 +351,7 @@ export function createEngine<Cfg>(
         disableStateExecution = false;
         pendingTransition = null;
         delayedTransition = null;
+        lastGameState = null;
     }
 
     function tick() {
@@ -379,6 +393,7 @@ export function createEngine<Cfg>(
                 tickNumber: currentTickNumber,
                 mutations: sharedTickMutations ?? undefined,
                 disposals: current.disposals,
+                beforeGameState: lastGameState,
             });
 
             setRuntimeRoom(room);
@@ -414,6 +429,7 @@ export function createEngine<Cfg>(
                 scheduleTransition(flushed.transition);
             }
 
+            lastGameState = gs;
             tickNumber += 1;
         } finally {
             if (sharedTickMutations) {
@@ -437,7 +453,11 @@ export function createEngine<Cfg>(
             () => {
                 current!.api.chat!(snapshot, message);
             },
-            { allowTransition: true, disposals: current.disposals },
+            {
+                allowTransition: true,
+                disposals: current.disposals,
+                beforeGameState: lastGameState,
+            },
         );
     }
 
@@ -454,7 +474,7 @@ export function createEngine<Cfg>(
             () => {
                 current!.api.join!(snapshot);
             },
-            { disposals: current.disposals },
+            { disposals: current.disposals, beforeGameState: lastGameState },
         );
     }
 
@@ -468,7 +488,11 @@ export function createEngine<Cfg>(
             () => {
                 current!.api.leave!(snapshot);
             },
-            { allowTransition: true, disposals: current.disposals },
+            {
+                allowTransition: true,
+                disposals: current.disposals,
+                beforeGameState: lastGameState,
+            },
         );
     }
 
