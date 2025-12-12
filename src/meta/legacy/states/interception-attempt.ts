@@ -60,7 +60,7 @@ export function InterceptionAttempt({
                     to: "INTERCEPTION",
                     params: {
                         playerId: playerId,
-                        ballPath: intersection.line,
+                        intersectionPoint: intersection.point,
                         ballState,
                         offensiveTeam: blocker.team,
                     },
