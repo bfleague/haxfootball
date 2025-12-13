@@ -3,7 +3,10 @@ import { type FieldTeam } from "@common/models";
 import { opposite, findBallCatcher, ticks } from "@common/utils";
 import type { GameState, GameStatePlayer } from "@common/engine";
 import { t } from "@lingui/core/macro";
-import { getFieldPosition, isOutOfBounds } from "../utils/stadium";
+import {
+    isOutOfBounds,
+    KICKOFF_OUT_OF_BOUNDS_YARD_LINE,
+} from "@meta/legacy/utils/stadium";
 import { getInitialDownState } from "@meta/legacy/utils/game";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
@@ -15,8 +18,6 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
     function run(state: GameState) {
         if (isOutOfBounds(state.ball)) {
-            const fieldPos = getFieldPosition(state.ball.x);
-
             $setBallInactive();
 
             $dispose(() => {
@@ -24,17 +25,19 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
             });
 
             $effect(($) => {
-                $.send(t`Kickoff went out of bounds!`);
+                $.send(
+                    t`Kickoff went out of bounds, ball placed at ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE} yard line.`,
+                );
                 $.stat("KICKOFF_OUT_OF_BOUNDS");
             });
 
             $next({
                 to: "PRESNAP",
                 params: {
-                    downState: getInitialDownState(
-                        opposite(kickingTeam),
-                        fieldPos,
-                    ),
+                    downState: getInitialDownState(opposite(kickingTeam), {
+                        yards: KICKOFF_OUT_OF_BOUNDS_YARD_LINE,
+                        side: opposite(kickingTeam),
+                    }),
                 },
                 wait: ticks({ seconds: 2 }),
             });

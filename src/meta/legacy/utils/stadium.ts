@@ -65,6 +65,7 @@ export const SPECIAL_HIDDEN_POSITION = {
 };
 
 export const TOUCHBACK_YARD_LINE = 25;
+export const KICKOFF_OUT_OF_BOUNDS_YARD_LINE = 40;
 
 export const BALL_DISC_ID = 0;
 export const BALL_ACTIVE_COLOR = 0x631515;

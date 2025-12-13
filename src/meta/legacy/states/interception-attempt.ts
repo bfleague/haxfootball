@@ -62,7 +62,7 @@ export function InterceptionAttempt({
                         playerId: playerId,
                         intersectionPoint: intersection.point,
                         ballState,
-                        offensiveTeam: blocker.team,
+                        playerTeam: blocker.team,
                     },
                 });
             } else {

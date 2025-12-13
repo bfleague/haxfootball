@@ -40,7 +40,7 @@ export type NextDownStateIncrement = {
 
 export const SCORES = {
     SAFETY: 2,
-    TOUCHDOWN: 6,
+    TOUCHDOWN: 7, // Includes PAT
     FIELD_GOAL: 3,
 };
 
