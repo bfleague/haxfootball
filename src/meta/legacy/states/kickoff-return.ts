@@ -5,8 +5,10 @@ import type { GameState, GameStatePlayer } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import {
     getFieldPosition,
+    isCompletelyInsideMainField,
     isInMainField,
     isOutOfBounds,
+    isPartiallyOutsideMainField,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
 import {
@@ -107,7 +109,10 @@ export function KickoffReturn({
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
 
-        if (isInMainField(player) && endzoneState === "TOUCHBACK") {
+        if (
+            isCompletelyInsideMainField(player) &&
+            endzoneState === "TOUCHBACK"
+        ) {
             $next({
                 to: "KICKOFF_RETURN",
                 params: {
@@ -152,7 +157,7 @@ export function KickoffReturn({
         if (isOutOfBounds(player)) {
             const fieldPos = getFieldPosition(player.x);
 
-            if (isInMainField(player)) {
+            if (isCompletelyInsideMainField(player)) {
                 $effect(($) => {
                     $.send(
                         t`${player.name} went out of bounds during kickoff return!`,
@@ -209,9 +214,7 @@ export function KickoffReturn({
         );
 
         if (catchers.length > 0) {
-            const isInEndZone = !isInMainField(player);
-
-            if (isInEndZone) {
+            if (isPartiallyOutsideMainField(player)) {
                 switch (endzoneState) {
                     case "TOUCHBACK":
                         $effect(($) => {

@@ -16,7 +16,8 @@ import {
 } from "@meta/legacy/hooks/game";
 import {
     getFieldPosition,
-    isInMainField,
+    isCompletelyInsideMainField,
+    isPartiallyOutsideMainField,
     isOutOfBounds,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
@@ -74,7 +75,10 @@ export function Interception({
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
 
-        if (isInMainField(player) && endzoneState === "TOUCHBACK") {
+        if (
+            isCompletelyInsideMainField(player) &&
+            endzoneState === "TOUCHBACK"
+        ) {
             $next({
                 to: "INTERCEPTION",
                 params: {
@@ -121,7 +125,7 @@ export function Interception({
         if (isOutOfBounds(player)) {
             const fieldPos = getFieldPosition(player.x);
 
-            if (isInMainField(player)) {
+            if (isCompletelyInsideMainField(player)) {
                 $effect(($) => {
                     $.send(
                         t`${player.name} went out of bounds during interception return!`,
@@ -178,9 +182,7 @@ export function Interception({
         );
 
         if (catchers.length > 0) {
-            const isInEndZone = !isInMainField(player);
-
-            if (isInEndZone) {
+            if (isPartiallyOutsideMainField(player)) {
                 switch (endzoneState) {
                     case "TOUCHBACK":
                         $effect(($) => {

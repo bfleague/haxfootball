@@ -93,6 +93,68 @@ export function isInMainField(position: Position): boolean {
     );
 }
 
+export function intersectsMainField(position: PointLike): boolean {
+    const minX = Math.min(
+        MapMeasures.INNER_FIELD.topLeft.x,
+        MapMeasures.INNER_FIELD.bottomRight.x,
+    );
+    const maxX = Math.max(
+        MapMeasures.INNER_FIELD.topLeft.x,
+        MapMeasures.INNER_FIELD.bottomRight.x,
+    );
+    const minY = Math.min(
+        MapMeasures.INNER_FIELD.topLeft.y,
+        MapMeasures.INNER_FIELD.bottomRight.y,
+    );
+    const maxY = Math.max(
+        MapMeasures.INNER_FIELD.topLeft.y,
+        MapMeasures.INNER_FIELD.bottomRight.y,
+    );
+    const radius = Math.max(0, position.radius ?? 0);
+
+    const closestX = Math.min(Math.max(position.x, minX), maxX);
+    const closestY = Math.min(Math.max(position.y, minY), maxY);
+    const dx = position.x - closestX;
+    const dy = position.y - closestY;
+
+    return dx * dx + dy * dy <= radius * radius;
+}
+
+export function isPartiallyOutsideMainField(position: PointLike): boolean {
+    const minX = Math.min(
+        MapMeasures.INNER_FIELD.topLeft.x,
+        MapMeasures.INNER_FIELD.bottomRight.x,
+    );
+    const maxX = Math.max(
+        MapMeasures.INNER_FIELD.topLeft.x,
+        MapMeasures.INNER_FIELD.bottomRight.x,
+    );
+    const minY = Math.min(
+        MapMeasures.INNER_FIELD.topLeft.y,
+        MapMeasures.INNER_FIELD.bottomRight.y,
+    );
+    const maxY = Math.max(
+        MapMeasures.INNER_FIELD.topLeft.y,
+        MapMeasures.INNER_FIELD.bottomRight.y,
+    );
+    const radius = Math.max(0, position.radius ?? 0);
+
+    return (
+        position.x - radius < minX ||
+        position.x + radius > maxX ||
+        position.y - radius < minY ||
+        position.y + radius > maxY
+    );
+}
+
+export function isCompletelyInsideMainField(position: PointLike): boolean {
+    return !isPartiallyOutsideMainField(position);
+}
+
+export function isCompletelyOutsideMainField(position: PointLike): boolean {
+    return !intersectsMainField(position);
+}
+
 export function getPositionFromFieldPosition(
     fieldPos: FieldPosition,
     startX = MapMeasures.RED_END_ZONE_LINE_CENTER.x,
