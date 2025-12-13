@@ -4,9 +4,10 @@ import { distributeOnLine, getDistance } from "@common/utils";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
+    calculateDirectionalGain,
     calculateSnapBallPosition,
 } from "@meta/legacy/utils/stadium";
-import { $effect, $next } from "@common/runtime";
+import { $before, $effect, $next } from "@common/runtime";
 import {
     $lockBall,
     $setBallMoveable,
@@ -129,6 +130,19 @@ export function Presnap({ downState }: { downState: DownState }) {
 
     $setInitialPlayerPositions(offensiveTeam, ballPos);
 
+    function getOffensivePlayersBeyondLineOfScrimmage(): GameStatePlayer[] {
+        const state = $before();
+
+        return state.players.filter(
+            (statePlayer) =>
+                statePlayer.team === offensiveTeam &&
+                calculateDirectionalGain(
+                    offensiveTeam,
+                    statePlayer.x - ballPos.x,
+                ) > 0,
+        );
+    }
+
     function chat(player: GameStatePlayer, message: string) {
         const isHikeCommand = message.toLowerCase().includes("hike");
 
@@ -146,6 +160,20 @@ export function Presnap({ downState }: { downState: DownState }) {
         ) {
             $effect(($) => {
                 $.send(t`You are too far from the ball to hike it!`, player.id);
+            });
+
+            return;
+        }
+
+        const offensivePlayersPastLine =
+            getOffensivePlayersBeyondLineOfScrimmage();
+
+        if (offensivePlayersPastLine.length > 0) {
+            $effect(($) => {
+                $.send(
+                    t`You cannot hike while a teammate is beyond the line of scrimmage.`,
+                    player.id,
+                );
             });
 
             return;
