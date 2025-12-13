@@ -1,9 +1,10 @@
 import { $dispose, $effect, $next } from "@common/hooks";
 import { type FieldTeam } from "@common/models";
-import { opposite, findBallCatcher, ticks } from "@common/utils";
+import { opposite, findBallCatcher, ticks, AVATARS } from "@common/utils";
 import type { GameState, GameStatePlayer } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import {
+    getFieldPosition,
     isOutOfBounds,
     KICKOFF_OUT_OF_BOUNDS_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
@@ -11,7 +12,11 @@ import { getInitialDownState } from "@meta/legacy/utils/game";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 
-export function SafetyKickInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
+export function SafetyKickInFlight({
+    kickingTeam,
+}: {
+    kickingTeam: FieldTeam;
+}) {
     function join(player: GameStatePlayer) {
         $setBallMoveableByPlayer(player.id);
     }
@@ -59,6 +64,32 @@ export function SafetyKickInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) 
             $next({
                 to: "SAFETY_KICK_RETURN",
                 params: { playerId: catcher.id, receivingTeam },
+            });
+        }
+
+        const kickingTeamCatcher = findBallCatcher(
+            state.ball,
+            state.players.filter((p) => p.team === kickingTeam),
+        );
+
+        if (kickingTeamCatcher) {
+            $effect(($) => {
+                $.send(
+                    t`Safety kick caught by kicking team player ${kickingTeamCatcher.name}!`,
+                );
+                $.stat("SAFETY_KICK_CAUGHT_BY_KICKING_TEAM");
+                $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: getInitialDownState(
+                        receivingTeam,
+                        getFieldPosition(kickingTeamCatcher.x),
+                    ),
+                },
+                wait: ticks({ seconds: 2 }),
             });
         }
     }
