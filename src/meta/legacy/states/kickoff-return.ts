@@ -107,7 +107,7 @@ export function KickoffReturn({
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
 
-        if (!isInMainField(player) && endzoneState === "TOUCHBACK") {
+        if (isInMainField(player) && endzoneState === "TOUCHBACK") {
             $next({
                 to: "KICKOFF_RETURN",
                 params: {

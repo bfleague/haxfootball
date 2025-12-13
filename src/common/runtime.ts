@@ -125,6 +125,7 @@ let RUNTIME: {
     ownsMutations: boolean;
     stopRequested: boolean;
     beforeGameState: GameState | null;
+    muteEffects: boolean;
 } | null = null;
 
 /**
@@ -138,6 +139,7 @@ export function installRuntime(ctx: {
     mutations?: MutationBuffer | undefined;
     disposals?: Array<() => void>;
     beforeGameState?: GameState | null;
+    muteEffects?: boolean;
 }) {
     const onStat = ctx.onStat ? ctx.onStat : () => {};
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
@@ -156,6 +158,7 @@ export function installRuntime(ctx: {
         stopRequested: false,
         beforeGameState:
             ctx.beforeGameState === undefined ? null : ctx.beforeGameState,
+        muteEffects: !!ctx.muteEffects,
     };
 
     return function uninstall() {
@@ -256,6 +259,13 @@ export function flushRuntime(): {
     const room = RUNTIME.room;
     const cf = room.collisionFlags;
     const mutations = RUNTIME.mutations;
+
+    if (RUNTIME.muteEffects) {
+        RUNTIME.effects = [];
+        RUNTIME.transition = null;
+
+        return { transition: null, stopRequested: RUNTIME.stopRequested };
+    }
 
     const api = Object.assign(Object.create(room), {
         send: (

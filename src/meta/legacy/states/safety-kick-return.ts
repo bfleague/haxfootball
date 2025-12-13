@@ -1,19 +1,8 @@
-import { GameState, GameStateBall } from "@common/engine";
-import { FieldTeam } from "@common/models";
-import { $before, $dispose, $effect, $next } from "@common/runtime";
-import {
-    AVATARS,
-    findCatchers,
-    opposite,
-    PointLike,
-    ticks,
-} from "@common/utils";
-import {
-    $hideInterceptionPath,
-    $setBallActive,
-    $setBallInactive,
-    $showInterceptionPath,
-} from "@meta/legacy/hooks/game";
+import { $dispose, $effect, $next } from "@common/hooks";
+import type { FieldTeam } from "@common/models";
+import { opposite, AVATARS, findCatchers, ticks } from "@common/utils";
+import type { GameState, GameStatePlayer } from "@common/engine";
+import { t } from "@lingui/core/macro";
 import {
     getFieldPosition,
     isInMainField,
@@ -25,63 +14,105 @@ import {
     isTouchdown,
     SCORES,
 } from "@meta/legacy/utils/game";
+import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
-import { t } from "@lingui/core/macro";
-
-const MAX_PATH_DURATION = ticks({ seconds: 2 });
 
 type EndzoneState = "TOUCHBACK" | "SAFETY";
 
-export function Interception({
+export function SafetyKickReturn({
     playerId,
-    ballState,
-    intersectionPoint,
-    playerTeam,
+    receivingTeam,
     endzoneState = "TOUCHBACK",
 }: {
     playerId: number;
-    ballState: GameStateBall;
-    intersectionPoint: PointLike;
-    playerTeam: FieldTeam;
+    receivingTeam: FieldTeam;
     endzoneState?: EndzoneState;
 }) {
-    $setBallInactive();
-
-    const { tickNumber: initialTickNumber } = $before();
-
     $effect(($) => {
         $.setAvatar(playerId, AVATARS.BALL);
     });
 
-    $dispose(() => {
-        $effect(($) => {
-            $.setAvatar(playerId, null);
-        });
-    });
+    $setBallInactive();
 
-    $showInterceptionPath({
-        start: { x: ballState.x, y: ballState.y },
-        end: { x: intersectionPoint.x, y: intersectionPoint.y },
-    });
+    function leave(player: GameStatePlayer) {
+        if (player.id === playerId) {
+            if (isInMainField(player)) {
+                const fieldPos = getFieldPosition(player.x);
+
+                $effect(($) => {
+                    $.send(
+                        t`${player.name} left the room during safety kick return!`,
+                    );
+
+                    $.stat("SAFETY_KICK_RETURN_LEFT_ROOM");
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: getInitialDownState(receivingTeam, fieldPos),
+                    },
+                    wait: ticks({ seconds: 1 }),
+                });
+            } else {
+                switch (endzoneState) {
+                    case "TOUCHBACK":
+                        $effect(($) => {
+                            $.send(
+                                t`${player.name} left the room in the end zone for a touchback!`,
+                            );
+
+                            $.stat("SAFETY_KICK_RETURN_TOUCHBACK_LEFT_ROOM");
+                        });
+
+                        $next({
+                            to: "PRESNAP",
+                            params: {
+                                downState: getInitialDownState(receivingTeam, {
+                                    yards: TOUCHBACK_YARD_LINE,
+                                    side: receivingTeam,
+                                }),
+                            },
+                            wait: ticks({ seconds: 1 }),
+                        });
+                    case "SAFETY":
+                        $effect(($) => {
+                            $.send(
+                                t`${player.name} left the room in the end zone for a safety!`,
+                            );
+
+                            $.stat("SAFETY_KICK_RETURN_SAFETY_LEFT_ROOM");
+                        });
+
+                        $global((state) =>
+                            state.incrementScore(
+                                opposite(receivingTeam),
+                                SCORES.SAFETY,
+                            ),
+                        );
+
+                        $next({
+                            to: "SAFETY",
+                            params: {
+                                kickingTeam: opposite(receivingTeam),
+                            },
+                            wait: ticks({ seconds: 2 }),
+                        });
+                }
+            }
+        }
+    }
 
     function run(state: GameState) {
-        const elapsedTicks = state.tickNumber - initialTickNumber;
-
-        if (elapsedTicks >= MAX_PATH_DURATION) {
-            $hideInterceptionPath();
-        }
-
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
 
         if (isInMainField(player) && endzoneState === "TOUCHBACK") {
             $next({
-                to: "INTERCEPTION",
+                to: "SAFETY_KICK_RETURN",
                 params: {
                     playerId,
-                    intersectionPoint,
-                    ballState,
-                    playerTeam,
+                    receivingTeam,
                     endzoneState: "SAFETY",
                 },
             });
@@ -90,16 +121,16 @@ export function Interception({
         if (
             isTouchdown({
                 player,
-                offensiveTeam: playerTeam,
+                offensiveTeam: receivingTeam,
             })
         ) {
             $global((state) =>
-                state.incrementScore(playerTeam, SCORES.TOUCHDOWN),
+                state.incrementScore(receivingTeam, SCORES.TOUCHDOWN),
             );
 
             $effect(($) => {
-                $.send(t`Pick six by ${player.name}!`);
-                $.stat("INTERCEPTION_TOUCHDOWN");
+                $.send(t`Safety kick return touchdown by ${player.name}!`);
+                $.stat("SAFETY_KICK_RETURN_TOUCHDOWN");
                 $.setAvatar(playerId, AVATARS.FIRE);
             });
 
@@ -112,7 +143,7 @@ export function Interception({
             $next({
                 to: "KICKOFF",
                 params: {
-                    forTeam: playerTeam,
+                    forTeam: receivingTeam,
                 },
                 wait: ticks({ seconds: 3 }),
             });
@@ -124,10 +155,10 @@ export function Interception({
             if (isInMainField(player)) {
                 $effect(($) => {
                     $.send(
-                        t`${player.name} went out of bounds during interception return!`,
+                        t`${player.name} went out of bounds during safety kick return!`,
                     );
 
-                    $.stat("INTERCEPTION_OUT_OF_BOUNDS");
+                    $.stat("SAFETY_KICK_RETURN_OUT_OF_BOUNDS");
 
                     $.setAvatar(playerId, AVATARS.CANCEL);
                 });
@@ -141,7 +172,7 @@ export function Interception({
                 $next({
                     to: "PRESNAP",
                     params: {
-                        downState: getInitialDownState(playerTeam, fieldPos),
+                        downState: getInitialDownState(receivingTeam, fieldPos),
                     },
                     wait: ticks({ seconds: 1 }),
                 });
@@ -151,7 +182,7 @@ export function Interception({
                         t`${player.name} went out of bounds in the end zone for a safety!`,
                     );
 
-                    $.stat("INTERCEPTION_SAFETY");
+                    $.stat("SAFETY_KICK_RETURN_SAFETY");
 
                     $.setAvatar(playerId, AVATARS.CLOWN);
                 });
@@ -165,7 +196,7 @@ export function Interception({
                 $next({
                     to: "SAFETY",
                     params: {
-                        kickingTeam: playerTeam,
+                        kickingTeam: receivingTeam,
                     },
                     wait: ticks({ seconds: 2 }),
                 });
@@ -174,7 +205,7 @@ export function Interception({
 
         const catchers = findCatchers(
             player,
-            state.players.filter((p) => p.team === opposite(playerTeam)),
+            state.players.filter((p) => p.team === opposite(receivingTeam)),
         );
 
         if (catchers.length > 0) {
@@ -188,7 +219,7 @@ export function Interception({
                                 t`${player.name} tackled in the end zone for a touchback!`,
                             );
 
-                            $.stat("INTERCEPTION_TOUCHBACK_TACKLED");
+                            $.stat("SAFETY_KICK_RETURN_TOUCHBACK_TACKLED");
 
                             $.setAvatar(playerId, AVATARS.CANCEL);
                         });
@@ -202,9 +233,9 @@ export function Interception({
                         $next({
                             to: "PRESNAP",
                             params: {
-                                downState: getInitialDownState(playerTeam, {
+                                downState: getInitialDownState(receivingTeam, {
                                     yards: TOUCHBACK_YARD_LINE,
-                                    side: playerTeam,
+                                    side: receivingTeam,
                                 }),
                             },
                             wait: ticks({ seconds: 1 }),
@@ -215,7 +246,7 @@ export function Interception({
                                 t`${player.name} tackled in the end zone for a safety!`,
                             );
 
-                            $.stat("INTERCEPTION_SAFETY_TACKLED");
+                            $.stat("SAFETY_KICK_RETURN_SAFETY_TACKLED");
 
                             $.setAvatar(playerId, AVATARS.CLOWN);
                         });
@@ -228,7 +259,7 @@ export function Interception({
 
                         $global((state) =>
                             state.incrementScore(
-                                opposite(playerTeam),
+                                opposite(receivingTeam),
                                 SCORES.SAFETY,
                             ),
                         );
@@ -236,7 +267,7 @@ export function Interception({
                         $next({
                             to: "SAFETY",
                             params: {
-                                kickingTeam: playerTeam,
+                                kickingTeam: opposite(receivingTeam),
                             },
                             wait: ticks({ seconds: 2 }),
                         });
@@ -247,7 +278,7 @@ export function Interception({
 
                 $effect(($) => {
                     $.send(t`${player.name} tackled by ${catcherNames}!`);
-                    $.stat("INTERCEPTION_TACKLED");
+                    $.stat("SAFETY_KICK_RETURN_TACKLED");
 
                     catchers.forEach((p) => {
                         $.setAvatar(p.id, AVATARS.MUSCLE);
@@ -269,7 +300,7 @@ export function Interception({
                 $next({
                     to: "PRESNAP",
                     params: {
-                        downState: getInitialDownState(playerTeam, fieldPos),
+                        downState: getInitialDownState(receivingTeam, fieldPos),
                     },
                     wait: ticks({ seconds: 1 }),
                 });
@@ -278,9 +309,12 @@ export function Interception({
     }
 
     function dispose() {
-        $hideInterceptionPath();
+        $effect(($) => {
+            $.setAvatar(playerId, null);
+        });
+
         $setBallActive();
     }
 
-    return { run, dispose };
+    return { run, leave, dispose };
 }

@@ -5,13 +5,20 @@ import {
     $setBallKickForce,
     $setBallMoveable,
     $setBallUnmoveable,
+    $lockBall,
+    $unlockBall,
     $trapTeamInEndZone,
     $untrapAllTeams,
 } from "@meta/legacy/hooks/physics";
 import { $effect } from "@common/hooks";
-import { getPositionFromFieldPosition } from "@meta/legacy/utils/stadium";
+import {
+    calculateDirectionalGain,
+    getPositionFromFieldPosition,
+} from "@meta/legacy/utils/stadium";
 import { $global } from "@meta/legacy/hooks/global";
 import { SCORES } from "@meta/legacy/utils/game";
+import { $next } from "@common/runtime";
+import { t } from "@lingui/core/macro";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {
     start: { x: -50, y: -150 },
@@ -69,13 +76,59 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
         });
     });
 
+    const getPlayersBeyondBallLine = (state: GameState) =>
+        state.players.filter(
+            (player) =>
+                player.team === kickingTeam &&
+                calculateDirectionalGain(
+                    kickingTeam,
+                    player.x - state.ball.x,
+                ) > 0,
+        );
+
     function run(state: GameState) {
-        // TODO: Safety logic
+        const playersPastBall = getPlayersBeyondBallLine(state);
+        const hasPlayersPastBall = playersPastBall.length > 0;
+
+        if (hasPlayersPastBall) {
+            $lockBall();
+        } else {
+            $unlockBall();
+            $setBallKickForce("strong");
+        }
+
+        const kicker = state.players.find(
+            (player) => player.isKickingBall && player.team === kickingTeam,
+        );
+
+        if (!kicker) return;
+
+        if (hasPlayersPastBall) {
+            $effect(($) => {
+                $.send(
+                    t`You cannot kick while a teammate is beyond the ball line.`,
+                    kicker.id,
+                );
+            });
+
+            return;
+        }
+
+        $effect(($) => {
+            $.stat("SAFETY_KICK");
+        });
+
+        $next({
+            to: "SAFETY_KICK_IN_FLIGHT",
+            params: { kickingTeam },
+        });
     }
 
     function dispose() {
         $untrapAllTeams();
         $setBallMoveable();
+        $unlockBall();
+        $setBallKickForce("normal");
     }
 
     return { run, dispose };

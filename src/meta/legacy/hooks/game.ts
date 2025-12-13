@@ -49,6 +49,7 @@ export function $setFirstDownLine(
 
         const shouldHide =
             firstDownLine.length === 0 ||
+            !firstDownLine[0] ||
             !isInMainField(firstDownLine[0].position);
 
         if (shouldHide) {

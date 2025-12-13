@@ -171,6 +171,7 @@ export function createEngine<Cfg>(
             allowTransition?: boolean;
             disposals?: Array<() => void>;
             beforeGameState?: GameState | null;
+            muteEffects?: boolean;
         },
     ): T {
         room.invalidateCaches();
@@ -185,6 +186,9 @@ export function createEngine<Cfg>(
                 optsRun && "beforeGameState" in optsRun
                     ? optsRun.beforeGameState
                     : lastGameState,
+            ...(optsRun?.muteEffects !== undefined
+                ? { muteEffects: optsRun.muteEffects }
+                : {}),
         });
 
         setRuntimeRoom(room);
@@ -235,6 +239,7 @@ export function createEngine<Cfg>(
         name: string,
         params?: any,
         factory?: StateFactory<any>,
+        options?: { muteEffects?: boolean },
     ) {
         const resolved = factory ?? ensureFactory(name);
 
@@ -243,13 +248,21 @@ export function createEngine<Cfg>(
         const api = runOutsideTick(() => resolved(params ?? {}), {
             disposals,
             beforeGameState: lastGameState,
+            ...(options?.muteEffects !== undefined
+                ? { muteEffects: options.muteEffects }
+                : {}),
         });
 
         return { api, disposals };
     }
 
     function disposeState(
-        target: { api: StateApi; disposals: Array<() => void> } | null,
+        target:
+            | {
+                  api: StateApi;
+                  disposals: Array<() => void>;
+              }
+            | null,
     ) {
         if (!target) return;
 
@@ -270,7 +283,10 @@ export function createEngine<Cfg>(
                 }
                 target.disposals.length = 0;
             },
-            { disposals: target.disposals, beforeGameState: lastGameState },
+            {
+                disposals: target.disposals,
+                beforeGameState: lastGameState,
+            },
         );
     }
 
@@ -278,6 +294,19 @@ export function createEngine<Cfg>(
         if (!pendingTransition) return;
         const next = pendingTransition;
         pendingTransition = null;
+
+        const isSameState = current && current.name === next.to;
+
+        if (current && isSameState && next.disposal !== "IMMEDIATE") {
+            const factory = ensureFactory(next.to);
+            const created = createState(next.to, next.params, factory, {
+                muteEffects: true,
+            });
+
+            current.api = created.api;
+            current.disposals = created.disposals;
+            return;
+        }
 
         const factory = ensureFactory(next.to);
         disposeState(current);
@@ -370,6 +399,7 @@ export function createEngine<Cfg>(
             pendingTransition = {
                 to: delayedTransition.to,
                 params: delayedTransition.params,
+                disposal: delayedTransition.disposal,
             };
             delayedTransition = null;
             applyTransition();
@@ -474,7 +504,10 @@ export function createEngine<Cfg>(
             () => {
                 current!.api.join!(snapshot);
             },
-            { disposals: current.disposals, beforeGameState: lastGameState },
+            {
+                disposals: current.disposals,
+                beforeGameState: lastGameState,
+            },
         );
     }
 

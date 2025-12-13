@@ -164,7 +164,7 @@ export function Presnap({ downState }: { downState: DownState }) {
         });
     }
 
-    function run(state: GameState) {
+    function run(_state: GameState) {
         // TODO: Prehike logic
     }
 
