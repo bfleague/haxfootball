@@ -418,6 +418,12 @@ export function Snap({
                 ) < 0,
         );
 
+        const quarterbackCrossedLineOfScrimmage =
+            calculateDirectionalGain(
+                offensiveTeam,
+                quarterback.x - lineOfScrimmageX,
+            ) > 0;
+
         const ballDirectionalGain = calculateDirectionalGain(
             offensiveTeam,
             state.ball.x - lineOfScrimmageX,
@@ -676,6 +682,26 @@ export function Snap({
             $effect(($) => {
                 $.send(
                     t`Ball has crossed the line of scrimmage, starting quarterback run.`,
+                );
+            });
+
+            $next({
+                to: "QUARTERBACK_RUN",
+                params: {
+                    playerId: quarterbackId,
+                    downState,
+                },
+            });
+        }
+
+        if (
+            isBlitzAllowed &&
+            !quarterback.isKickingBall &&
+            quarterbackCrossedLineOfScrimmage
+        ) {
+            $effect(($) => {
+                $.send(
+                    t`Quarterback has crossed the line of scrimmage, starting quarterback run.`,
                 );
             });
 
