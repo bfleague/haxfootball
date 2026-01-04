@@ -264,12 +264,10 @@ export function createEngine<Cfg>(
     }
 
     function collectDisposers(
-        target:
-            | {
-                  api: StateApi;
-                  disposals: Array<() => void>;
-              }
-            | null,
+        target: {
+            api: StateApi;
+            disposals: Array<() => void>;
+        } | null,
     ): Array<() => void> {
         if (!target) return [];
 
@@ -317,24 +315,20 @@ export function createEngine<Cfg>(
     }
 
     function disposeState(
-        target:
-            | {
-                  api: StateApi;
-                  disposals: Array<() => void>;
-              }
-            | null,
+        target: {
+            api: StateApi;
+            disposals: Array<() => void>;
+        } | null,
     ) {
         const disposeFns = collectDisposers(target);
         runDisposers(disposeFns);
     }
 
     function deferDisposeState(
-        target:
-            | {
-                  api: StateApi;
-                  disposals: Array<() => void>;
-              }
-            | null,
+        target: {
+            api: StateApi;
+            disposals: Array<() => void>;
+        } | null,
     ) {
         const disposeFns = collectDisposers(target);
         queueAfterResumeDisposers(disposeFns);
@@ -383,8 +377,8 @@ export function createEngine<Cfg>(
             transition.disposal === "IMMEDIATE"
                 ? "IMMEDIATE"
                 : transition.disposal === "AFTER_RESUME"
-                ? "AFTER_RESUME"
-                : "DELAYED";
+                  ? "AFTER_RESUME"
+                  : "DELAYED";
 
         if (disposal === "AFTER_RESUME" && wait === 0 && isResumeTick) {
             pendingTransition = { ...transition, disposal: "DELAYED" };
