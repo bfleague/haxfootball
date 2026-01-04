@@ -283,3 +283,181 @@ export function ticks(time: TimeInput): number {
 
     return ticksFromSeconds + ticksFromMs;
 }
+
+type VertexID = number;
+type DashSegment = readonly [VertexID, VertexID];
+type Corners = readonly [VertexID, VertexID, VertexID, VertexID];
+type Coordinate = readonly [number, number];
+type Direction = 1 | -1;
+type Extension = readonly [number, number];
+type PlacedVertex = readonly [VertexID, number, number];
+
+export function dashedRectangleFromSegments(
+    segments: readonly DashSegment[],
+    corners: Corners,
+    start: Coordinate,
+    direction: Direction,
+    extension: Extension,
+    dashSize: number,
+): PlacedVertex[] {
+    const [xStart, yMid] = start;
+    const [wRaw, hRaw] = extension;
+
+    const w = Math.abs(wRaw);
+    const h = Math.abs(hRaw);
+
+    if (!Number.isFinite(dashSize) || dashSize <= 0) {
+        throw new Error(`dashSize must be > 0. Got: ${dashSize}`);
+    }
+
+    if (!Number.isFinite(w) || w <= 0 || !Number.isFinite(h) || h <= 0) {
+        throw new Error(`extension must be positive. Got: [${wRaw}, ${hRaw}]`);
+    }
+
+    const xOpp = xStart + direction * w;
+    const yTop = yMid - h / 2;
+    const yBot = yMid + h / 2;
+
+    const posById = new Map<VertexID, [number, number]>();
+
+    const setPos = (id: VertexID, p: [number, number]) => {
+        const prev = posById.get(id);
+        if (!prev) {
+            posById.set(id, p);
+            return;
+        }
+        if (prev[0] !== p[0] || prev[1] !== p[1]) {
+            throw new Error(
+                `Vertex ${id} appears multiple times with different positions: ` +
+                    `[${prev[0]}, ${prev[1]}] vs [${p[0]}, ${p[1]}]`,
+            );
+        }
+    };
+
+    const [c0, c1, c2, c3] = corners;
+
+    setPos(c0, [xStart, yTop]);
+    setPos(c1, [xOpp, yTop]);
+    setPos(c2, [xOpp, yBot]);
+    setPos(c3, [xStart, yBot]);
+
+    // Distribute segments across all 4 sides as evenly as possible
+    const segmentsPerSide = segments.length / 4;
+    const extraSegments = segments.length % 4;
+    const sideLength = [h, w, h, w]; // left, top, right, bottom
+
+    let segmentIndex = 0;
+    for (let side = 0; side < 4; side++) {
+        // Give extra segments to first sides to distribute evenly
+        const segmentsOnThisSide =
+            Math.floor(segmentsPerSide) + (side < extraSegments ? 1 : 0);
+
+        if (segmentsOnThisSide === 0) continue;
+
+        const sideLen = sideLength[side]!;
+
+        // Calculate spacing to center segments on this side
+        const totalDashOnSide = segmentsOnThisSide * dashSize;
+        const gapOnSide =
+            (sideLen - totalDashOnSide) / (segmentsOnThisSide + 1);
+
+        for (let i = 0; i < segmentsOnThisSide; i++) {
+            if (segmentIndex >= segments.length) break;
+
+            const segment = segments[segmentIndex];
+            if (!segment) break;
+            const [a, b] = segment;
+            const localStart = gapOnSide + i * (dashSize + gapOnSide);
+            const localEnd = localStart + dashSize;
+
+            // Calculate positions based on which side we're on
+            if (side === 0) {
+                // Left side (vertical)
+                setPos(a, [xStart, yMid - h / 2 + localStart]);
+                setPos(b, [xStart, yMid - h / 2 + localEnd]);
+            } else if (side === 1) {
+                // Top side (horizontal)
+                setPos(a, [xStart + direction * localStart, yTop]);
+                setPos(b, [xStart + direction * localEnd, yTop]);
+            } else if (side === 2) {
+                // Right side (vertical)
+                setPos(a, [xOpp, yTop + localStart]);
+                setPos(b, [xOpp, yTop + localEnd]);
+            } else {
+                // Bottom side (horizontal)
+                setPos(a, [xOpp - direction * localStart, yBot]);
+                setPos(b, [xOpp - direction * localEnd, yBot]);
+            }
+
+            segmentIndex++;
+        }
+    }
+
+    const out: PlacedVertex[] = [];
+
+    for (const [a, b] of segments) {
+        const pa = posById.get(a)!;
+        const pb = posById.get(b)!;
+        out.push([a, pa[0], pa[1]], [b, pb[0], pb[1]]);
+    }
+
+    {
+        const p0 = posById.get(c0)!;
+        const p1 = posById.get(c1)!;
+        const p2 = posById.get(c2)!;
+        const p3 = posById.get(c3)!;
+
+        out.push(
+            [c0, p0[0], p0[1]],
+            [c1, p1[0], p1[1]],
+            [c2, p2[0], p2[1]],
+            [c3, p3[0], p3[1]],
+        );
+    }
+
+    return out;
+}
+
+export function intersectsRectangle(
+    p: PointLike,
+    start: Coordinate,
+    direction: Direction,
+    extension: Extension,
+): boolean {
+    const [xStart, yMid] = start;
+    const [wRaw, hRaw] = extension;
+
+    const w = Math.abs(wRaw);
+    const h = Math.abs(hRaw);
+
+    if (!Number.isFinite(w) || w <= 0 || !Number.isFinite(h) || h <= 0) {
+        throw new Error(`extension must be positive. Got: [${wRaw}, ${hRaw}]`);
+    }
+
+    const xOpp = xStart + direction * w;
+    const xMin = Math.min(xStart, xOpp);
+    const xMax = Math.max(xStart, xOpp);
+
+    const yTop = yMid - h / 2;
+    const yBot = yMid + h / 2;
+    const yMin = Math.min(yTop, yBot);
+    const yMax = Math.max(yTop, yBot);
+
+    const r0 = p.radius ?? 0;
+    const r = Number.isFinite(r0) ? Math.max(0, r0) : 0;
+
+    if (r === 0) {
+        return p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax;
+    }
+
+    const clamp = (v: number, lo: number, hi: number) =>
+        v < lo ? lo : v > hi ? hi : v;
+
+    const cx = clamp(p.x, xMin, xMax);
+    const cy = clamp(p.y, yMin, yMax);
+
+    const dx = p.x - cx;
+    const dy = p.y - cy;
+
+    return dx * dx + dy * dy <= r * r;
+}

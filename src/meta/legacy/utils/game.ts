@@ -38,6 +38,18 @@ export type NextDownStateIncrement = {
     event: DownEventIncrement;
 };
 
+export type CrowdingEntry = {
+    playerId: number;
+    startedAt: number;
+    endedAt?: number;
+};
+
+export type CrowdingData = {
+    outer: CrowdingEntry[];
+    inner: CrowdingEntry[];
+    startedAt?: number;
+};
+
 export const SCORES = {
     SAFETY: 2,
     TOUCHDOWN: 7, // Includes PAT

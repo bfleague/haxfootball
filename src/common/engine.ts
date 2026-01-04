@@ -60,6 +60,8 @@ export interface Engine<Cfg = unknown> {
     start: (name: string, params?: any) => void;
     stop: () => void;
     tick: () => void;
+    handleGamePause: (byPlayer: PlayerObject | null) => void;
+    handleGameUnpause: (byPlayer: PlayerObject | null) => void;
     trackPlayerBallKick: (playerId: number) => void;
     handlePlayerChat: (player: PlayerObject, message: string) => void;
     handlePlayerTeamChange: (
@@ -151,7 +153,7 @@ export function createEngine<Cfg>(
         to: string;
         params: any;
         remainingTicks: number;
-        disposal: "IMMEDIATE" | "DELAYED";
+        disposal: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
     } | null = null;
     let kickerSet: Set<number> = new Set();
     let running = false;
@@ -159,6 +161,11 @@ export function createEngine<Cfg>(
     let tickNumber = 0;
     let sharedTickMutations: MutationBuffer | null = null;
     let lastGameState: GameState | null = null;
+    let isPaused = false;
+    let resumePending = false;
+    let isResumeTick = false;
+    let afterResumeDisposers: Array<() => void> = [];
+    let afterResumeTransition: Transition | null = null;
 
     // Always have a concrete stats handler; defaults to no-op.
     const onStats: (key: string) => void = opts.onStats
@@ -256,15 +263,15 @@ export function createEngine<Cfg>(
         return { api, disposals };
     }
 
-    function disposeState(
+    function collectDisposers(
         target:
             | {
                   api: StateApi;
                   disposals: Array<() => void>;
               }
             | null,
-    ) {
-        if (!target) return;
+    ): Array<() => void> {
+        if (!target) return [];
 
         const disposeFns: Array<() => void> = [];
 
@@ -273,21 +280,64 @@ export function createEngine<Cfg>(
         }
 
         disposeFns.push(...target.disposals);
+        target.disposals.length = 0;
 
+        return disposeFns;
+    }
+
+    function runDisposers(disposeFns: Array<() => void>) {
         if (disposeFns.length === 0) return;
+
+        const runtimeDisposals: Array<() => void> = [];
 
         runOutsideTick(
             () => {
                 for (const fn of disposeFns) {
                     fn();
                 }
-                target.disposals.length = 0;
+                runtimeDisposals.length = 0;
             },
             {
-                disposals: target.disposals,
+                disposals: runtimeDisposals,
                 beforeGameState: lastGameState,
             },
         );
+    }
+
+    function flushAfterResumeDisposers() {
+        if (afterResumeDisposers.length === 0) return;
+        const disposers = afterResumeDisposers;
+        afterResumeDisposers = [];
+        runDisposers(disposers);
+    }
+
+    function queueAfterResumeDisposers(disposeFns: Array<() => void>) {
+        if (disposeFns.length === 0) return;
+        afterResumeDisposers.push(...disposeFns);
+    }
+
+    function disposeState(
+        target:
+            | {
+                  api: StateApi;
+                  disposals: Array<() => void>;
+              }
+            | null,
+    ) {
+        const disposeFns = collectDisposers(target);
+        runDisposers(disposeFns);
+    }
+
+    function deferDisposeState(
+        target:
+            | {
+                  api: StateApi;
+                  disposals: Array<() => void>;
+              }
+            | null,
+    ) {
+        const disposeFns = collectDisposers(target);
+        queueAfterResumeDisposers(disposeFns);
     }
 
     function applyTransition() {
@@ -309,7 +359,11 @@ export function createEngine<Cfg>(
         }
 
         const factory = ensureFactory(next.to);
-        disposeState(current);
+        if (next.disposal === "AFTER_RESUME") {
+            deferDisposeState(current);
+        } else {
+            disposeState(current);
+        }
 
         const created = createState(next.to, next.params, factory);
 
@@ -326,7 +380,17 @@ export function createEngine<Cfg>(
                 ? transition.wait
                 : 0;
         const disposal =
-            transition.disposal === "IMMEDIATE" ? "IMMEDIATE" : "DELAYED";
+            transition.disposal === "IMMEDIATE"
+                ? "IMMEDIATE"
+                : transition.disposal === "AFTER_RESUME"
+                ? "AFTER_RESUME"
+                : "DELAYED";
+
+        if (disposal === "AFTER_RESUME" && wait === 0 && isResumeTick) {
+            pendingTransition = { ...transition, disposal: "DELAYED" };
+            applyTransition();
+            return;
+        }
 
         if (wait > 0) {
             delayedTransition = {
@@ -344,6 +408,11 @@ export function createEngine<Cfg>(
             return;
         }
 
+        if (disposal === "AFTER_RESUME") {
+            afterResumeTransition = transition;
+            return;
+        }
+
         pendingTransition = transition;
         applyTransition();
     }
@@ -358,6 +427,11 @@ export function createEngine<Cfg>(
         pendingTransition = null;
         delayedTransition = null;
         lastGameState = null;
+        afterResumeDisposers = [];
+        resumePending = false;
+        isPaused = false;
+        isResumeTick = false;
+        afterResumeTransition = null;
 
         const created = createState(name, params, factory);
 
@@ -372,6 +446,7 @@ export function createEngine<Cfg>(
 
     function stop() {
         disposeState(current);
+        flushAfterResumeDisposers();
 
         current = null;
         running = false;
@@ -381,10 +456,29 @@ export function createEngine<Cfg>(
         pendingTransition = null;
         delayedTransition = null;
         lastGameState = null;
+        afterResumeDisposers = [];
+        resumePending = false;
+        isPaused = false;
+        isResumeTick = false;
+        afterResumeTransition = null;
     }
 
     function tick() {
         if (!running || disableStateExecution) return;
+
+        isResumeTick = resumePending;
+        if (resumePending) {
+            resumePending = false;
+            flushAfterResumeDisposers();
+            if (afterResumeTransition) {
+                pendingTransition = {
+                    ...afterResumeTransition,
+                    disposal: "DELAYED",
+                };
+                afterResumeTransition = null;
+                applyTransition();
+            }
+        }
 
         const kicksThisTick = delayedTransition ? new Set<number>() : kickerSet;
         kickerSet = new Set();
@@ -393,20 +487,41 @@ export function createEngine<Cfg>(
             if (delayedTransition.remainingTicks > 0) {
                 delayedTransition.remainingTicks -= 1;
                 tickNumber += 1;
+                isResumeTick = false;
                 return;
             }
 
-            pendingTransition = {
+            const completedTransition = {
                 to: delayedTransition.to,
                 params: delayedTransition.params,
                 disposal: delayedTransition.disposal,
             };
             delayedTransition = null;
-            applyTransition();
+            if (completedTransition.disposal === "AFTER_RESUME") {
+                if (isResumeTick) {
+                    pendingTransition = {
+                        ...completedTransition,
+                        disposal: "DELAYED",
+                    };
+                    applyTransition();
+                } else {
+                    afterResumeTransition = completedTransition;
+                }
+            } else {
+                pendingTransition = completedTransition;
+                applyTransition();
+            }
+        }
+
+        if (afterResumeTransition && !isResumeTick) {
+            tickNumber += 1;
+            isResumeTick = false;
+            return;
         }
 
         if (!current) {
             tickNumber += 1;
+            isResumeTick = false;
             return;
         }
 
@@ -462,6 +577,7 @@ export function createEngine<Cfg>(
             lastGameState = gs;
             tickNumber += 1;
         } finally {
+            isResumeTick = false;
             if (sharedTickMutations) {
                 sharedTickMutations.flush();
                 sharedTickMutations = null;
@@ -471,6 +587,16 @@ export function createEngine<Cfg>(
 
     function trackPlayerBallKick(playerId: number) {
         kickerSet.add(playerId);
+    }
+
+    function handleGamePause(_byPlayer: PlayerObject | null) {
+        isPaused = true;
+        resumePending = false;
+    }
+
+    function handleGameUnpause(_byPlayer: PlayerObject | null) {
+        isPaused = false;
+        resumePending = true;
     }
 
     function handlePlayerChat(player: PlayerObject, message: string) {
@@ -537,6 +663,8 @@ export function createEngine<Cfg>(
         start,
         stop,
         tick,
+        handleGamePause,
+        handleGameUnpause,
         trackPlayerBallKick,
         handlePlayerChat,
         handlePlayerTeamChange,

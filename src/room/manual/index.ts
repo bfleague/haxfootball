@@ -54,6 +54,12 @@ const matchModule = createModule()
         if (engine) engine.stop();
         engine = null;
     })
+    .onGamePause((_room, byPlayer) => {
+        if (engine) engine.handleGamePause(byPlayer);
+    })
+    .onGameUnpause((_room, byPlayer) => {
+        if (engine) engine.handleGameUnpause(byPlayer);
+    })
     .onRoomLink((room, _) => {
         room.setStadium(stadium);
     });

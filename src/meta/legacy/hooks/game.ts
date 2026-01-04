@@ -1,10 +1,12 @@
 import { $effect } from "@common/runtime";
 import { FieldPosition, Line } from "@common/utils";
-import { Team } from "@common/models";
+import { Team, type FieldTeam } from "@common/models";
 import {
+    arrangeCrowdingBoxes,
     getLineOfScrimmage,
     getFirstDownLine,
     getInterceptionPath,
+    hideCrowdingBoxes,
     SPECIAL_HIDDEN_POSITION,
     BALL_DISC_ID,
     BALL_ACTIVE_COLOR,
@@ -94,6 +96,25 @@ export function $hideInterceptionPath() {
     $effect(($) => {
         getInterceptionPath().forEach(({ id }) => {
             $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
+        });
+    });
+}
+
+export function $showCrowdingBoxes(
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
+) {
+    $effect(($) => {
+        arrangeCrowdingBoxes(offensiveTeam, fieldPos).forEach(([id, x, y]) => {
+            $.setDiscProperties(id, { x, y });
+        });
+    });
+}
+
+export function $hideCrowdingBoxes() {
+    $effect(($) => {
+        hideCrowdingBoxes().forEach(([id, x, y]) => {
+            $.setDiscProperties(id, { x, y });
         });
     });
 }

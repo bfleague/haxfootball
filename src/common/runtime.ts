@@ -31,7 +31,7 @@ export type Transition = {
     to: string;
     params: any;
     wait?: number;
-    disposal?: "IMMEDIATE" | "DELAYED";
+    disposal?: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
 };
 
 const BALL_DEFAULT_INDEX = 0;
@@ -200,7 +200,7 @@ export function $next(args: {
     to: string;
     params?: any;
     wait?: number;
-    disposal?: "IMMEDIATE" | "DELAYED";
+    disposal?: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
 }): never {
     if (!RUNTIME) throw new Error("$next used outside of runtime");
 
@@ -209,10 +209,17 @@ export function $next(args: {
             ? Math.floor(args.wait)
             : 0;
 
+    const disposal =
+        args.disposal === "IMMEDIATE"
+            ? "IMMEDIATE"
+            : args.disposal === "AFTER_RESUME"
+            ? "AFTER_RESUME"
+            : "DELAYED";
+
     const transition: Transition = {
         to: args.to,
         params: args.params ? args.params : {},
-        disposal: args.disposal === "IMMEDIATE" ? "IMMEDIATE" : "DELAYED",
+        disposal,
     };
 
     if (wait > 0) {

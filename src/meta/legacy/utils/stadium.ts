@@ -2,7 +2,9 @@ import { Team, type FieldTeam } from "@common/models";
 import {
     calculateFieldPosition,
     calculatePositionFromFieldPosition,
+    dashedRectangleFromSegments,
     FieldPosition,
+    intersectsRectangle,
     Line,
     PointLike,
     Ray,
@@ -55,6 +57,40 @@ const MapMeasures = {
     HASH_SUBDIVISION: 31,
     YARDS_BETWEEN_0_MARK_AND_GOAL_LINE: 10,
 };
+
+const OUTER_CROWDING_SEGMENTS = [
+    [9, 10],
+    [11, 12],
+    [13, 14],
+    [15, 16],
+    [17, 18],
+    [19, 20],
+    [21, 22],
+    [23, 24],
+    [25, 26],
+    [27, 28],
+    [29, 30],
+    [31, 32],
+] as const;
+
+const OUTER_CROWDING_CORNERS = [33, 34, 35, 36] as const;
+
+const INNER_CROWDING_SEGMENTS = [
+    [37, 38],
+    [39, 40],
+    [41, 42],
+    [43, 44],
+    [45, 46],
+    [47, 48],
+    [56, 57],
+    [58, 59],
+] as const;
+
+const INNER_CROWDING_CORNERS = [49, 53, 54, 55] as const;
+
+const CROWDING_OUTER_BEHIND_YARDS = 2;
+const CROWDING_OUTER_AHEAD_YARDS = 8;
+const CROWDING_INNER_AHEAD_YARDS = 4;
 
 export const BALL_RADIUS = 7.125;
 export const BALL_OFFSET_YARDS = 2;
@@ -287,6 +323,222 @@ export function getInterceptionPath(
             id: SPECIAL_DISC_IDS.INTERCEPTION_PATH[1],
             position: { x: line.end.x, y: line.end.y },
         },
+    ];
+}
+
+type CrowdingPlacement = readonly [number, number, number];
+type CrowdingRectangle = {
+    start: [number, number];
+    direction: 1 | -1;
+    extension: [number, number];
+};
+
+function getCrowdingDirection(team: FieldTeam): 1 | -1 {
+    return team === Team.RED ? 1 : -1;
+}
+
+function getCrowdingHashBand() {
+    const { upperY, lowerY } = MapMeasures.HASHES_HEIGHT;
+    return {
+        yMid: (upperY + lowerY) / 2,
+        height: Math.abs(lowerY - upperY),
+    };
+}
+
+function clampCrowdingX(x: number) {
+    const minX = Math.min(
+        MapMeasures.RED_END_ZONE_START_POSITION_X,
+        MapMeasures.BLUE_END_ZONE_START_POSITION_X,
+    );
+    const maxX = Math.max(
+        MapMeasures.RED_END_ZONE_START_POSITION_X,
+        MapMeasures.BLUE_END_ZONE_START_POSITION_X,
+    );
+
+    return Math.min(maxX, Math.max(minX, x));
+}
+
+function crowdingDashSize(
+    segments: readonly (readonly [number, number])[],
+    extension: [number, number],
+) {
+    const [w, h] = extension;
+    const perimeter = 2 * (Math.abs(w) + Math.abs(h));
+    return perimeter / (segments.length * 2);
+}
+
+function hiddenCrowdingRectangle(): CrowdingRectangle {
+    return {
+        start: [SPECIAL_HIDDEN_POSITION.x, SPECIAL_HIDDEN_POSITION.y],
+        direction: 1,
+        extension: [MapMeasures.YARD, MapMeasures.YARD],
+    };
+}
+
+function placeCrowdingBox(
+    segments: readonly (readonly [number, number])[],
+    corners: readonly [number, number, number, number],
+    rect: CrowdingRectangle,
+): CrowdingPlacement[] {
+    const [width, height] = rect.extension;
+
+    if (
+        !Number.isFinite(width) ||
+        width <= 0 ||
+        !Number.isFinite(height) ||
+        height <= 0
+    ) {
+        const hidden = hiddenCrowdingRectangle();
+        return dashedRectangleFromSegments(
+            segments,
+            corners,
+            hidden.start,
+            hidden.direction,
+            hidden.extension,
+            crowdingDashSize(segments, hidden.extension),
+        );
+    }
+
+    return dashedRectangleFromSegments(
+        segments,
+        corners,
+        rect.start,
+        rect.direction,
+        rect.extension,
+        crowdingDashSize(segments, rect.extension),
+    );
+}
+
+function getCrowdingRectangles(
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
+): { outer: CrowdingRectangle; inner: CrowdingRectangle } {
+    const direction = getCrowdingDirection(offensiveTeam);
+    const losX = getPositionFromFieldPosition(fieldPos);
+    const { yMid, height: outerHeight } = getCrowdingHashBand();
+    const innerHeight = outerHeight * 0.5;
+    const yard = MapMeasures.YARD;
+
+    const outerStartX = clampCrowdingX(
+        losX - direction * CROWDING_OUTER_BEHIND_YARDS * yard,
+    );
+    const outerEndX = clampCrowdingX(
+        losX + direction * CROWDING_OUTER_AHEAD_YARDS * yard,
+    );
+    const innerStartX = clampCrowdingX(losX);
+    const innerEndX = clampCrowdingX(
+        losX + direction * CROWDING_INNER_AHEAD_YARDS * yard,
+    );
+
+    const toExtension = (
+        startX: number,
+        endX: number,
+        height: number,
+    ): [number, number] => {
+        const width = (endX - startX) * direction;
+        return [Math.max(0, width), height];
+    };
+
+    return {
+        outer: {
+            start: [outerStartX, yMid],
+            direction,
+            extension: toExtension(outerStartX, outerEndX, outerHeight),
+        },
+        inner: {
+            start: [innerStartX, yMid],
+            direction,
+            extension: toExtension(innerStartX, innerEndX, innerHeight),
+        },
+    };
+}
+
+export function isInCrowdingArea(
+    player: PointLike,
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
+): boolean {
+    const { outer, inner } = getCrowdingRectangles(offensiveTeam, fieldPos);
+
+    const [outerWidth, outerHeight] = outer.extension;
+    const [innerWidth, innerHeight] = inner.extension;
+
+    const inOuter =
+        outerWidth > 0 &&
+        outerHeight > 0 &&
+        intersectsRectangle(
+            player,
+            outer.start,
+            outer.direction,
+            outer.extension,
+        );
+    const inInner =
+        innerWidth > 0 &&
+        innerHeight > 0 &&
+        intersectsRectangle(
+            player,
+            inner.start,
+            inner.direction,
+            inner.extension,
+        );
+
+    return inOuter || inInner;
+}
+
+export function isInInnerCrowdingArea(
+    player: PointLike,
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
+): boolean {
+    const { inner } = getCrowdingRectangles(offensiveTeam, fieldPos);
+    const [innerWidth, innerHeight] = inner.extension;
+
+    return (
+        innerWidth > 0 &&
+        innerHeight > 0 &&
+        intersectsRectangle(
+            player,
+            inner.start,
+            inner.direction,
+            inner.extension,
+        )
+    );
+}
+
+export function arrangeCrowdingBoxes(
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
+): CrowdingPlacement[] {
+    const { outer, inner } = getCrowdingRectangles(offensiveTeam, fieldPos);
+
+    return [
+        ...placeCrowdingBox(
+            OUTER_CROWDING_SEGMENTS,
+            OUTER_CROWDING_CORNERS,
+            outer,
+        ),
+        ...placeCrowdingBox(
+            INNER_CROWDING_SEGMENTS,
+            INNER_CROWDING_CORNERS,
+            inner,
+        ),
+    ];
+}
+
+export function hideCrowdingBoxes(): CrowdingPlacement[] {
+    const hidden = hiddenCrowdingRectangle();
+
+    return [
+        ...placeCrowdingBox(
+            OUTER_CROWDING_SEGMENTS,
+            OUTER_CROWDING_CORNERS,
+            hidden,
+        ),
+        ...placeCrowdingBox(
+            INNER_CROWDING_SEGMENTS,
+            INNER_CROWDING_CORNERS,
+            hidden,
+        ),
     ];
 }
 

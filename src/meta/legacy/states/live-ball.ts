@@ -178,7 +178,7 @@ export function LiveBall({
                 $next({
                     to: "SAFETY",
                     params: {
-                        kickingTeam: opposite(offensiveTeam),
+                        kickingTeam: offensiveTeam,
                     },
                     wait: ticks({ seconds: 2 }),
                 });
