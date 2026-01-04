@@ -344,13 +344,11 @@ export function Snap({
     quarterbackId,
     downState,
     crowdingData = { outer: [], inner: [] },
-    ballSpawn: ballSpawnPositionInput,
-    ballMovedAt: ballMoveTick,
+    ballMovedAt: _ballMovedAt,
 }: {
     quarterbackId: number;
     downState: DownState;
     crowdingData?: CrowdingData;
-    ballSpawn?: Position;
     ballMovedAt?: number | null;
 }) {
     const { fieldPos, offensiveTeam, downAndDistance } = downState;
@@ -358,13 +356,11 @@ export function Snap({
     const beforeState = $before();
     const downStartTick = beforeState.tickNumber;
     const defaultBlitzAllowedTick = downStartTick + BLITZ_BASE_DELAY_TICKS;
-    const ballSpawnPosition = ballSpawnPositionInput ?? {
+    const ballMovedAt = typeof _ballMovedAt === "number" ? _ballMovedAt : null;
+    const ballSpawnPosition = {
         x: beforeState.ball.x,
         y: beforeState.ball.y,
     };
-
-    const recordedBallMoveTick =
-        typeof ballMoveTick === "number" ? ballMoveTick : null;
 
     const isBallBeyondMoveThreshold = (ball: { x: number; y: number }) =>
         Math.hypot(ball.x - ballSpawnPosition.x, ball.y - ballSpawnPosition.y) >
@@ -381,7 +377,7 @@ export function Snap({
 
         const shouldRecordBallMoveTick =
             !quarterback.isKickingBall &&
-            recordedBallMoveTick === null &&
+            ballMovedAt === null &&
             state.tickNumber < defaultBlitzAllowedTick;
 
         const didBallExceedMoveThreshold =
@@ -389,7 +385,7 @@ export function Snap({
 
         const nextBallMoveTick = didBallExceedMoveThreshold
             ? state.tickNumber
-            : recordedBallMoveTick;
+            : ballMovedAt;
 
         const blitzAllowedTick =
             nextBallMoveTick === null
@@ -504,8 +500,7 @@ export function Snap({
         }
 
         const shouldRefreshSnapState =
-            crowdingResult?.shouldUpdate ||
-            nextBallMoveTick !== recordedBallMoveTick;
+            crowdingResult?.shouldUpdate || nextBallMoveTick !== ballMovedAt;
 
         if (shouldRefreshSnapState) {
             $next({
@@ -516,7 +511,6 @@ export function Snap({
                     crowdingData: crowdingResult
                         ? crowdingResult.updatedCrowdingData
                         : crowdingData,
-                    ballSpawn: ballSpawnPosition,
                     ballMovedAt: nextBallMoveTick,
                 },
             });
