@@ -700,6 +700,10 @@ export function Snap({
         }
 
         if (isBlitzAllowed && defenseCrossedLineOfScrimmage) {
+            $effect(($) => {
+                $.send(t`Defense is attempting a blitz!`);
+            });
+
             $next({
                 to: "BLITZ",
                 params: {
