@@ -6,6 +6,8 @@ import {
     getPositionFromFieldPosition,
     isOutOfBounds,
     intersectsEndZone,
+    getFieldPosition,
+    calculateSnapBallPosition,
 } from "./stadium";
 
 export type DownAndDistance = {
@@ -239,3 +241,39 @@ export function processDownEventIncrement({
             break;
     }
 }
+
+export const applyPenaltyYards = (
+    downState: DownState,
+    yards: number,
+): DownState => {
+    const { offensiveTeam, fieldPos, downAndDistance } = downState;
+    const penaltyFieldPos = getFieldPosition(
+        calculateSnapBallPosition(offensiveTeam, fieldPos, -yards).x,
+    );
+    const yardsGained = calculateYardsGained(
+        offensiveTeam,
+        fieldPos,
+        penaltyFieldPos,
+    );
+    const newDistance = downAndDistance.distance - yardsGained;
+
+    if (newDistance <= 0) {
+        return {
+            offensiveTeam,
+            fieldPos: penaltyFieldPos,
+            downAndDistance: {
+                down: FIRST_DOWN,
+                distance: DISTANCE_TO_FIRST_DOWN,
+            },
+        };
+    }
+
+    return {
+        offensiveTeam,
+        fieldPos: penaltyFieldPos,
+        downAndDistance: {
+            down: downAndDistance.down,
+            distance: newDistance,
+        },
+    };
+};
