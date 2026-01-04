@@ -31,6 +31,25 @@ export type NextDownState = {
     event: DownEvent;
 };
 
+export type DefensivePenaltyEvent =
+    | { type: "SAME_DOWN"; yardsGained: number }
+    | { type: "FIRST_DOWN"; yardsGained: number };
+
+export type DefensivePenaltyState = {
+    downState: DownState;
+    event: DefensivePenaltyEvent;
+};
+
+export type OffensivePenaltyEvent =
+    | { type: "SAME_DOWN"; yardsLost: number }
+    | { type: "NEXT_DOWN"; yardsLost: number }
+    | { type: "TURNOVER_ON_DOWNS"; yardsLost: number };
+
+export type OffensivePenaltyState = {
+    downState: DownState;
+    event: OffensivePenaltyEvent;
+};
+
 export type DownEventIncrement =
     | { type: "NEXT_DOWN" }
     | { type: "TURNOVER_ON_DOWNS" };
@@ -221,6 +240,53 @@ export function processDownEvent({
     }
 }
 
+export function processDefensivePenaltyEvent({
+    event,
+    onSameDown,
+    onFirstDown,
+}: {
+    event: DefensivePenaltyEvent;
+    onSameDown: (yardsGained: number) => void;
+    onFirstDown: (yardsGained: number) => void;
+}) {
+    switch (event.type) {
+        case "SAME_DOWN":
+            onSameDown(event.yardsGained);
+            break;
+        case "FIRST_DOWN":
+            onFirstDown(event.yardsGained);
+            break;
+        default:
+            break;
+    }
+}
+
+export function processOffensivePenaltyEvent({
+    event,
+    onSameDown,
+    onNextDown,
+    onTurnoverOnDowns,
+}: {
+    event: OffensivePenaltyEvent;
+    onSameDown: (yardsLost: number) => void;
+    onNextDown: (yardsLost: number) => void;
+    onTurnoverOnDowns: (yardsLost: number) => void;
+}) {
+    switch (event.type) {
+        case "SAME_DOWN":
+            onSameDown(event.yardsLost);
+            break;
+        case "NEXT_DOWN":
+            onNextDown(event.yardsLost);
+            break;
+        case "TURNOVER_ON_DOWNS":
+            onTurnoverOnDowns(event.yardsLost);
+            break;
+        default:
+            break;
+    }
+}
+
 export function processDownEventIncrement({
     event,
     onNextDown,
@@ -242,10 +308,11 @@ export function processDownEventIncrement({
     }
 }
 
-export const applyPenaltyYards = (
+const getPenaltyOutcome = (
     downState: DownState,
     yards: number,
-): DownState => {
+    options?: { allowFirstDown?: boolean },
+) => {
     const { offensiveTeam, fieldPos, downAndDistance } = downState;
     const penaltyFieldPos = getFieldPosition(
         calculateSnapBallPosition(offensiveTeam, fieldPos, -yards).x,
@@ -256,24 +323,94 @@ export const applyPenaltyYards = (
         penaltyFieldPos,
     );
     const newDistance = downAndDistance.distance - yardsGained;
+    const allowFirstDown = options?.allowFirstDown !== false;
+    const adjustedDistance = allowFirstDown
+        ? newDistance
+        : Math.max(0, newDistance);
 
-    if (newDistance <= 0) {
-        return {
-            offensiveTeam,
-            fieldPos: penaltyFieldPos,
-            downAndDistance: {
-                down: FIRST_DOWN,
-                distance: DISTANCE_TO_FIRST_DOWN,
-            },
-        };
+    const updatedDownState: DownState =
+        allowFirstDown && newDistance <= 0
+            ? {
+                  offensiveTeam,
+                  fieldPos: penaltyFieldPos,
+                  downAndDistance: {
+                      down: FIRST_DOWN,
+                      distance: DISTANCE_TO_FIRST_DOWN,
+                  },
+              }
+            : {
+                  offensiveTeam,
+                  fieldPos: penaltyFieldPos,
+                  downAndDistance: {
+                      down: downAndDistance.down,
+                      distance: adjustedDistance,
+                  },
+              };
+
+    return { updatedDownState, yardsGained, newDistance };
+};
+
+export const applyDefensivePenalty = (
+    downState: DownState,
+    yards: number,
+): DefensivePenaltyState => {
+    const { updatedDownState, yardsGained, newDistance } = getPenaltyOutcome(
+        downState,
+        yards,
+    );
+
+    return newDistance <= 0
+        ? {
+              downState: updatedDownState,
+              event: { type: "FIRST_DOWN", yardsGained },
+          }
+        : {
+              downState: updatedDownState,
+              event: { type: "SAME_DOWN", yardsGained },
+          };
+};
+
+export const applyOffensivePenalty = (
+    downState: DownState,
+    yards: number,
+    options?: { lossOfDown?: boolean },
+): OffensivePenaltyState => {
+    const { updatedDownState, yardsGained } = getPenaltyOutcome(
+        downState,
+        yards,
+        { allowFirstDown: false },
+    );
+    const yardsLost = Math.max(0, -yardsGained);
+    const lossOfDown = options?.lossOfDown === true;
+    let event: OffensivePenaltyEvent;
+    let nextDownState = updatedDownState;
+
+    if (lossOfDown) {
+        const nextDown = updatedDownState.downAndDistance.down + 1;
+
+        if (nextDown > MAX_DOWNS) {
+            nextDownState = {
+                offensiveTeam: opposite(updatedDownState.offensiveTeam),
+                fieldPos: updatedDownState.fieldPos,
+                downAndDistance: INITIAL_DOWN_AND_DISTANCE,
+            };
+            event = { type: "TURNOVER_ON_DOWNS", yardsLost };
+        } else {
+            nextDownState = {
+                ...updatedDownState,
+                downAndDistance: {
+                    down: nextDown,
+                    distance: updatedDownState.downAndDistance.distance,
+                },
+            };
+            event = { type: "NEXT_DOWN", yardsLost };
+        }
+    } else {
+        event = { type: "SAME_DOWN", yardsLost };
     }
 
     return {
-        offensiveTeam,
-        fieldPos: penaltyFieldPos,
-        downAndDistance: {
-            down: downAndDistance.down,
-            distance: newDistance,
-        },
+        downState: nextDownState,
+        event,
     };
 };

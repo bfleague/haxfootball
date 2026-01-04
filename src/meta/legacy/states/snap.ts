@@ -1,5 +1,5 @@
 import type { GameState } from "@common/engine";
-import { getDistance, ticks } from "@common/utils";
+import { findBallCatchers, getDistance, ticks } from "@common/utils";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     $hideCrowdingBoxes,
@@ -10,10 +10,13 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import {
-    applyPenaltyYards,
+    applyDefensivePenalty,
+    applyOffensivePenalty,
     CrowdingData,
     CrowdingEntry,
     DownState,
+    processDefensivePenaltyEvent,
+    processOffensivePenaltyEvent,
 } from "@meta/legacy/utils/game";
 import { $before, $dispose, $effect, $next } from "@common/runtime";
 import {
@@ -21,8 +24,10 @@ import {
     getPositionFromFieldPosition,
     isInCrowdingArea,
     isInInnerCrowdingArea,
+    isOutOfBounds,
 } from "@meta/legacy/utils/stadium";
 import { t } from "@lingui/core/macro";
+import assert from "node:assert";
 
 const CROWDING_OUTER_FOUL_TICKS = ticks({ seconds: 3 });
 const CROWDING_INNER_WEIGHT = 5;
@@ -303,10 +308,10 @@ export const evaluateCrowding = ({
                   contributions: crowdingFoulContributions,
                   players: state.players,
               },
-              nextDownState: applyPenaltyYards(
+              nextDownState: applyDefensivePenalty(
                   downState,
                   CROWDING_PENALTY_YARDS,
-              ),
+              ).downState,
           }
         : {
               ...evaluationBase,
@@ -331,11 +336,13 @@ export function getCrowdingMessage(info: CrowdingFoulInfo) {
         .join(", ");
 
     return offenderSummaryText.length > 0
-        ? t`Defensive crowding foul (${offenderSummaryText}), 5 yard penalty and loss of down.`
-        : t`Defensive crowding foul, 5 yard penalty and loss of down.`;
+        ? t`Defensive crowding foul (${offenderSummaryText}), 5 yard penalty.`
+        : t`Defensive crowding foul, 5 yard penalty.`;
 }
 
 const DEFENSIVE_OFFSIDE_PENALTY_YARDS = 5;
+const DEFENSIVE_TOUCHING_PENALTY_YARDS = 5;
+const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
 const BLITZ_BASE_DELAY_TICKS = ticks({ seconds: 12 });
 const BLITZ_EARLY_DELAY_TICKS = ticks({ seconds: 3 });
 const BLITZ_EARLY_MOVE_THRESHOLD_PX = 2;
@@ -411,24 +418,39 @@ export function Snap({
                 ) < 0,
         );
 
-        const quarterbackCrossedLineOfScrimmage =
-            calculateDirectionalGain(
-                offensiveTeam,
-                quarterback.x - lineOfScrimmageX,
-            ) > 0;
+        const ballDirectionalGain = calculateDirectionalGain(
+            offensiveTeam,
+            state.ball.x - lineOfScrimmageX,
+        );
+        const ballBeyondLineOfScrimmage = ballDirectionalGain > 0;
+        const ballBehindLineOfScrimmage = ballDirectionalGain < 0;
 
         if (!isBlitzAllowed && defenseCrossedLineOfScrimmage) {
-            $effect(($) => {
-                $.send(t`Defensive offside, 5 yard penalty.`);
+            const penaltyResult = applyDefensivePenalty(
+                downState,
+                DEFENSIVE_OFFSIDE_PENALTY_YARDS,
+            );
+
+            processDefensivePenaltyEvent({
+                event: penaltyResult.event,
+                onSameDown() {
+                    $effect(($) => {
+                        $.send(t`Defensive offside, 5 yard penalty.`);
+                    });
+                },
+                onFirstDown() {
+                    $effect(($) => {
+                        $.send(
+                            t`Defensive offside, 5 yard penalty and automatic first down.`,
+                        );
+                    });
+                },
             });
 
             $next({
                 to: "PRESNAP",
                 params: {
-                    downState: applyPenaltyYards(
-                        downState,
-                        DEFENSIVE_OFFSIDE_PENALTY_YARDS,
-                    ),
+                    downState: penaltyResult.downState,
                 },
             });
         }
@@ -443,12 +465,31 @@ export function Snap({
               });
 
         if (crowdingResult && crowdingResult.hasFoul) {
+            const penaltyResult = applyDefensivePenalty(
+                downState,
+                CROWDING_PENALTY_YARDS,
+            );
+            const baseMessage = getCrowdingMessage(crowdingResult.foulInfo);
+            const firstDownMessage = `${baseMessage} ${t`Automatic first down.`}`;
+
             $showCrowdingBoxes(offensiveTeam, fieldPos);
 
-            $effect(($) => {
-                $.pauseGame(true);
-                $.pauseGame(false);
-                $.send(getCrowdingMessage(crowdingResult.foulInfo));
+            processDefensivePenaltyEvent({
+                event: penaltyResult.event,
+                onSameDown() {
+                    $effect(($) => {
+                        $.pauseGame(true);
+                        $.pauseGame(false);
+                        $.send(baseMessage);
+                    });
+                },
+                onFirstDown() {
+                    $effect(($) => {
+                        $.pauseGame(true);
+                        $.pauseGame(false);
+                        $.send(firstDownMessage);
+                    });
+                },
             });
 
             $dispose(() => {
@@ -457,8 +498,193 @@ export function Snap({
 
             $next({
                 to: "PRESNAP",
-                params: { downState: crowdingResult.nextDownState },
+                params: { downState: penaltyResult.downState },
                 disposal: "AFTER_RESUME",
+            });
+        }
+
+        const defensiveTouchers = findBallCatchers(state.ball, defenders);
+
+        if (defensiveTouchers.length > 0) {
+            const offenderNames = defensiveTouchers
+                .map((player) => player.name)
+                .join(", ");
+            const baseMessage =
+                offenderNames.length > 0
+                    ? t`Defensive illegal touching by ${offenderNames}, 5 yard penalty.`
+                    : t`Defensive illegal touching, 5 yard penalty.`;
+            const firstDownMessage =
+                offenderNames.length > 0
+                    ? t`Defensive illegal touching by ${offenderNames}, 5 yard penalty and automatic first down.`
+                    : t`Defensive illegal touching, 5 yard penalty and automatic first down.`;
+
+            const penaltyResult = applyDefensivePenalty(
+                downState,
+                DEFENSIVE_TOUCHING_PENALTY_YARDS,
+            );
+
+            processDefensivePenaltyEvent({
+                event: penaltyResult.event,
+                onSameDown() {
+                    $effect(($) => {
+                        $.send(baseMessage);
+                    });
+                },
+                onFirstDown() {
+                    $effect(($) => {
+                        $.send(firstDownMessage);
+                    });
+                },
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: penaltyResult.downState,
+                },
+            });
+        }
+
+        if (ballBehindLineOfScrimmage) {
+            const illegalTouchers = findBallCatchers(
+                state.ball,
+                state.players.filter(
+                    (player) =>
+                        player.team === offensiveTeam &&
+                        player.id !== quarterbackId,
+                ),
+            );
+
+            if (illegalTouchers.length > 0) {
+                const offenderNames = illegalTouchers
+                    .map((player) => player.name)
+                    .join(", ");
+
+                const baseMessage =
+                    offenderNames.length > 0
+                        ? t`Illegal touching by ${offenderNames}, 5 yard penalty.`
+                        : t`Illegal touching, 5 yard penalty.`;
+                const penaltyResult = applyOffensivePenalty(
+                    downState,
+                    -OFFENSIVE_FOUL_PENALTY_YARDS,
+                );
+
+                processOffensivePenaltyEvent({
+                    event: penaltyResult.event,
+                    onSameDown() {
+                        $effect(($) => {
+                            $.send(baseMessage);
+                        });
+                    },
+                    onNextDown() {
+                        assert(
+                            false,
+                            "applyOffensivePenalty without lossOfDown should not advance the down",
+                        );
+                    },
+                    onTurnoverOnDowns() {
+                        assert(
+                            false,
+                            "applyOffensivePenalty without lossOfDown should not result in a turnover on downs",
+                        );
+                    },
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: penaltyResult.downState,
+                    },
+                });
+            }
+        }
+
+        if (!quarterback.isKickingBall && isOutOfBounds(state.ball)) {
+            const baseMessage = t`Ball moved out of bounds, 5 yard penalty.`;
+            const penaltyResult = applyOffensivePenalty(
+                downState,
+                -OFFENSIVE_FOUL_PENALTY_YARDS,
+            );
+
+            processOffensivePenaltyEvent({
+                event: penaltyResult.event,
+                onSameDown() {
+                    $effect(($) => {
+                        $.send(baseMessage);
+                    });
+                },
+                onNextDown() {
+                    assert(
+                        false,
+                        "applyOffensivePenalty without lossOfDown should not advance the down",
+                    );
+                },
+                onTurnoverOnDowns() {
+                    assert(
+                        false,
+                        "applyOffensivePenalty without lossOfDown should not result in a turnover on downs",
+                    );
+                },
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: penaltyResult.downState,
+                },
+            });
+        }
+
+        if (!quarterback.isKickingBall && ballBeyondLineOfScrimmage) {
+            if (!isBlitzAllowed) {
+                const baseMessage = t`Illegal advance beyond the line of scrimmage, 5 yard penalty.`;
+
+                const penaltyResult = applyOffensivePenalty(
+                    downState,
+                    -OFFENSIVE_FOUL_PENALTY_YARDS,
+                );
+
+                processOffensivePenaltyEvent({
+                    event: penaltyResult.event,
+                    onSameDown() {
+                        $effect(($) => {
+                            $.send(baseMessage);
+                        });
+                    },
+                    onNextDown() {
+                        assert(
+                            false,
+                            "applyOffensivePenalty without lossOfDown should not advance the down",
+                        );
+                    },
+                    onTurnoverOnDowns() {
+                        assert(
+                            false,
+                            "applyOffensivePenalty without lossOfDown should not result in a turnover on downs",
+                        );
+                    },
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: penaltyResult.downState,
+                    },
+                });
+            }
+
+            $effect(($) => {
+                $.send(
+                    t`Ball has crossed the line of scrimmage, starting quarterback run.`,
+                );
+            });
+
+            $next({
+                to: "QUARTERBACK_RUN",
+                params: {
+                    playerId: quarterbackId,
+                    downState,
+                },
             });
         }
 
@@ -470,22 +696,6 @@ export function Snap({
             $next({
                 to: "SNAP_IN_FLIGHT",
                 params: { downState },
-            });
-        }
-
-        if (isBlitzAllowed && quarterbackCrossedLineOfScrimmage) {
-            $effect(($) => {
-                $.send(
-                    t`Quarterback has crossed the line of scrimmage, starting quarterback run.`,
-                );
-            });
-
-            $next({
-                to: "QUARTERBACK_RUN",
-                params: {
-                    playerId: quarterbackId,
-                    downState,
-                },
             });
         }
 
