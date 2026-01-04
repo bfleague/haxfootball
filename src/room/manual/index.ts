@@ -41,8 +41,14 @@ const matchModule = createModule()
     .onPlayerBallKick((_room, player) => {
         if (engine) engine.trackPlayerBallKick(player.id);
     })
-    .onPlayerChat((_room, player, message) => {
+    .onPlayerChat((room, player, message) => {
+        room.send({
+            message: `${player.name}: ${message}`,
+        });
+
         if (engine) engine.handlePlayerChat(player, message);
+
+        return false;
     })
     .onPlayerTeamChange((_room, changedPlayer, byPlayer) => {
         if (engine) engine.handlePlayerTeamChange(changedPlayer, byPlayer);

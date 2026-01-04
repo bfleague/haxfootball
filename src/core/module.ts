@@ -150,12 +150,17 @@ export class Module {
         return this;
     }
 
-    call(eventName: string, ...args: any[]) {
+    call(eventName: string, ...args: any[]): boolean {
+        const responses: boolean[] = [];
+
         for (const [name, handler] of this.events) {
             if (name === eventName) {
-                handler(...args);
+                const response = handler(...args);
+                responses.push(response !== false);
             }
         }
+
+        return responses.every((response) => response);
     }
 }
 
@@ -173,10 +178,23 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
             modules.forEach((module) => module.call(eventName, room, ...args));
         };
 
+    const emitChat =
+        () =>
+        (...args: any[]) => {
+            room.invalidateCaches();
+
+            const shouldSend = modules.reduce((allow, module) => {
+                const moduleAllows = module.call("onPlayerChat", room, ...args);
+                return allow && moduleAllows;
+            }, true);
+
+            return shouldSend;
+        };
+
     roomObject.onPlayerJoin = emit("onPlayerJoin");
     roomObject.onPlayerLeave = emit("onPlayerLeave");
     roomObject.onTeamVictory = emit("onTeamVictory");
-    roomObject.onPlayerChat = emit("onPlayerChat");
+    roomObject.onPlayerChat = emitChat();
     roomObject.onPlayerBallKick = emit("onPlayerBallKick");
     roomObject.onTeamGoal = emit("onTeamGoal");
     roomObject.onGameStart = emit("onGameStart");
