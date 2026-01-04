@@ -66,6 +66,8 @@ function $setInitialPlayerPositions(
             $.setPlayerDiscProperties(id, {
                 x,
                 y,
+                xspeed: 0,
+                yspeed: 0,
             });
         });
 
@@ -96,6 +98,8 @@ function $setInitialPlayerPositions(
             $.setPlayerDiscProperties(id, {
                 x,
                 y,
+                xspeed: 0,
+                yspeed: 0,
             });
         });
     });

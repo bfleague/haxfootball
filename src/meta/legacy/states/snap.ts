@@ -36,6 +36,8 @@ const DEFENSIVE_OFFSIDE_FOUL_PENALTY_YARDS = 5;
 const CROWDING_PENALTY_YARDS = 5;
 const CROWDING_TICKS_PER_SECOND = ticks({ seconds: 1 });
 const BLITZ_DELAY_TICKS = ticks({ seconds: 12 });
+const BLITZ_EARLY_DELAY_TICKS = ticks({ seconds: 3 });
+const BLITZ_EARLY_MOVE_DISTANCE = 2;
 
 export type CrowdingFoulContribution = {
     playerId: number;
@@ -336,8 +338,8 @@ export function $sendCrowdingFoul(info: CrowdingFoulInfo) {
 
     const message =
         offenderDetails.length > 0
-            ? t`Defensive crowding foul (${offenderDetails}). 5 yard penalty and loss of down.`
-            : t`Defensive crowding foul. 5 yard penalty and loss of down.`;
+            ? t`Defensive crowding foul (${offenderDetails}), 5 yard penalty and loss of down.`
+            : t`Defensive crowding foul, 5 yard penalty and loss of down.`;
 
     $effect(($) => {
         $.send(message);
@@ -348,13 +350,26 @@ export function Snap({
     quarterbackId,
     downState,
     crowdingData = { outer: [], inner: [] },
+    ballSpawn,
+    ballMovedAt,
 }: {
     quarterbackId: number;
     downState: DownState;
     crowdingData?: CrowdingData;
+    ballSpawn?: Position;
+    ballMovedAt?: number | null;
 }) {
     const { fieldPos, offensiveTeam, downAndDistance } = downState;
-    const downStartedAt = $before().tickNumber;
+
+    const beforeState = $before();
+    const downStartedAt = beforeState.tickNumber;
+    const defaultBlitzAllowedAt = downStartedAt + BLITZ_DELAY_TICKS;
+    const snapBallSpawn = ballSpawn ?? {
+        x: beforeState.ball.x,
+        y: beforeState.ball.y,
+    };
+    const recordedBallMovedAt =
+        typeof ballMovedAt === "number" ? ballMovedAt : null;
 
     $setBallMoveable();
     $unlockBall();
@@ -365,8 +380,32 @@ export function Snap({
         const quarterback = state.players.find((p) => p.id === quarterbackId);
         if (!quarterback) return;
 
-        const blitzAllowed =
-            state.tickNumber - downStartedAt >= BLITZ_DELAY_TICKS;
+        const canRecordBallMove =
+            !quarterback.isKickingBall &&
+            recordedBallMovedAt === null &&
+            state.tickNumber < defaultBlitzAllowedAt;
+
+        const movedDistance = canRecordBallMove
+            ? Math.hypot(
+                  state.ball.x - snapBallSpawn.x,
+                  state.ball.y - snapBallSpawn.y,
+              )
+            : 0;
+
+        const nextBallMovedAt =
+            canRecordBallMove && movedDistance > BLITZ_EARLY_MOVE_DISTANCE
+                ? state.tickNumber
+                : recordedBallMovedAt;
+
+        const blitzAllowedAt =
+            nextBallMovedAt === null
+                ? defaultBlitzAllowedAt
+                : Math.min(
+                      defaultBlitzAllowedAt,
+                      nextBallMovedAt + BLITZ_EARLY_DELAY_TICKS,
+                  );
+
+        const blitzAllowed = state.tickNumber >= blitzAllowedAt;
 
         const lineOfScrimmageX = getPositionFromFieldPosition(fieldPos);
 
@@ -390,7 +429,7 @@ export function Snap({
 
         if (!blitzAllowed && defensiveCrossedLine) {
             $effect(($) => {
-                $.send(t`Defensive offside. 5 yard penalty.`);
+                $.send(t`Defensive offside, 5 yard penalty.`);
             });
 
             $next({
@@ -471,7 +510,8 @@ export function Snap({
             });
         }
 
-        const shouldUpdateSnap = crowding ? crowding.shouldUpdate : false;
+        const shouldUpdateSnap =
+            crowding?.shouldUpdate || nextBallMovedAt !== recordedBallMovedAt;
 
         if (shouldUpdateSnap) {
             $next({
@@ -482,6 +522,8 @@ export function Snap({
                     crowdingData: crowding
                         ? crowding.updatedCrowdingData
                         : crowdingData,
+                    ballSpawn: snapBallSpawn,
+                    ballMovedAt: nextBallMovedAt,
                 },
             });
         }
