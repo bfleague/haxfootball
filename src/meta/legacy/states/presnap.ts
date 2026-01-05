@@ -148,9 +148,11 @@ export function Presnap({ downState }: { downState: DownState }) {
     }
 
     function chat(player: GameStatePlayer, message: string) {
-        const isHikeCommand = message.toLowerCase().includes("hike");
+        const normalizedMessage = message.trim().toLowerCase();
+        const isHikeCommand = normalizedMessage.includes("hike");
+        const isPuntCommand = normalizedMessage.startsWith("!punt");
 
-        if (!isHikeCommand) {
+        if (!isHikeCommand && !isPuntCommand) {
             return;
         }
 
@@ -173,14 +175,27 @@ export function Presnap({ downState }: { downState: DownState }) {
             getOffensivePlayersBeyondLineOfScrimmage();
 
         if (offensivePlayersPastLine.length > 0) {
+            const actionLabel = isPuntCommand ? "punt" : "hike";
+
             $effect(($) => {
                 $.send(
-                    t`You cannot hike while a teammate is beyond the line of scrimmage.`,
+                    t`You cannot ${actionLabel} while a teammate is beyond the line of scrimmage.`,
                     player.id,
                 );
             });
 
             return;
+        }
+
+        if (isPuntCommand) {
+            $effect(($) => {
+                $.send(t`${player.name} punts the ball!`);
+            });
+
+            $next({
+                to: "PUNT",
+                params: { downState },
+            });
         }
 
         $effect(($) => {

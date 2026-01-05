@@ -5,6 +5,9 @@ import { KickoffInFlight } from "./states/kickoff-in-flight";
 import { KickoffReturn } from "./states/kickoff-return";
 import { SafetyKickInFlight } from "./states/safety-kick-in-flight";
 import { SafetyKickReturn } from "./states/safety-kick-return";
+import { Punt } from "./states/punt";
+import { PuntInFlight } from "./states/punt-in-flight";
+import { PuntReturn } from "./states/punt-return";
 import { LiveBall } from "./states/live-ball";
 import { QuarterbackRun } from "./states/quarterback-run";
 import { Presnap } from "./states/presnap";
@@ -23,6 +26,9 @@ export const registry = {
     KICKOFF_RETURN: KickoffReturn,
     SAFETY_KICK_IN_FLIGHT: SafetyKickInFlight,
     SAFETY_KICK_RETURN: SafetyKickReturn,
+    PUNT: Punt,
+    PUNT_IN_FLIGHT: PuntInFlight,
+    PUNT_RETURN: PuntReturn,
     PRESNAP: Presnap,
     SNAP: Snap,
     SAFETY: Safety,
