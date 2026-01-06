@@ -10,6 +10,7 @@ import { PuntInFlight } from "./states/punt-in-flight";
 import { PuntReturn } from "./states/punt-return";
 import { LiveBall } from "./states/live-ball";
 import { QuarterbackRun } from "./states/quarterback-run";
+import { Run } from "./states/run";
 import { Presnap } from "./states/presnap";
 import { Safety } from "./states/safety";
 import { Snap } from "./states/snap";
@@ -35,6 +36,7 @@ export const registry = {
     SNAP_IN_FLIGHT: SnapInFlight,
     LIVE_BALL: LiveBall,
     QUARTERBACK_RUN: QuarterbackRun,
+    RUN: Run,
     BLITZ: Blitz,
     PASS_DEFLECTION: PassDeflection,
     BLOCKED_PASS: BlockedPass,

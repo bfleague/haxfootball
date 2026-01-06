@@ -1,5 +1,10 @@
 import type { GameState } from "@common/engine";
-import { findBallCatchers, getDistance, ticks } from "@common/utils";
+import {
+    findBallCatchers,
+    findCatchers,
+    getDistance,
+    ticks,
+} from "@common/utils";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     $hideCrowdingBoxes,
@@ -410,6 +415,11 @@ export function Snap({
             (player) => player.team !== offensiveTeam,
         );
 
+        const offensivePlayers = state.players.filter(
+            (player) =>
+                player.team === offensiveTeam && player.id !== quarterbackId,
+        );
+
         const defenseCrossedLineOfScrimmage = defenders.some(
             (player) =>
                 calculateDirectionalGain(
@@ -551,14 +561,35 @@ export function Snap({
             });
         }
 
+        if (!quarterback.isKickingBall) {
+            const offensiveTouchers = findCatchers(
+                quarterback,
+                offensivePlayers,
+            );
+
+            if (offensiveTouchers.length > 0 && offensiveTouchers[0]) {
+                const runner = offensiveTouchers[0];
+
+                $effect(($) => {
+                    $.send(
+                        t`${runner.name} takes the handoff and starts a run!`,
+                    );
+                });
+
+                $next({
+                    to: "RUN",
+                    params: {
+                        playerId: runner.id,
+                        downState,
+                    },
+                });
+            }
+        }
+
         if (ballBehindLineOfScrimmage) {
             const illegalTouchers = findBallCatchers(
                 state.ball,
-                state.players.filter(
-                    (player) =>
-                        player.team === offensiveTeam &&
-                        player.id !== quarterbackId,
-                ),
+                offensivePlayers,
             );
 
             if (illegalTouchers.length > 0) {
