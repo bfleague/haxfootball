@@ -1,6 +1,7 @@
 import { Team, type FieldTeam } from "@common/models";
 import type { GameState, GameStatePlayer } from "@common/engine";
 import { distributeOnLine, getDistance } from "@common/utils";
+import { CommandHandleResult, CommandSpec } from "@common/commands";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
@@ -150,65 +151,111 @@ export function Presnap({ downState }: { downState: DownState }) {
     function chat(player: GameStatePlayer, message: string) {
         const normalizedMessage = message.trim().toLowerCase();
         const isHikeCommand = normalizedMessage.includes("hike");
-        const isPuntCommand = normalizedMessage.startsWith("!punt");
 
-        if (!isHikeCommand && !isPuntCommand) {
-            return;
-        }
+        if (isHikeCommand) {
+            if (player.team !== offensiveTeam) {
+                return;
+            }
 
-        if (player.team !== offensiveTeam) {
-            return;
-        }
+            if (
+                getDistance(player, ballWithRadius(ballPosWithOffset)) >
+                HIKING_DISTANCE_LIMIT
+            ) {
+                $effect(($) => {
+                    $.send(
+                        t`You are too far from the ball to hike it!`,
+                        player.id,
+                    );
+                });
 
-        if (
-            getDistance(player, ballWithRadius(ballPosWithOffset)) >
-            HIKING_DISTANCE_LIMIT
-        ) {
+                return;
+            }
+
+            const offensivePlayersPastLine =
+                getOffensivePlayersBeyondLineOfScrimmage();
+
+            if (offensivePlayersPastLine.length > 0) {
+                $effect(($) => {
+                    $.send(
+                        t`You cannot hike while a teammate is beyond the line of scrimmage.`,
+                        player.id,
+                    );
+                });
+
+                return;
+            }
+
             $effect(($) => {
-                $.send(t`You are too far from the ball to hike it!`, player.id);
-            });
-
-            return;
-        }
-
-        const offensivePlayersPastLine =
-            getOffensivePlayersBeyondLineOfScrimmage();
-
-        if (offensivePlayersPastLine.length > 0) {
-            const actionLabel = isPuntCommand ? "punt" : "hike";
-
-            $effect(($) => {
-                $.send(
-                    t`You cannot ${actionLabel} while a teammate is beyond the line of scrimmage.`,
-                    player.id,
-                );
-            });
-
-            return;
-        }
-
-        if (isPuntCommand) {
-            $effect(($) => {
-                $.send(t`${player.name} punts the ball!`);
+                $.send(t`${player.name} hikes the ball!`);
             });
 
             $next({
-                to: "PUNT",
-                params: { downState },
+                to: "SNAP",
+                params: {
+                    downState,
+                    quarterbackId: player.id,
+                },
             });
         }
+    }
 
-        $effect(($) => {
-            $.send(t`${player.name} hikes the ball!`);
-        });
+    function command(
+        player: GameStatePlayer,
+        command: CommandSpec,
+    ): CommandHandleResult {
+        switch (command.name) {
+            case "punt": {
+                if (player.team !== offensiveTeam) {
+                    $effect(($) => {
+                        $.send(
+                            t`Only the offensive team can punt the ball.`,
+                            player.id,
+                        );
+                    });
 
-        $next({
-            to: "SNAP",
-            params: {
-                downState,
-                quarterbackId: player.id,
-            },
-        });
+                    return { handled: true };
+                }
+
+                if (
+                    getDistance(player, ballWithRadius(ballPosWithOffset)) >
+                    HIKING_DISTANCE_LIMIT
+                ) {
+                    $effect(($) => {
+                        $.send(
+                            t`You are too far from the ball to punt it!`,
+                            player.id,
+                        );
+                    });
+
+                    return { handled: true };
+                }
+
+                const offensivePlayersPastLine =
+                    getOffensivePlayersBeyondLineOfScrimmage();
+
+                if (offensivePlayersPastLine.length > 0) {
+                    $effect(($) => {
+                        $.send(
+                            t`You cannot punt while a teammate is beyond the line of scrimmage.`,
+                            player.id,
+                        );
+                    });
+
+                    return { handled: true };
+                }
+
+                $effect(($) => {
+                    $.send(t`${player.name} punts the ball!`);
+                });
+
+                $next({
+                    to: "PUNT",
+                    params: { downState },
+                });
+            }
+            default:
+                return { handled: false };
+        }
     }
 
     function run(_state: GameState) {
@@ -222,5 +269,5 @@ export function Presnap({ downState }: { downState: DownState }) {
         $unsetFirstDownLine();
     }
 
-    return { run, dispose, chat };
+    return { run, dispose, chat, command };
 }

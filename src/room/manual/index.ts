@@ -1,9 +1,11 @@
 import { createModule } from "@core/module";
+import { COMMAND_PREFIX } from "@common/commands";
 import { createEngine, type Engine } from "@common/engine";
 import { registry, stadium } from "@meta/legacy/meta";
 import { defaultConfig, type Config } from "@meta/legacy/config";
 import { Team } from "@common/models";
 import { initializeGlobalState } from "@meta/legacy/global";
+import { t } from "@lingui/core/macro";
 
 export const config: RoomConfigObject = {
     roomName: "HaxFootball",
@@ -23,6 +25,10 @@ const mainModule = createModule()
     });
 
 const matchModule = createModule()
+    .setCommands({
+        spec: { prefix: COMMAND_PREFIX },
+        commands: ["punt", "version"],
+    })
     .onGameStart((room) => {
         initializeGlobalState();
 
@@ -40,6 +46,34 @@ const matchModule = createModule()
     })
     .onPlayerBallKick((_room, player) => {
         if (engine) engine.trackPlayerBallKick(player.id);
+    })
+    .onPlayerSendCommand((room, player, command) => {
+        const { handled: handledByEngine } = engine
+            ? engine.handlePlayerCommand(player, command)
+            : { handled: false };
+
+        if (handledByEngine) {
+            return { hideMessage: true };
+        }
+
+        switch (command.name) {
+            case "version":
+                room.send({
+                    message: t`HaxFootball 2026`,
+                    to: player.id,
+                });
+
+                return { hideMessage: true };
+            default:
+                room.send({
+                    message: engine
+                        ? t`The game has not been started yet.`
+                        : t`You cannot use that command right now.`,
+                    to: player.id,
+                });
+
+                return { hideMessage: true };
+        }
     })
     .onPlayerChat((room, player, message) => {
         room.send({

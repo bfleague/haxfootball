@@ -8,6 +8,7 @@ import {
 } from "@common/runtime";
 import { Room } from "@core/room";
 import { Team, type FieldTeam, isFieldTeam } from "@common/models";
+import { CommandHandleResult, CommandSpec } from "@common/commands";
 
 /**
  * Metas register state factories by string key.
@@ -18,6 +19,10 @@ export interface StateApi {
     join?: (player: GameStatePlayer) => void;
     leave?: (player: GameStatePlayer) => void;
     chat?: (player: GameStatePlayer, message: string) => void;
+    command?: (
+        player: GameStatePlayer,
+        command: CommandSpec,
+    ) => CommandHandleResult | void;
 }
 
 export type StateFactory<SParams = any> = (params: SParams) => StateApi;
@@ -64,6 +69,10 @@ export interface Engine<Cfg = unknown> {
     handleGameUnpause: (byPlayer: PlayerObject | null) => void;
     trackPlayerBallKick: (playerId: number) => void;
     handlePlayerChat: (player: PlayerObject, message: string) => void;
+    handlePlayerCommand: (
+        player: PlayerObject,
+        command: CommandSpec,
+    ) => CommandHandleResult;
     handlePlayerTeamChange: (
         player: PlayerObject,
         byPlayer: PlayerObject | null,
@@ -161,6 +170,7 @@ export function createEngine<Cfg>(
     let tickNumber = 0;
     let sharedTickMutations: MutationBuffer | null = null;
     let lastGameState: GameState | null = null;
+    // @ts-expect-error - Not being used directly for now.
     let isPaused = false;
     let resumePending = false;
     let isResumeTick = false;
@@ -611,6 +621,33 @@ export function createEngine<Cfg>(
         );
     }
 
+    function handlePlayerCommand(
+        player: PlayerObject,
+        command: CommandSpec,
+    ): CommandHandleResult {
+        if (!running || !current || !current.api.command) {
+            return { handled: false };
+        }
+
+        const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
+        if (!snapshot) return { handled: false };
+
+        const commandResult = runOutsideTick(
+            () => {
+                const handlerResult = current!.api.command!(snapshot, command);
+
+                return handlerResult ?? { handled: false };
+            },
+            {
+                allowTransition: true,
+                disposals: current.disposals,
+                beforeGameState: lastGameState,
+            },
+        );
+
+        return commandResult ?? { handled: true };
+    }
+
     function handlePlayerTeamChange(
         player: PlayerObject,
         _byPlayer: PlayerObject | null,
@@ -661,6 +698,7 @@ export function createEngine<Cfg>(
         handleGameUnpause,
         trackPlayerBallKick,
         handlePlayerChat,
+        handlePlayerCommand,
         handlePlayerTeamChange,
         handlePlayerLeave,
         isRunning,
