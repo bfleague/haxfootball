@@ -8,6 +8,8 @@ import {
     intersectsEndZone,
     getFieldPosition,
     calculateSnapBallPosition,
+    getDistanceToGoalLine,
+    isInRedZone,
 } from "./stadium";
 
 export type DownAndDistance = {
@@ -19,6 +21,7 @@ export type DownState = {
     downAndDistance: DownAndDistance;
     offensiveTeam: FieldTeam;
     fieldPos: FieldPosition;
+    redZoneFouls: number;
 };
 
 export type DownEvent =
@@ -33,7 +36,8 @@ export type NextDownState = {
 
 export type DefensivePenaltyEvent =
     | { type: "SAME_DOWN"; yardsGained: number }
-    | { type: "FIRST_DOWN"; yardsGained: number };
+    | { type: "FIRST_DOWN"; yardsGained: number }
+    | { type: "TOUCHDOWN" };
 
 export type DefensivePenaltyState = {
     downState: DownState;
@@ -79,6 +83,7 @@ export const SCORES = {
 export const DISTANCE_TO_FIRST_DOWN = 20;
 export const MAX_DOWNS = 4;
 export const FIRST_DOWN = 1;
+const RED_ZONE_FOUL_LIMIT = 3;
 
 export const INITIAL_DOWN_AND_DISTANCE: DownAndDistance = {
     down: FIRST_DOWN,
@@ -93,11 +98,21 @@ export function getInitialDownState(
         offensiveTeam,
         downAndDistance: INITIAL_DOWN_AND_DISTANCE,
         fieldPos,
+        redZoneFouls: 0,
     };
 }
 
+const getRedZoneFoulCount = (
+    downState: DownState,
+    fieldPos: FieldPosition,
+) =>
+    isInRedZone(downState.offensiveTeam, fieldPos)
+        ? downState.redZoneFouls
+        : 0;
+
 export function incrementDownState(current: DownState): NextDownStateIncrement {
     const newDown = current.downAndDistance.down + 1;
+    const redZoneFouls = getRedZoneFoulCount(current, current.fieldPos);
 
     if (newDown > MAX_DOWNS) {
         return {
@@ -105,6 +120,7 @@ export function incrementDownState(current: DownState): NextDownStateIncrement {
                 offensiveTeam: opposite(current.offensiveTeam),
                 fieldPos: current.fieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
+                redZoneFouls: 0,
             },
             event: { type: "TURNOVER_ON_DOWNS" },
         };
@@ -118,6 +134,7 @@ export function incrementDownState(current: DownState): NextDownStateIncrement {
                 down: newDown,
                 distance: current.downAndDistance.distance,
             },
+            redZoneFouls,
         },
         event: { type: "NEXT_DOWN" },
     };
@@ -128,6 +145,7 @@ export function advanceDownState(
     newFieldPos?: FieldPosition,
 ): NextDownState {
     const actualFieldPos = newFieldPos ?? current.fieldPos;
+    const redZoneFouls = getRedZoneFoulCount(current, actualFieldPos);
     const yardsGained = calculateYardsGained(
         current.offensiveTeam,
         current.fieldPos,
@@ -145,6 +163,7 @@ export function advanceDownState(
                     down: FIRST_DOWN,
                     distance: DISTANCE_TO_FIRST_DOWN,
                 },
+                redZoneFouls,
             },
             event: { type: "FIRST_DOWN", yardsGained },
         };
@@ -158,6 +177,7 @@ export function advanceDownState(
                 offensiveTeam: opposite(current.offensiveTeam),
                 fieldPos: actualFieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
+                redZoneFouls: 0,
             },
             event: { type: "TURNOVER_ON_DOWNS" },
         };
@@ -171,6 +191,7 @@ export function advanceDownState(
                 down: newDown,
                 distance: newDistance,
             },
+            redZoneFouls,
         },
         event: { type: "NEXT_DOWN", yardsGained },
     };
@@ -243,10 +264,12 @@ export function processDefensivePenaltyEvent({
     event,
     onSameDown,
     onFirstDown,
+    onTouchdown,
 }: {
     event: DefensivePenaltyEvent;
     onSameDown: (yardsGained: number) => void;
     onFirstDown: (yardsGained: number) => void;
+    onTouchdown: () => void;
 }) {
     switch (event.type) {
         case "SAME_DOWN":
@@ -254,6 +277,9 @@ export function processDefensivePenaltyEvent({
             break;
         case "FIRST_DOWN":
             onFirstDown(event.yardsGained);
+            break;
+        case "TOUCHDOWN":
+            onTouchdown();
             break;
         default:
             break;
@@ -331,6 +357,7 @@ const getPenaltyOutcome = (
                       down: FIRST_DOWN,
                       distance: DISTANCE_TO_FIRST_DOWN,
                   },
+                  redZoneFouls: downState.redZoneFouls,
               }
             : {
                   offensiveTeam,
@@ -339,6 +366,7 @@ const getPenaltyOutcome = (
                       down: downAndDistance.down,
                       distance: adjustedDistance,
                   },
+                  redZoneFouls: downState.redZoneFouls,
               };
 
     return { updatedDownState, yardsGained, newDistance };
@@ -348,18 +376,51 @@ export const applyDefensivePenalty = (
     downState: DownState,
     yards: number,
 ): DefensivePenaltyState => {
+    const distanceToGoalLine = getDistanceToGoalLine(
+        downState.offensiveTeam,
+        downState.fieldPos,
+    );
+    const halfDistance = Math.max(1, Math.floor(distanceToGoalLine / 2));
+    const adjustedYards =
+        distanceToGoalLine > 0 && yards >= distanceToGoalLine
+            ? halfDistance
+            : yards;
     const { updatedDownState, yardsGained, newDistance } = getPenaltyOutcome(
         downState,
-        yards,
+        adjustedYards,
     );
+    const wasInRedZone = isInRedZone(
+        downState.offensiveTeam,
+        downState.fieldPos,
+    );
+    const foulCount = wasInRedZone ? downState.redZoneFouls + 1 : 0;
+    const shouldAwardTouchdown =
+        wasInRedZone && foulCount >= RED_ZONE_FOUL_LIMIT;
+    const staysInRedZone = isInRedZone(
+        downState.offensiveTeam,
+        updatedDownState.fieldPos,
+    );
+    const redZoneFouls =
+        shouldAwardTouchdown || !staysInRedZone ? 0 : foulCount;
+    const nextDownState = {
+        ...updatedDownState,
+        redZoneFouls,
+    };
+
+    if (shouldAwardTouchdown) {
+        return {
+            downState: nextDownState,
+            event: { type: "TOUCHDOWN" },
+        };
+    }
 
     return newDistance <= 0
         ? {
-              downState: updatedDownState,
+              downState: nextDownState,
               event: { type: "FIRST_DOWN", yardsGained },
           }
         : {
-              downState: updatedDownState,
+              downState: nextDownState,
               event: { type: "SAME_DOWN", yardsGained },
           };
 };
@@ -375,6 +436,10 @@ export const applyOffensivePenalty = (
     );
     const yardsLost = Math.max(0, -yardsGained);
     const nextDown = updatedDownState.downAndDistance.down + 1;
+    const redZoneFouls = getRedZoneFoulCount(
+        downState,
+        updatedDownState.fieldPos,
+    );
 
     if (nextDown > MAX_DOWNS) {
         return {
@@ -382,6 +447,7 @@ export const applyOffensivePenalty = (
                 offensiveTeam: opposite(updatedDownState.offensiveTeam),
                 fieldPos: updatedDownState.fieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
+                redZoneFouls: 0,
             },
             event: { type: "TURNOVER_ON_DOWNS", yardsLost },
         };
@@ -394,6 +460,7 @@ export const applyOffensivePenalty = (
                 down: nextDown,
                 distance: updatedDownState.downAndDistance.distance,
             },
+            redZoneFouls,
         },
         event: { type: "NEXT_DOWN", yardsLost },
     };

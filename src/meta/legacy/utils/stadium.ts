@@ -219,6 +219,12 @@ function getEndZone(side: FieldTeam) {
         : MapMeasures.END_ZONE_BLUE;
 }
 
+function getRedZone(side: FieldTeam) {
+    return side === Team.RED
+        ? MapMeasures.RED_ZONE_RED
+        : MapMeasures.RED_ZONE_BLUE;
+}
+
 export function intersectsEndZone(
     position: PointLike,
     endZoneSide: FieldTeam,
@@ -236,6 +242,36 @@ export function intersectsEndZone(
     const dy = position.y - closestY;
 
     return dx * dx + dy * dy <= radius * radius;
+}
+
+export function isInRedZone(
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
+): boolean {
+    const opponent = offensiveTeam === Team.RED ? Team.BLUE : Team.RED;
+    const redZone = getRedZone(opponent);
+    const minX = Math.min(redZone.topLeft.x, redZone.bottomRight.x);
+    const maxX = Math.max(redZone.topLeft.x, redZone.bottomRight.x);
+    const x = getPositionFromFieldPosition(fieldPos);
+
+    return x >= minX && x <= maxX;
+}
+
+export function getDistanceToGoalLine(
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
+): number {
+    const goalLineX =
+        offensiveTeam === Team.RED
+            ? MapMeasures.BLUE_END_ZONE_LINE_CENTER.x
+            : MapMeasures.RED_END_ZONE_LINE_CENTER.x;
+    const currentX = getPositionFromFieldPosition(fieldPos);
+    const directionalX =
+        offensiveTeam === Team.RED
+            ? goalLineX - currentX
+            : currentX - goalLineX;
+
+    return Math.max(0, xDistanceToYards(directionalX));
 }
 
 export function getLineOfScrimmage(): { id: number }[];

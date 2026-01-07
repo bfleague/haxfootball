@@ -1,5 +1,6 @@
 import type { GameState } from "@common/engine";
 import {
+    AVATARS,
     findBallCatchers,
     findCatchers,
     getDistance,
@@ -22,6 +23,7 @@ import {
     DownState,
     processDefensivePenaltyEvent,
     processOffensivePenalty,
+    SCORES,
 } from "@meta/legacy/utils/game";
 import { $before, $dispose, $effect, $next } from "@common/runtime";
 import {
@@ -31,6 +33,7 @@ import {
     isInInnerCrowdingArea,
     isOutOfBounds,
 } from "@meta/legacy/utils/stadium";
+import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 
 const CROWDING_OUTER_FOUL_TICKS = ticks({ seconds: 3 });
@@ -117,6 +120,16 @@ const getCrowdingEntryDurationTicks = (
 
 const uniqueNumbers = (values: number[]) =>
     values.filter((value, index, list) => list.indexOf(value) === index);
+
+const setPlayerAvatars = (
+    playerIds: number[],
+    setAvatar: (playerId: number, avatar: string | null) => void,
+    avatar: string | null,
+) => {
+    playerIds.forEach((playerId) => {
+        setAvatar(playerId, avatar);
+    });
+};
 
 const sumPlayerCrowdingTicks = (
     entries: CrowdingEntry[],
@@ -419,13 +432,14 @@ export function Snap({
                 player.team === offensiveTeam && player.id !== quarterbackId,
         );
 
-        const defenseCrossedLineOfScrimmage = defenders.some(
+        const offsideDefender = defenders.find(
             (player) =>
                 calculateDirectionalGain(
                     offensiveTeam,
                     player.x - lineOfScrimmageX,
                 ) < 0,
         );
+        const defenseCrossedLineOfScrimmage = !!offsideDefender;
 
         const quarterbackCrossedLineOfScrimmage =
             calculateDirectionalGain(
@@ -452,6 +466,12 @@ export function Snap({
                     $effect(($) => {
                         $.send(t`Defensive offside, 5 yard penalty.`);
                     });
+                    $next({
+                        to: "PRESNAP",
+                        params: {
+                            downState: penaltyResult.downState,
+                        },
+                    });
                 },
                 onFirstDown() {
                     $effect(($) => {
@@ -459,13 +479,45 @@ export function Snap({
                             t`Defensive offside, 5 yard penalty and automatic first down.`,
                         );
                     });
+                    $next({
+                        to: "PRESNAP",
+                        params: {
+                            downState: penaltyResult.downState,
+                        },
+                    });
                 },
-            });
+                onTouchdown() {
+                    const offsideDefenderId = offsideDefender?.id;
 
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: penaltyResult.downState,
+                    $global((state) =>
+                        state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
+                    );
+
+                    $effect(($) => {
+                        $.send(
+                            t`Defensive offside, 5 yard penalty and automatic touchdown.`,
+                        );
+
+                        if (offsideDefenderId !== undefined) {
+                            $.setAvatar(offsideDefenderId, AVATARS.CLOWN);
+                        }
+                    });
+
+                    if (offsideDefenderId !== undefined) {
+                        $dispose(() => {
+                            $effect(($) => {
+                                $.setAvatar(offsideDefenderId, null);
+                            });
+                        });
+                    }
+
+                    $next({
+                        to: "KICKOFF",
+                        params: {
+                            forTeam: offensiveTeam,
+                        },
+                        wait: ticks({ seconds: 3 }),
+                    });
                 },
             });
         }
@@ -484,10 +536,22 @@ export function Snap({
                 downState,
                 CROWDING_PENALTY_YARDS,
             );
+
             const baseMessage = getCrowdingMessage(crowdingResult.foulInfo);
-            const firstDownMessage = `${baseMessage} ${t`Automatic first down.`}`;
+
+            const crowdingOffenderIds = uniqueNumbers(
+                crowdingResult.foulInfo.contributions
+                    .filter((entry) => entry.weightedTicks > 0)
+                    .map((entry) => entry.playerId),
+            );
+
+            const hasCrowdingOffenders = crowdingOffenderIds.length > 0;
 
             $showCrowdingBoxes(offensiveTeam, fieldPos);
+
+            $dispose(() => {
+                $hideCrowdingBoxes();
+            });
 
             processDefensivePenaltyEvent({
                 event: penaltyResult.event,
@@ -497,24 +561,60 @@ export function Snap({
                         $.pauseGame(false);
                         $.send(baseMessage);
                     });
+                    $next({
+                        to: "PRESNAP",
+                        params: { downState: penaltyResult.downState },
+                        disposal: "AFTER_RESUME",
+                    });
                 },
                 onFirstDown() {
                     $effect(($) => {
                         $.pauseGame(true);
                         $.pauseGame(false);
-                        $.send(firstDownMessage);
+                        $.send(`${baseMessage} ${t`Automatic first down.`}`);
+                    });
+                    $next({
+                        to: "PRESNAP",
+                        params: { downState: penaltyResult.downState },
+                        disposal: "AFTER_RESUME",
                     });
                 },
-            });
+                onTouchdown() {
+                    $global((state) =>
+                        state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
+                    );
+                    $effect(($) => {
+                        $.send(`${baseMessage} ${t`Automatic touchdown.`}`);
 
-            $dispose(() => {
-                $hideCrowdingBoxes();
-            });
+                        if (hasCrowdingOffenders) {
+                            setPlayerAvatars(
+                                crowdingOffenderIds,
+                                $.setAvatar,
+                                AVATARS.CLOWN,
+                            );
+                        }
+                    });
 
-            $next({
-                to: "PRESNAP",
-                params: { downState: penaltyResult.downState },
-                disposal: "AFTER_RESUME",
+                    if (hasCrowdingOffenders) {
+                        $dispose(() => {
+                            $effect(($) => {
+                                setPlayerAvatars(
+                                    crowdingOffenderIds,
+                                    $.setAvatar,
+                                    null,
+                                );
+                            });
+                        });
+                    }
+
+                    $next({
+                        to: "KICKOFF",
+                        params: {
+                            forTeam: offensiveTeam,
+                        },
+                        wait: ticks({ seconds: 3 }),
+                    });
+                },
             });
         }
 
@@ -524,19 +624,22 @@ export function Snap({
             const offenderNames = defensiveTouchers
                 .map((player) => player.name)
                 .join(", ");
+
             const baseMessage =
                 offenderNames.length > 0
                     ? t`Defensive illegal touching by ${offenderNames}, 5 yard penalty.`
                     : t`Defensive illegal touching, 5 yard penalty.`;
-            const firstDownMessage =
-                offenderNames.length > 0
-                    ? t`Defensive illegal touching by ${offenderNames}, 5 yard penalty and automatic first down.`
-                    : t`Defensive illegal touching, 5 yard penalty and automatic first down.`;
 
             const penaltyResult = applyDefensivePenalty(
                 downState,
                 DEFENSIVE_TOUCHING_PENALTY_YARDS,
             );
+
+            const defensiveToucherIds = defensiveTouchers.map(
+                (player) => player.id,
+            );
+
+            const hasDefensiveTouchers = defensiveToucherIds.length > 0;
 
             processDefensivePenaltyEvent({
                 event: penaltyResult.event,
@@ -544,18 +647,62 @@ export function Snap({
                     $effect(($) => {
                         $.send(baseMessage);
                     });
+                    $next({
+                        to: "PRESNAP",
+                        params: {
+                            downState: penaltyResult.downState,
+                        },
+                    });
                 },
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(firstDownMessage);
+                        $.send(
+                            offenderNames.length > 0
+                                ? t`Defensive illegal touching by ${offenderNames}, 5 yard penalty and automatic first down.`
+                                : t`Defensive illegal touching, 5 yard penalty and automatic first down.`,
+                        );
+                    });
+                    $next({
+                        to: "PRESNAP",
+                        params: {
+                            downState: penaltyResult.downState,
+                        },
                     });
                 },
-            });
+                onTouchdown() {
+                    $global((state) =>
+                        state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
+                    );
+                    $effect(($) => {
+                        $.send(`${baseMessage} ${t`Automatic touchdown.`}`);
+                        if (hasDefensiveTouchers) {
+                            setPlayerAvatars(
+                                defensiveToucherIds,
+                                $.setAvatar,
+                                AVATARS.CLOWN,
+                            );
+                        }
+                    });
 
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: penaltyResult.downState,
+                    if (hasDefensiveTouchers) {
+                        $dispose(() => {
+                            $effect(($) => {
+                                setPlayerAvatars(
+                                    defensiveToucherIds,
+                                    $.setAvatar,
+                                    null,
+                                );
+                            });
+                        });
+                    }
+
+                    $next({
+                        to: "KICKOFF",
+                        params: {
+                            forTeam: offensiveTeam,
+                        },
+                        wait: ticks({ seconds: 3 }),
+                    });
                 },
             });
         }
@@ -600,23 +747,22 @@ export function Snap({
                     offenderNames.length > 0
                         ? t`Illegal touching by ${offenderNames}, 5 yard penalty.`
                         : t`Illegal touching, 5 yard penalty.`;
+
                 const penaltyResult = applyOffensivePenalty(
                     downState,
                     -OFFENSIVE_FOUL_PENALTY_YARDS,
                 );
-                const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
-                const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
 
                 processOffensivePenalty({
                     event: penaltyResult.event,
                     onNextDown() {
                         $effect(($) => {
-                            $.send(nextDownMessage);
+                            $.send(`${baseMessage} ${t`Loss of down.`}`);
                         });
                     },
                     onTurnoverOnDowns() {
                         $effect(($) => {
-                            $.send(turnoverMessage);
+                            $.send(`${baseMessage} ${t`Turnover on downs.`}`);
                         });
                     },
                 });
@@ -636,19 +782,17 @@ export function Snap({
                 downState,
                 -OFFENSIVE_FOUL_PENALTY_YARDS,
             );
-            const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
-            const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
 
             processOffensivePenalty({
                 event: penaltyResult.event,
                 onNextDown() {
                     $effect(($) => {
-                        $.send(nextDownMessage);
+                        $.send(`${baseMessage} ${t`Loss of down.`}`);
                     });
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(turnoverMessage);
+                        $.send(`${baseMessage} ${t`Turnover on downs.`}`);
                     });
                 },
             });
@@ -669,19 +813,17 @@ export function Snap({
                     downState,
                     -OFFENSIVE_FOUL_PENALTY_YARDS,
                 );
-                const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
-                const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
 
                 processOffensivePenalty({
                     event: penaltyResult.event,
                     onNextDown() {
                         $effect(($) => {
-                            $.send(nextDownMessage);
+                            $.send(`${baseMessage} ${t`Loss of down.`}`);
                         });
                     },
                     onTurnoverOnDowns() {
                         $effect(($) => {
-                            $.send(turnoverMessage);
+                            $.send(`${baseMessage} ${t`Turnover on downs.`}`);
                         });
                     },
                 });
@@ -717,19 +859,17 @@ export function Snap({
                     downState,
                     -OFFENSIVE_FOUL_PENALTY_YARDS,
                 );
-                const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
-                const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
 
                 processOffensivePenalty({
                     event: penaltyResult.event,
                     onNextDown() {
                         $effect(($) => {
-                            $.send(nextDownMessage);
+                            $.send(`${baseMessage} ${t`Loss of down.`}`);
                         });
                     },
                     onTurnoverOnDowns() {
                         $effect(($) => {
-                            $.send(turnoverMessage);
+                            $.send(`${baseMessage} ${t`Turnover on downs.`}`);
                         });
                     },
                 });
