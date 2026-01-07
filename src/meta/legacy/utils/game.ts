@@ -41,11 +41,10 @@ export type DefensivePenaltyState = {
 };
 
 export type OffensivePenaltyEvent =
-    | { type: "SAME_DOWN"; yardsLost: number }
     | { type: "NEXT_DOWN"; yardsLost: number }
     | { type: "TURNOVER_ON_DOWNS"; yardsLost: number };
 
-export type OffensivePenaltyState = {
+export type OffensivePenalty = {
     downState: DownState;
     event: OffensivePenaltyEvent;
 };
@@ -261,21 +260,16 @@ export function processDefensivePenaltyEvent({
     }
 }
 
-export function processOffensivePenaltyEvent({
+export function processOffensivePenalty({
     event,
-    onSameDown,
     onNextDown,
     onTurnoverOnDowns,
 }: {
     event: OffensivePenaltyEvent;
-    onSameDown: (yardsLost: number) => void;
     onNextDown: (yardsLost: number) => void;
     onTurnoverOnDowns: (yardsLost: number) => void;
 }) {
     switch (event.type) {
-        case "SAME_DOWN":
-            onSameDown(event.yardsLost);
-            break;
         case "NEXT_DOWN":
             onNextDown(event.yardsLost);
             break;
@@ -373,44 +367,34 @@ export const applyDefensivePenalty = (
 export const applyOffensivePenalty = (
     downState: DownState,
     yards: number,
-    options?: { lossOfDown?: boolean },
-): OffensivePenaltyState => {
+): OffensivePenalty => {
     const { updatedDownState, yardsGained } = getPenaltyOutcome(
         downState,
         yards,
         { allowFirstDown: false },
     );
     const yardsLost = Math.max(0, -yardsGained);
-    const lossOfDown = options?.lossOfDown === true;
-    let event: OffensivePenaltyEvent;
-    let nextDownState = updatedDownState;
+    const nextDown = updatedDownState.downAndDistance.down + 1;
 
-    if (lossOfDown) {
-        const nextDown = updatedDownState.downAndDistance.down + 1;
-
-        if (nextDown > MAX_DOWNS) {
-            nextDownState = {
+    if (nextDown > MAX_DOWNS) {
+        return {
+            downState: {
                 offensiveTeam: opposite(updatedDownState.offensiveTeam),
                 fieldPos: updatedDownState.fieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
-            };
-            event = { type: "TURNOVER_ON_DOWNS", yardsLost };
-        } else {
-            nextDownState = {
-                ...updatedDownState,
-                downAndDistance: {
-                    down: nextDown,
-                    distance: updatedDownState.downAndDistance.distance,
-                },
-            };
-            event = { type: "NEXT_DOWN", yardsLost };
-        }
-    } else {
-        event = { type: "SAME_DOWN", yardsLost };
+            },
+            event: { type: "TURNOVER_ON_DOWNS", yardsLost },
+        };
     }
 
     return {
-        downState: nextDownState,
-        event,
+        downState: {
+            ...updatedDownState,
+            downAndDistance: {
+                down: nextDown,
+                distance: updatedDownState.downAndDistance.distance,
+            },
+        },
+        event: { type: "NEXT_DOWN", yardsLost },
     };
 };

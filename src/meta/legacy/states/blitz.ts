@@ -6,7 +6,7 @@ import {
     applyOffensivePenalty,
     DownState,
     processDownEvent,
-    processOffensivePenaltyEvent,
+    processOffensivePenalty,
 } from "@meta/legacy/utils/game";
 import {
     calculateDirectionalGain,
@@ -24,7 +24,6 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
-import assert from "node:assert";
 
 const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
 
@@ -81,6 +80,7 @@ export function Blitz({
             const offenderNames = offensiveTouchers
                 .map((player) => player.name)
                 .join(", ");
+
             const baseMessage =
                 offenderNames.length > 0
                     ? t`Illegal touching by ${offenderNames}, 5 yard penalty.`
@@ -91,24 +91,17 @@ export function Blitz({
                 -OFFENSIVE_FOUL_PENALTY_YARDS,
             );
 
-            processOffensivePenaltyEvent({
+            processOffensivePenalty({
                 event: penaltyResult.event,
-                onSameDown() {
+                onNextDown() {
                     $effect(($) => {
-                        $.send(baseMessage);
+                        $.send(`${baseMessage} ${t`Loss of down.`}`);
                     });
                 },
-                onNextDown() {
-                    assert(
-                        false,
-                        "applyOffensivePenalty without lossOfDown should not advance the down",
-                    );
-                },
                 onTurnoverOnDowns() {
-                    assert(
-                        false,
-                        "applyOffensivePenalty without lossOfDown should not result in a turnover on downs",
-                    );
+                    $effect(($) => {
+                        $.send(`${baseMessage} ${t`Turnover on downs.`}`);
+                    });
                 },
             });
 

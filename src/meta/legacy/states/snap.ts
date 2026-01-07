@@ -21,7 +21,7 @@ import {
     CrowdingEntry,
     DownState,
     processDefensivePenaltyEvent,
-    processOffensivePenaltyEvent,
+    processOffensivePenalty,
 } from "@meta/legacy/utils/game";
 import { $before, $dispose, $effect, $next } from "@common/runtime";
 import {
@@ -32,7 +32,6 @@ import {
     isOutOfBounds,
 } from "@meta/legacy/utils/stadium";
 import { t } from "@lingui/core/macro";
-import assert from "node:assert";
 
 const CROWDING_OUTER_FOUL_TICKS = ticks({ seconds: 3 });
 const CROWDING_INNER_WEIGHT = 5;
@@ -605,25 +604,20 @@ export function Snap({
                     downState,
                     -OFFENSIVE_FOUL_PENALTY_YARDS,
                 );
+                const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
+                const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
 
-                processOffensivePenaltyEvent({
+                processOffensivePenalty({
                     event: penaltyResult.event,
-                    onSameDown() {
+                    onNextDown() {
                         $effect(($) => {
-                            $.send(baseMessage);
+                            $.send(nextDownMessage);
                         });
                     },
-                    onNextDown() {
-                        assert(
-                            false,
-                            "applyOffensivePenalty without lossOfDown should not advance the down",
-                        );
-                    },
                     onTurnoverOnDowns() {
-                        assert(
-                            false,
-                            "applyOffensivePenalty without lossOfDown should not result in a turnover on downs",
-                        );
+                        $effect(($) => {
+                            $.send(turnoverMessage);
+                        });
                     },
                 });
 
@@ -642,25 +636,20 @@ export function Snap({
                 downState,
                 -OFFENSIVE_FOUL_PENALTY_YARDS,
             );
+            const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
+            const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
 
-            processOffensivePenaltyEvent({
+            processOffensivePenalty({
                 event: penaltyResult.event,
-                onSameDown() {
+                onNextDown() {
                     $effect(($) => {
-                        $.send(baseMessage);
+                        $.send(nextDownMessage);
                     });
                 },
-                onNextDown() {
-                    assert(
-                        false,
-                        "applyOffensivePenalty without lossOfDown should not advance the down",
-                    );
-                },
                 onTurnoverOnDowns() {
-                    assert(
-                        false,
-                        "applyOffensivePenalty without lossOfDown should not result in a turnover on downs",
-                    );
+                    $effect(($) => {
+                        $.send(turnoverMessage);
+                    });
                 },
             });
 
@@ -680,25 +669,20 @@ export function Snap({
                     downState,
                     -OFFENSIVE_FOUL_PENALTY_YARDS,
                 );
+                const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
+                const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
 
-                processOffensivePenaltyEvent({
+                processOffensivePenalty({
                     event: penaltyResult.event,
-                    onSameDown() {
+                    onNextDown() {
                         $effect(($) => {
-                            $.send(baseMessage);
+                            $.send(nextDownMessage);
                         });
                     },
-                    onNextDown() {
-                        assert(
-                            false,
-                            "applyOffensivePenalty without lossOfDown should not advance the down",
-                        );
-                    },
                     onTurnoverOnDowns() {
-                        assert(
-                            false,
-                            "applyOffensivePenalty without lossOfDown should not result in a turnover on downs",
-                        );
+                        $effect(($) => {
+                            $.send(turnoverMessage);
+                        });
                     },
                 });
 
@@ -725,11 +709,39 @@ export function Snap({
             });
         }
 
-        if (
-            isBlitzAllowed &&
-            !quarterback.isKickingBall &&
-            quarterbackCrossedLineOfScrimmage
-        ) {
+        if (!quarterback.isKickingBall && quarterbackCrossedLineOfScrimmage) {
+            if (!isBlitzAllowed) {
+                const baseMessage = t`Illegal advance beyond the line of scrimmage, 5 yard penalty.`;
+
+                const penaltyResult = applyOffensivePenalty(
+                    downState,
+                    -OFFENSIVE_FOUL_PENALTY_YARDS,
+                );
+                const nextDownMessage = `${baseMessage} ${t`Loss of down.`}`;
+                const turnoverMessage = `${baseMessage} ${t`Turnover on downs.`}`;
+
+                processOffensivePenalty({
+                    event: penaltyResult.event,
+                    onNextDown() {
+                        $effect(($) => {
+                            $.send(nextDownMessage);
+                        });
+                    },
+                    onTurnoverOnDowns() {
+                        $effect(($) => {
+                            $.send(turnoverMessage);
+                        });
+                    },
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: penaltyResult.downState,
+                    },
+                });
+            }
+
             $effect(($) => {
                 $.send(
                     t`Quarterback has crossed the line of scrimmage, starting quarterback run.`,
