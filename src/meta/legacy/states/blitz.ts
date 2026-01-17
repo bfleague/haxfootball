@@ -3,11 +3,13 @@ import { $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findBallCatchers, findCatchers, ticks } from "@common/utils";
 import {
     advanceDownState,
-    applyOffensivePenalty,
     DownState,
     processDownEvent,
+} from "@meta/legacy/utils/down";
+import {
+    applyOffensivePenalty,
     processOffensivePenalty,
-} from "@meta/legacy/utils/game";
+} from "@meta/legacy/utils/penalty";
 import {
     calculateDirectionalGain,
     getFieldPosition,

@@ -1,6 +1,6 @@
 import { GameState } from "@common/engine";
 import { $before, $effect, $next } from "@common/runtime";
-import { DownState } from "@meta/legacy/utils/game";
+import { DownState } from "@meta/legacy/utils/down";
 import { opposite, ticks } from "@common/utils";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
 import { getBallPath, intersectsGoalPosts } from "@meta/legacy/utils/stadium";

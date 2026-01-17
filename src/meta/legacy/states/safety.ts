@@ -16,7 +16,7 @@ import {
     getPositionFromFieldPosition,
 } from "@meta/legacy/utils/stadium";
 import { $global } from "@meta/legacy/hooks/global";
-import { SCORES } from "@meta/legacy/utils/game";
+import { SCORES } from "@meta/legacy/utils/scoring";
 import { $next } from "@common/runtime";
 import { t } from "@lingui/core/macro";
 
@@ -80,10 +80,8 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
         state.players.filter(
             (player) =>
                 player.team === kickingTeam &&
-                calculateDirectionalGain(
-                    kickingTeam,
-                    player.x - state.ball.x,
-                ) > 0,
+                calculateDirectionalGain(kickingTeam, player.x - state.ball.x) >
+                    0,
         );
 
     function run(state: GameState) {

@@ -4,7 +4,7 @@ import {
     DownState,
     incrementDownState,
     processDownEventIncrement,
-} from "@meta/legacy/utils/game";
+} from "@meta/legacy/utils/down";
 import { AVATARS, ticks } from "@common/utils";
 import {
     $setBallActive,

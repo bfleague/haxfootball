@@ -4,9 +4,8 @@ import {
     DownState,
     getInitialDownState,
     processDownEvent,
-    isTouchdown,
-    SCORES,
-} from "@meta/legacy/utils/game";
+} from "@meta/legacy/utils/down";
+import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $before, $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
 import {

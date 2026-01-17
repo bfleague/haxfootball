@@ -3,7 +3,7 @@ import { findBallCatcher, ticks } from "@common/utils";
 import type { GameState } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import { isOutOfBounds } from "@meta/legacy/utils/stadium";
-import { advanceDownState, DownState } from "@meta/legacy/utils/game";
+import { advanceDownState, DownState } from "@meta/legacy/utils/down";
 import {
     $setBallActive,
     $setBallInactive,

@@ -21,11 +21,8 @@ import {
     isOutOfBounds,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
-import {
-    getInitialDownState,
-    isTouchdown,
-    SCORES,
-} from "@meta/legacy/utils/game";
+import { getInitialDownState } from "@meta/legacy/utils/down";
+import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 

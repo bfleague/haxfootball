@@ -22,7 +22,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
-import { DownState, MAX_DOWNS } from "@meta/legacy/utils/game";
+import { DownState, MAX_DOWNS } from "@meta/legacy/utils/down";
 import assert from "node:assert";
 
 const HIKING_DISTANCE_LIMIT = 30;

@@ -9,7 +9,7 @@ import {
     isOutOfBounds,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
-import { getInitialDownState } from "@meta/legacy/utils/game";
+import { getInitialDownState } from "@meta/legacy/utils/down";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 

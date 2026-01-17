@@ -11,11 +11,8 @@ import {
     isPartiallyOutsideMainField,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
-import {
-    getInitialDownState,
-    isTouchdown,
-    SCORES,
-} from "@meta/legacy/utils/game";
+import { getInitialDownState } from "@meta/legacy/utils/down";
+import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
@@ -42,9 +39,7 @@ export function PuntReturn({
                 const fieldPos = getFieldPosition(player.x);
 
                 $effect(($) => {
-                    $.send(
-                        t`${player.name} left the room during punt return!`,
-                    );
+                    $.send(t`${player.name} left the room during punt return!`);
 
                     $.stat("PUNT_RETURN_LEFT_ROOM");
                 });

@@ -11,11 +11,8 @@ import {
     isPartiallyOutsideMainField,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
-import {
-    getInitialDownState,
-    isTouchdown,
-    SCORES,
-} from "@meta/legacy/utils/game";
+import { getInitialDownState } from "@meta/legacy/utils/down";
+import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 

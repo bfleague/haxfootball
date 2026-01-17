@@ -13,7 +13,7 @@ import {
     $untrapAllTeams,
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
-import { DownState } from "@meta/legacy/utils/game";
+import { DownState } from "@meta/legacy/utils/down";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,

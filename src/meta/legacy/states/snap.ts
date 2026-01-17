@@ -15,16 +15,15 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import { DownState } from "@meta/legacy/utils/down";
+import { CrowdingData, CrowdingEntry } from "@meta/legacy/utils/crowding";
 import {
     applyDefensivePenalty,
     applyOffensivePenalty,
-    CrowdingData,
-    CrowdingEntry,
-    DownState,
     processDefensivePenaltyEvent,
     processOffensivePenalty,
-    SCORES,
-} from "@meta/legacy/utils/game";
+} from "@meta/legacy/utils/penalty";
+import { SCORES } from "@meta/legacy/utils/scoring";
 import { $before, $dispose, $effect, $next } from "@common/runtime";
 import {
     calculateDirectionalGain,
