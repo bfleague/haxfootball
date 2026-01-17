@@ -2,11 +2,12 @@ import type { GameState } from "@common/engine";
 import {
     advanceDownState,
     DownState,
+    getInitialDownState,
     processDownEvent,
     isTouchdown,
     SCORES,
 } from "@meta/legacy/utils/game";
-import { $dispose, $effect, $next } from "@common/runtime";
+import { $before, $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
 import {
     getFieldPosition,
@@ -23,6 +24,8 @@ import {
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
+const FUMBLE_CATCHER_DISTANCE = 1.0;
+
 export function LiveBall({
     playerId,
     downState,
@@ -36,15 +39,89 @@ export function LiveBall({
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
     $setBallInactive();
 
-    // TODO: Fumble
+    function $detectFumble() {
+        const beforeState = $before();
+        const receiver = beforeState.players.find((p) => p.id === playerId);
+        if (!receiver) return null;
+
+        const defenders = beforeState.players.filter(
+            (p) => p.team === opposite(offensiveTeam),
+        );
+        const immediateCatchers = findCatchers(
+            receiver,
+            defenders,
+            FUMBLE_CATCHER_DISTANCE,
+        );
+
+        if (immediateCatchers.length < 2) return null;
+
+        return {
+            fieldPos: getFieldPosition(receiver.x),
+            catcherNames: immediateCatchers.map((p) => p.name).join(", "),
+            catcherIds: immediateCatchers.map((p) => p.id),
+        };
+    }
+
+    const fumbleInfo = $detectFumble();
 
     $effect(($) => {
         $.setAvatar(playerId, AVATARS.BALL);
     });
 
-    function run(state: GameState) {
+    function $handleFumble(state: GameState) {
+        if (!fumbleInfo) return;
+
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return;
+
+        const { fieldPos, catcherNames, catcherIds } = fumbleInfo;
+        const nextDownState = getInitialDownState(
+            opposite(offensiveTeam),
+            fieldPos,
+        );
+
+        $effect(($) => {
+            $.send(
+                catcherNames.length > 0
+                    ? t`${player.name} fumbled on the catch after contact by ${catcherNames}, turnover at yard line ${fieldPos.yards}!`
+                    : t`${player.name} fumbled on the catch, turnover at yard line ${fieldPos.yards}!`,
+            );
+            $.stat("LIVE_BALL_FUMBLE");
+            $.setAvatar(playerId, AVATARS.DIZZY);
+            catcherIds.forEach((catcherId) => {
+                $.setAvatar(catcherId, AVATARS.MUSCLE);
+            });
+        });
+
+        $dispose(() => {
+            $effect(($) => {
+                $.setAvatar(playerId, null);
+                catcherIds.forEach((catcherId) => {
+                    $.setAvatar(catcherId, null);
+                });
+            });
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: nextDownState,
+            },
+            wait: ticks({ seconds: 1 }),
+        });
+    }
+
+    function run(state: GameState) {
+        if (fumbleInfo) {
+            $handleFumble(state);
+        }
+
+        const player = state.players.find((p) => p.id === playerId);
+        if (!player) return;
+
+        const defenders = state.players.filter(
+            (p) => p.team === opposite(offensiveTeam),
+        );
 
         if (
             isTouchdown({
@@ -185,10 +262,7 @@ export function LiveBall({
             }
         }
 
-        const catchers = findCatchers(
-            player,
-            state.players.filter((p) => p.team === opposite(offensiveTeam)),
-        );
+        const catchers = findCatchers(player, defenders);
 
         if (catchers.length > 0) {
             const catcherNames = catchers.map((p) => p.name).join(", ");

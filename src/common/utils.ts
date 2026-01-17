@@ -7,6 +7,7 @@ export const AVATARS = {
     CLOWN: "🤡",
     FIRE: "🔥",
     CONSTRUCTION: "🚧",
+    DIZZY: "😵",
 };
 
 export const DEFAULT_TOUCHING_DISTANCE = 0.5;
