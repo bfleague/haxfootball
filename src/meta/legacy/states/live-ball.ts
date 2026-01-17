@@ -5,6 +5,7 @@ import {
     getInitialDownState,
     processDownEvent,
 } from "@meta/legacy/utils/down";
+import { cn } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $before, $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
@@ -167,7 +168,7 @@ export function LiveBall({
                     onFirstDown() {
                         $effect(($) => {
                             $.send(
-                                t`First down at yard line ${fieldPos.yards}!`,
+                                cn(nextDownState, t`First down!`),
                             );
                             $.stat(
                                 "LIVE_BALL_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE",
@@ -178,7 +179,10 @@ export function LiveBall({
                         onYardsGained(yardsGained: number) {
                             $effect(($) => {
                                 $.send(
-                                    t`Next down at yard line ${fieldPos.yards} after a gain of ${yardsGained} yards!`,
+                                    cn(
+                                        nextDownState,
+                                        t`Next down after a gain of ${yardsGained} yards!`,
+                                    ),
                                 );
                                 $.stat(
                                     "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE",
@@ -188,7 +192,10 @@ export function LiveBall({
                         onNoGain() {
                             $effect(($) => {
                                 $.send(
-                                    t`Next down at yard line ${fieldPos.yards} with no gain!`,
+                                    cn(
+                                        nextDownState,
+                                        t`Next down with no gain!`,
+                                    ),
                                 );
                                 $.stat(
                                     "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
@@ -198,7 +205,10 @@ export function LiveBall({
                         onLoss(yardsLost: number) {
                             $effect(($) => {
                                 $.send(
-                                    t`Next down at yard line ${fieldPos.yards} after a loss of ${yardsLost} yards!`,
+                                    cn(
+                                        nextDownState,
+                                        t`Next down after a loss of ${yardsLost} yards!`,
+                                    ),
                                 );
                                 $.stat(
                                     "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_LOSS_YARD_LINE",
@@ -209,7 +219,7 @@ export function LiveBall({
                     onTurnoverOnDowns() {
                         $effect(($) => {
                             $.send(
-                                t`Turnover on downs at yard line ${fieldPos.yards}!`,
+                                cn(nextDownState, t`Turnover on downs!`),
                             );
                             $.stat(
                                 "LIVE_BALL_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE",
@@ -277,7 +287,10 @@ export function LiveBall({
                 onFirstDown() {
                     $effect(($) => {
                         $.send(
-                            t`${player.name} tackled by ${catcherNames} for a first down at yard line ${fieldPos.yards}!`,
+                            cn(
+                                nextDownState,
+                                t`${player.name} tackled by ${catcherNames} for a first down!`,
+                            ),
                         );
                         $.stat("LIVE_BALL_TACKLE_FIRST_DOWN_YARD_LINE");
                     });
@@ -286,7 +299,10 @@ export function LiveBall({
                     onYardsGained(yardsGained: number) {
                         $effect(($) => {
                             $.send(
-                                t`${player.name} tackled by ${catcherNames} for a gain of ${yardsGained} yards, next down at yard line ${fieldPos.yards}!`,
+                                cn(
+                                    nextDownState,
+                                    t`${player.name} tackled by ${catcherNames} for a gain of ${yardsGained} yards, next down!`,
+                                ),
                             );
                             $.stat("LIVE_BALL_TACKLE_NEXT_DOWN_YARD_LINE");
                         });
@@ -294,7 +310,10 @@ export function LiveBall({
                     onNoGain() {
                         $effect(($) => {
                             $.send(
-                                t`${player.name} tackled by ${catcherNames} with no gain, next down at yard line ${fieldPos.yards}!`,
+                                cn(
+                                    nextDownState,
+                                    t`${player.name} tackled by ${catcherNames} with no gain, next down!`,
+                                ),
                             );
                             $.stat(
                                 "LIVE_BALL_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE",
@@ -304,7 +323,10 @@ export function LiveBall({
                     onLoss(yardsLost: number) {
                         $effect(($) => {
                             $.send(
-                                t`${player.name} tackled by ${catcherNames} for a loss of ${yardsLost} yards, next down at yard line ${fieldPos.yards}!`,
+                                cn(
+                                    nextDownState,
+                                    t`${player.name} tackled by ${catcherNames} for a loss of ${yardsLost} yards, next down!`,
+                                ),
                             );
                             $.stat("LIVE_BALL_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
                         });
@@ -313,7 +335,10 @@ export function LiveBall({
                 onTurnoverOnDowns() {
                     $effect(($) => {
                         $.send(
-                            t`${player.name} tackled by ${catcherNames}, turnover on downs at yard line ${fieldPos.yards}!`,
+                            cn(
+                                nextDownState,
+                                t`${player.name} tackled by ${catcherNames}, turnover on downs!`,
+                            ),
                         );
                         $.stat("LIVE_BALL_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");
                     });

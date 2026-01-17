@@ -6,6 +6,7 @@ import {
     DownState,
     processDownEvent,
 } from "@meta/legacy/utils/down";
+import { cn } from "@meta/legacy/utils/message";
 import {
     applyOffensivePenalty,
     processOffensivePenalty,
@@ -97,12 +98,22 @@ export function Blitz({
                 event: penaltyResult.event,
                 onNextDown() {
                     $effect(($) => {
-                        $.send(`${baseMessage} ${t`Loss of down.`}`);
+                        $.send(
+                            cn(
+                                penaltyResult.downState,
+                                `${baseMessage} ${t`Loss of down.`}`,
+                            ),
+                        );
                     });
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(`${baseMessage} ${t`Turnover on downs.`}`);
+                        $.send(
+                            cn(
+                                penaltyResult.downState,
+                                `${baseMessage} ${t`Turnover on downs.`}`,
+                            ),
+                        );
                     });
                 },
             });
@@ -167,7 +178,7 @@ export function Blitz({
                     onFirstDown() {
                         $effect(($) => {
                             $.send(
-                                t`First down at yard line ${fieldPos.yards}!`,
+                                cn(nextDownState, t`First down!`),
                             );
                         });
                     },
@@ -175,21 +186,30 @@ export function Blitz({
                         onYardsGained(yardsGained: number) {
                             $effect(($) => {
                                 $.send(
-                                    t`Next down at yard line ${fieldPos.yards} after a gain of ${yardsGained} yards!`,
+                                    cn(
+                                        nextDownState,
+                                        t`Next down after a gain of ${yardsGained} yards!`,
+                                    ),
                                 );
                             });
                         },
                         onNoGain() {
                             $effect(($) => {
                                 $.send(
-                                    t`Next down at yard line ${fieldPos.yards} with no gain!`,
+                                    cn(
+                                        nextDownState,
+                                        t`Next down with no gain!`,
+                                    ),
                                 );
                             });
                         },
                         onLoss(yardsLost: number) {
                             $effect(($) => {
                                 $.send(
-                                    t`Next down at yard line ${fieldPos.yards} after a loss of ${yardsLost} yards!`,
+                                    cn(
+                                        nextDownState,
+                                        t`Next down after a loss of ${yardsLost} yards!`,
+                                    ),
                                 );
                             });
                         },
@@ -197,7 +217,7 @@ export function Blitz({
                     onTurnoverOnDowns() {
                         $effect(($) => {
                             $.send(
-                                t`Turnover on downs at yard line ${fieldPos.yards}!`,
+                                cn(nextDownState, t`Turnover on downs!`),
                             );
                         });
                     },
@@ -263,7 +283,10 @@ export function Blitz({
                 onFirstDown() {
                     $effect(($) => {
                         $.send(
-                            t`${quarterback.name} sacked by ${catcherNames} for a first down at yard line ${fieldPos.yards}!`,
+                            cn(
+                                nextDownState,
+                                t`${quarterback.name} sacked by ${catcherNames} for a first down!`,
+                            ),
                         );
                     });
                 },
@@ -271,21 +294,30 @@ export function Blitz({
                     onYardsGained(yardsGained: number) {
                         $effect(($) => {
                             $.send(
-                                t`${quarterback.name} sacked by ${catcherNames} for a gain of ${yardsGained} yards, next down at yard line ${fieldPos.yards}!`,
+                                cn(
+                                    nextDownState,
+                                    t`${quarterback.name} sacked by ${catcherNames} for a gain of ${yardsGained} yards, next down!`,
+                                ),
                             );
                         });
                     },
                     onNoGain() {
                         $effect(($) => {
                             $.send(
-                                t`${quarterback.name} sacked by ${catcherNames} with no gain, next down at yard line ${fieldPos.yards}!`,
+                                cn(
+                                    nextDownState,
+                                    t`${quarterback.name} sacked by ${catcherNames} with no gain, next down!`,
+                                ),
                             );
                         });
                     },
                     onLoss(yardsLost: number) {
                         $effect(($) => {
                             $.send(
-                                t`${quarterback.name} sacked by ${catcherNames} for a loss of ${yardsLost} yards, next down at yard line ${fieldPos.yards}!`,
+                                cn(
+                                    nextDownState,
+                                    t`${quarterback.name} sacked by ${catcherNames} for a loss of ${yardsLost} yards, next down!`,
+                                ),
                             );
                         });
                     },
@@ -293,7 +325,10 @@ export function Blitz({
                 onTurnoverOnDowns() {
                     $effect(($) => {
                         $.send(
-                            t`${quarterback.name} sacked by ${catcherNames}, turnover on downs at yard line ${fieldPos.yards}!`,
+                            cn(
+                                nextDownState,
+                                t`${quarterback.name} sacked by ${catcherNames}, turnover on downs!`,
+                            ),
                         );
                     });
                 },

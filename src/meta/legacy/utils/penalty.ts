@@ -34,7 +34,7 @@ export type OffensivePenalty = {
     event: OffensivePenaltyEvent;
 };
 
-const RED_ZONE_FOUL_LIMIT = 3;
+export const RED_ZONE_FOUL_LIMIT = 3;
 
 export function processDefensivePenaltyEvent({
     event,
