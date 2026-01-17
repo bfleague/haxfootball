@@ -40,7 +40,6 @@ const CROWDING_INNER_WEIGHT = 5;
 const CROWDING_GRACE_TICKS = ticks({ seconds: 1 });
 const DEFAULT_CROWDING_BLOCK_DISTANCE = 15;
 const CROWDING_PENALTY_YARDS = 5;
-const CROWDING_TICKS_PER_SECOND = ticks({ seconds: 1 });
 
 export type CrowdingEntry = {
     playerId: number;
@@ -350,16 +349,25 @@ export const evaluateCrowding = ({
 };
 
 export function getCrowdingMessage(info: CrowdingFoulInfo) {
-    const offenderSummaryText = info.contributions
-        .filter((entry) => entry.weightedTicks > 0)
+    const offenderContributions = info.contributions.filter(
+        (entry) => entry.weightedTicks > 0,
+    );
+
+    const totalWeightedTicks = offenderContributions.reduce(
+        (total, entry) => total + entry.weightedTicks,
+        0,
+    );
+
+    const offenderSummaryText = offenderContributions
         .map(({ playerId, weightedTicks }) => {
             const playerName =
                 info.players.find((player) => player.id === playerId)?.name ??
                 "Unknown";
-            const seconds = (weightedTicks / CROWDING_TICKS_PER_SECOND).toFixed(
-                1,
-            );
-            return `${playerName}: ${seconds}s`;
+            const percent =
+                totalWeightedTicks > 0
+                    ? Math.round((weightedTicks / totalWeightedTicks) * 100)
+                    : 0;
+            return `${playerName}: ${percent}%`;
         })
         .join(", ");
 
