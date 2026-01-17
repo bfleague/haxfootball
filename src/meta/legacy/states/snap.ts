@@ -16,7 +16,6 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import { DownState } from "@meta/legacy/utils/down";
-import { CrowdingData, CrowdingEntry } from "@meta/legacy/utils/crowding";
 import {
     applyDefensivePenalty,
     applyOffensivePenalty,
@@ -41,6 +40,18 @@ const CROWDING_GRACE_TICKS = ticks({ seconds: 1 });
 const DEFAULT_CROWDING_BLOCK_DISTANCE = 15;
 const CROWDING_PENALTY_YARDS = 5;
 const CROWDING_TICKS_PER_SECOND = ticks({ seconds: 1 });
+
+export type CrowdingEntry = {
+    playerId: number;
+    startedAt: number;
+    endedAt?: number;
+};
+
+export type CrowdingData = {
+    outer: CrowdingEntry[];
+    inner: CrowdingEntry[];
+    startedAt?: number;
+};
 
 type CrowdingPlayer = GameState["players"][number];
 
