@@ -23,6 +23,7 @@ import {
 } from "@meta/legacy/utils/stadium";
 import { getInitialDownState } from "@meta/legacy/utils/down";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
+import { formatNames } from "@meta/legacy/utils/message";
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 
@@ -241,7 +242,7 @@ export function Interception({
                         });
                 }
             } else {
-                const catcherNames = catchers.map((p) => p.name).join(", ");
+                const catcherNames = formatNames(catchers);
                 const fieldPos = getFieldPosition(player.x);
 
                 $effect(($) => {

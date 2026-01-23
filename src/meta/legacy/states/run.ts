@@ -4,7 +4,7 @@ import {
     DownState,
     processDownEvent,
 } from "@meta/legacy/utils/down";
-import { cn } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
@@ -194,7 +194,7 @@ export function Run({
         );
 
         if (catchers.length > 0) {
-            const catcherNames = catchers.map((p) => p.name).join(", ");
+            const catcherNames = formatNames(catchers);
             const fieldPos = getFieldPosition(player.x);
 
             const { downState: nextDownState, event } = advanceDownState(

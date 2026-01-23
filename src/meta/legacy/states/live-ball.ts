@@ -5,7 +5,7 @@ import {
     getInitialDownState,
     processDownEvent,
 } from "@meta/legacy/utils/down";
-import { cn } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $before, $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
@@ -57,7 +57,7 @@ export function LiveBall({
 
         return {
             fieldPos: getFieldPosition(receiver.x),
-            catcherNames: immediateCatchers.map((p) => p.name).join(", "),
+            catcherNames: formatNames(immediateCatchers),
             catcherIds: immediateCatchers.map((p) => p.id),
         };
     }
@@ -274,7 +274,7 @@ export function LiveBall({
         const catchers = findCatchers(player, defenders);
 
         if (catchers.length > 0) {
-            const catcherNames = catchers.map((p) => p.name).join(", ");
+            const catcherNames = formatNames(catchers);
             const fieldPos = getFieldPosition(player.x);
 
             const { downState: nextDownState, event } = advanceDownState(

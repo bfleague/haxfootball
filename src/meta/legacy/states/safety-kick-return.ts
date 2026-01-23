@@ -13,6 +13,7 @@ import {
 } from "@meta/legacy/utils/stadium";
 import { getInitialDownState } from "@meta/legacy/utils/down";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
+import { formatNames } from "@meta/legacy/utils/message";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
@@ -273,7 +274,7 @@ export function SafetyKickReturn({
                         });
                 }
             } else {
-                const catcherNames = catchers.map((p) => p.name).join(", ");
+                const catcherNames = formatNames(catchers);
                 const fieldPos = getFieldPosition(player.x);
 
                 $effect(($) => {
