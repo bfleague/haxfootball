@@ -1,5 +1,5 @@
 import { GameState } from "@common/engine";
-import { $before, $effect, $next } from "@common/runtime";
+import { $before, $dispose, $effect, $next } from "@common/runtime";
 import { DownState } from "@meta/legacy/utils/down";
 import { opposite, ticks } from "@common/utils";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
@@ -31,6 +31,13 @@ export function InterceptionAttempt({
     $setLineOfScrimmage(fieldPos);
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
     $setBallInactive();
+
+    $dispose(() => {
+        $unlockBall();
+        $unsetLineOfScrimmage();
+        $setBallActive();
+        $unsetFirstDownLine();
+    });
 
     const { ball: ballState } = $before();
 
@@ -77,12 +84,5 @@ export function InterceptionAttempt({
         }
     }
 
-    function dispose() {
-        $unlockBall();
-        $unsetLineOfScrimmage();
-        $setBallActive();
-        $unsetFirstDownLine();
-    }
-
-    return { run, dispose };
+    return { run };
 }

@@ -1,4 +1,4 @@
-import { $effect, $next } from "@common/hooks";
+import { $dispose, $effect, $next } from "@common/hooks";
 import { Team, type FieldTeam } from "@common/models";
 import { distributeOnLine, getMidpoint, opposite } from "@common/utils";
 import {
@@ -48,6 +48,12 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
         );
     });
 
+    $dispose(() => {
+        $untrapAllTeams();
+        $setBallMoveable();
+        $setBallKickForce("normal");
+    });
+
     function join(player: GameStatePlayer) {
         if (player.team === forTeam) {
             $effect(($) => {
@@ -85,11 +91,5 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
         }
     }
 
-    function dispose() {
-        $untrapAllTeams();
-        $setBallMoveable();
-        $setBallKickForce("normal");
-    }
-
-    return { join, run, dispose };
+    return { join, run };
 }

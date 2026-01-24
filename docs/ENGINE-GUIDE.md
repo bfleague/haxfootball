@@ -14,26 +14,41 @@ Check the meta registry for the authoritative list of states and their file path
 
 ```ts
 import type { GameState, GameStatePlayer } from "@common/engine";
-import { $effect, $next } from "@common/runtime";
+import { $dispose, $effect, $next } from "@common/runtime";
 
 export function MyState({ someParam }: { someParam: number }) {
+    // State setup happens when the state is created.
+    $effect(($) => {
+        $.send("State started");
+    });
+
+    // Register cleanup when the state ends.
+    $dispose(() => {
+        $effect(($) => {
+            $.send("State ended");
+        });
+    });
+
     function run(state: GameState) {
         // Read-only snapshot: state.players, state.ball, state.tickNumber.
         // Use $next(...) to transition to another state.
+        // Use $effect(...) to do side effects.
+        // Remember to use $dispose for cleanup.
     }
 
-    function dispose() {
-        // Cleanup that should happen when the state ends.
-    }
-
-    return { run, dispose };
+    return { run };
 }
 ```
+
+## State Lifecycle
+
+- Construction: the state factory runs once on entry. Do setup here and register cleanup with `$dispose`.
+- Handlers: `run` executes each tick; `join`/`leave`/`chat`/`command` execute on events. All handlers can use hooks.
+- Cleanup: when the state ends, all `$dispose` callbacks run; register undo work close to where the change is made so nothing leaks to the next state.
 
 ## State Handlers
 
 - `run(state)` (required): per-tick game logic based on the snapshot.
-- `dispose()` (optional): cleanup for state-specific changes (lines, traps, ball state, etc.).
 - `join(player)` / `leave(player)` (optional): respond to players entering/leaving.
 - `chat(player, message)` (optional): non-command chat messages.
 - `command(player, command)` (optional): parsed commands (prefixed messages).
@@ -47,7 +62,7 @@ Hooks are runtime primitives you call inside state handlers; they schedule effec
 - `$effect(fn)`: queue side effects like announcements, disc updates, and stats.
 - `$next(...)`: transition to another state and stop the current handler.
 - `$before()`: get the snapshot from before the current state took place.
-- `$dispose(fn)`: register cleanup to run when the state ends.
+- `$dispose(fn)`: register cleanup to run when the state ends (can be called during setup or in handlers).
 - `$config<T>()`: access the engine configuration object.
 
 Metas can expose additional hooks (for example, game/physics hooks that set LOS lines, ball active state, or traps); use those instead of rewriting low-level disc logic.
@@ -66,7 +81,7 @@ $next({
 });
 ```
 
-Notes: `$next` stops execution for the current handler, so code after it will not run; place side effects before it or in `dispose()`; only call `$next` from state handlers (`run`, `chat`, `command`, etc.), not during state construction or `dispose()`.
+Notes: `$next` stops execution for the current handler, so code after it will not run; place side effects before it or register cleanup via `$dispose`; only call `$next` from state handlers (`run`, `chat`, `command`, etc.), not during state construction or inside `$dispose`.
 
 ## Side Effects with $effect
 
@@ -95,7 +110,7 @@ Use project helpers rather than re-implementing rules or geometry. In this repo 
 
 ## Cleanup Discipline
 
-If you lock the ball, trap players, or set special lines, undo it in `dispose()` so those changes do not leak into the next state.
+If you lock the ball, trap players, or set special lines, undo those changes when the state ends by registering cleanup with `$dispose`. This keeps states self-contained and prevents leaks.
 
 ## Adding a New State
 

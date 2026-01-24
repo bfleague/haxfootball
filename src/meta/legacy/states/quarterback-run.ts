@@ -45,6 +45,16 @@ export function QuarterbackRun({
         $.setAvatar(playerId, AVATARS.BALL);
     });
 
+    $dispose(() => {
+        $effect(($) => {
+            $.setAvatar(playerId, null);
+        });
+
+        $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+        $setBallActive();
+    });
+
     function buildRunFrame(state: GameState): QuarterbackRunFrame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
@@ -308,15 +318,5 @@ export function QuarterbackRun({
         $handleTackle(frame);
     }
 
-    function dispose() {
-        $effect(($) => {
-            $.setAvatar(playerId, null);
-        });
-
-        $unsetLineOfScrimmage();
-        $unsetFirstDownLine();
-        $setBallActive();
-    }
-
-    return { run, dispose };
+    return { run };
 }

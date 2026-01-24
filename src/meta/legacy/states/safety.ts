@@ -10,7 +10,7 @@ import {
     $trapTeamInEndZone,
     $untrapAllTeams,
 } from "@meta/legacy/hooks/physics";
-import { $effect } from "@common/hooks";
+import { $dispose, $effect } from "@common/hooks";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
@@ -76,6 +76,13 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
         });
     });
 
+    $dispose(() => {
+        $untrapAllTeams();
+        $setBallMoveable();
+        $unlockBall();
+        $setBallKickForce("normal");
+    });
+
     const getPlayersBeyondBallLine = (state: GameState) =>
         state.players.filter(
             (player) =>
@@ -122,12 +129,5 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
         });
     }
 
-    function dispose() {
-        $untrapAllTeams();
-        $setBallMoveable();
-        $unlockBall();
-        $setBallKickForce("normal");
-    }
-
-    return { run, dispose };
+    return { run };
 }

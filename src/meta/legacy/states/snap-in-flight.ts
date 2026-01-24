@@ -19,6 +19,11 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
     $setLineOfScrimmage(fieldPos);
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
 
+    $dispose(() => {
+        $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+    });
+
     function run(state: GameState) {
         if (isOutOfBounds(state.ball)) {
             const { downState: nextDownState, event } =
@@ -98,10 +103,5 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         }
     }
 
-    function dispose() {
-        $unsetLineOfScrimmage();
-        $unsetFirstDownLine();
-    }
-
-    return { run, dispose };
+    return { run };
 }

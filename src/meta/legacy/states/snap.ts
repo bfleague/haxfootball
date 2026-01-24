@@ -435,6 +435,12 @@ export function Snap({
     $setLineOfScrimmage(fieldPos);
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
 
+    $dispose(() => {
+        $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+        $hideCrowdingBoxes();
+    });
+
     function buildSnapFrame(state: GameState): SnapFrame | null {
         const quarterback = state.players.find((p) => p.id === quarterbackId);
         if (!quarterback) return null;
@@ -1072,11 +1078,5 @@ export function Snap({
         $refreshSnapState(frame, crowdingResult);
     }
 
-    function dispose() {
-        $unsetLineOfScrimmage();
-        $unsetFirstDownLine();
-        $hideCrowdingBoxes();
-    }
-
-    return { run, dispose };
+    return { run };
 }

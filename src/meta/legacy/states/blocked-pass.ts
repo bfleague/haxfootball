@@ -28,6 +28,12 @@ export function BlockedPass({
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
     $setBallInactive();
 
+    $dispose(() => {
+        $unsetLineOfScrimmage();
+        $setBallActive();
+        $unsetFirstDownLine();
+    });
+
     function run(state: GameState) {
         const blocker = state.players.find((p) => p.id === blockerId);
         if (!blocker) return;
@@ -70,11 +76,5 @@ export function BlockedPass({
         });
     }
 
-    function dispose() {
-        $unsetLineOfScrimmage();
-        $setBallActive();
-        $unsetFirstDownLine();
-    }
-
-    return { run, dispose };
+    return { run };
 }

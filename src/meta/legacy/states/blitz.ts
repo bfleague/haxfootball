@@ -58,6 +58,16 @@ export function Blitz({
         $setBallActive();
     }
 
+    $dispose(() => {
+        $effect(($) => {
+            $.setAvatar(quarterbackId, null);
+        });
+
+        $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+        $setBallActive();
+    });
+
     $effect(($) => {
         $.setAvatar(quarterbackId, AVATARS.BALL);
     });
@@ -384,15 +394,5 @@ export function Blitz({
         $handleQuarterbackSacked(frame);
     }
 
-    function dispose() {
-        $effect(($) => {
-            $.setAvatar(quarterbackId, null);
-        });
-
-        $unsetLineOfScrimmage();
-        $unsetFirstDownLine();
-        $setBallActive();
-    }
-
-    return { run, dispose };
+    return { run };
 }

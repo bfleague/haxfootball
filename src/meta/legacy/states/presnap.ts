@@ -8,7 +8,7 @@ import {
     calculateDirectionalGain,
     calculateSnapBallPosition,
 } from "@meta/legacy/utils/stadium";
-import { $before, $effect, $next } from "@common/runtime";
+import { $before, $dispose, $effect, $next } from "@common/runtime";
 import {
     $lockBall,
     $setBallMoveable,
@@ -134,6 +134,13 @@ export function Presnap({ downState }: { downState: DownState }) {
     });
 
     $setInitialPlayerPositions(offensiveTeam, ballPos);
+
+    $dispose(() => {
+        $setBallMoveable();
+        $unlockBall();
+        $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+    });
 
     function getOffensivePlayersBeyondLineOfScrimmage(): GameStatePlayer[] {
         const state = $before();
@@ -262,12 +269,5 @@ export function Presnap({ downState }: { downState: DownState }) {
         // TODO: Prehike logic
     }
 
-    function dispose() {
-        $setBallMoveable();
-        $unlockBall();
-        $unsetLineOfScrimmage();
-        $unsetFirstDownLine();
-    }
-
-    return { run, dispose, chat, command };
+    return { run, chat, command };
 }

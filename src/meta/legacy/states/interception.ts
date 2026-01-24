@@ -68,6 +68,11 @@ export function Interception({
         end: { x: intersectionPoint.x, y: intersectionPoint.y },
     });
 
+    $dispose(() => {
+        $hideInterceptionPath();
+        $setBallActive();
+    });
+
     function buildInterceptionFrame(
         state: GameState,
     ): InterceptionFrame | null {
@@ -311,10 +316,5 @@ export function Interception({
         $handleTackle(frame);
     }
 
-    function dispose() {
-        $hideInterceptionPath();
-        $setBallActive();
-    }
-
-    return { run, dispose };
+    return { run };
 }

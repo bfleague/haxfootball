@@ -15,7 +15,6 @@ import { CommandHandleResult, CommandSpec } from "@common/commands";
  */
 export interface StateApi {
     run: (state: GameState) => void;
-    dispose?: () => void;
     join?: (player: GameStatePlayer) => void;
     leave?: (player: GameStatePlayer) => void;
     chat?: (player: GameStatePlayer, message: string) => void;
@@ -282,10 +281,6 @@ export function createEngine<Cfg>(
         if (!target) return [];
 
         const disposeFns: Array<() => void> = [];
-
-        if (target.api.dispose) {
-            disposeFns.push(() => target.api.dispose!());
-        }
 
         disposeFns.push(...target.disposals);
         target.disposals.length = 0;

@@ -1,5 +1,5 @@
 import { GameState } from "@common/engine";
-import { $next } from "@common/runtime";
+import { $dispose, $next } from "@common/runtime";
 import { DownState } from "@meta/legacy/utils/down";
 import { ticks } from "@common/utils";
 import {
@@ -30,6 +30,12 @@ export function PassDeflection({
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
     $setBallInactive();
 
+    $dispose(() => {
+        $unsetLineOfScrimmage();
+        $setBallActive();
+        $unsetFirstDownLine();
+    });
+
     // TODO: Check if player leaves
 
     function run(state: GameState) {
@@ -58,11 +64,5 @@ export function PassDeflection({
         }
     }
 
-    function dispose() {
-        $unsetLineOfScrimmage();
-        $setBallActive();
-        $unsetFirstDownLine();
-    }
-
-    return { run, dispose };
+    return { run };
 }

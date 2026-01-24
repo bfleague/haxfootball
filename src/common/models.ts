@@ -27,5 +27,4 @@ export interface Ball {
 
 export interface State {
     run: (state: any) => void;
-    dispose?: () => void;
 }

@@ -74,6 +74,16 @@ export function LiveBall({
         $.setAvatar(playerId, AVATARS.BALL);
     });
 
+    $dispose(() => {
+        $effect(($) => {
+            $.setAvatar(playerId, null);
+        });
+
+        $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+        $setBallActive();
+    });
+
     function $handleFumble(state: GameState) {
         if (!fumbleInfo) return;
 
@@ -389,15 +399,5 @@ export function LiveBall({
         $handleTackle(frame);
     }
 
-    function dispose() {
-        $effect(($) => {
-            $.setAvatar(playerId, null);
-        });
-
-        $unsetLineOfScrimmage();
-        $unsetFirstDownLine();
-        $setBallActive();
-    }
-
-    return { run, dispose };
+    return { run };
 }

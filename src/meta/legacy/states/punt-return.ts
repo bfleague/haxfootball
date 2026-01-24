@@ -36,6 +36,14 @@ export function PuntReturn({
         $.setAvatar(playerId, AVATARS.BALL);
     });
 
+    $dispose(() => {
+        $effect(($) => {
+            $.setAvatar(playerId, null);
+        });
+
+        $setBallActive();
+    });
+
     $setBallInactive();
 
     function leave(player: GameStatePlayer) {
@@ -336,13 +344,5 @@ export function PuntReturn({
         $handleTackle(frame);
     }
 
-    function dispose() {
-        $effect(($) => {
-            $.setAvatar(playerId, null);
-        });
-
-        $setBallActive();
-    }
-
-    return { run, leave, dispose };
+    return { run, leave };
 }

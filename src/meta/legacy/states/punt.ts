@@ -2,7 +2,7 @@ import type { GameState } from "@common/engine";
 import { Team, type FieldTeam } from "@common/models";
 import { distributeOnLine, opposite } from "@common/utils";
 import { t } from "@lingui/core/macro";
-import { $effect } from "@common/hooks";
+import { $dispose, $effect } from "@common/hooks";
 import { $next } from "@common/runtime";
 import {
     $lockBall,
@@ -67,6 +67,13 @@ export function Punt({ downState }: { downState: DownState }) {
         });
     });
 
+    $dispose(() => {
+        $untrapAllTeams();
+        $setBallMoveable();
+        $unlockBall();
+        $setBallKickForce("normal");
+    });
+
     const getPlayersBeyondBallLine = (state: GameState) =>
         state.players.filter(
             (player) =>
@@ -113,12 +120,5 @@ export function Punt({ downState }: { downState: DownState }) {
         });
     }
 
-    function dispose() {
-        $untrapAllTeams();
-        $setBallMoveable();
-        $unlockBall();
-        $setBallKickForce("normal");
-    }
-
-    return { run, dispose };
+    return { run };
 }
