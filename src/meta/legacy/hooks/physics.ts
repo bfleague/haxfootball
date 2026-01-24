@@ -6,7 +6,7 @@ const PLAYER_MOVEABLE_INV_MASS = 0.5;
 const PLAYER_UNMOVEABLE_INV_MASS = 1e26;
 
 const getTeamCollisionGroup = (
-    cf: EffectApi["CollisionFlags"],
+    cf: CollisionFlagsObject,
     team: Team,
 ): number => {
     switch (team) {

@@ -1,4 +1,4 @@
-import type { GameState } from "@common/engine";
+import type { GameState, GameStatePlayer } from "@common/engine";
 import {
     AVATARS,
     findBallCatchers,
@@ -37,10 +37,10 @@ import { t } from "@lingui/core/macro";
 
 type SnapFrame = {
     state: GameState;
-    quarterback: CrowdingPlayer;
-    defenders: CrowdingPlayer[];
-    offensivePlayers: CrowdingPlayer[];
-    offsideDefender: CrowdingPlayer | undefined;
+    quarterback: Crowding.CrowdingPlayer;
+    defenders: Crowding.CrowdingPlayer[];
+    offensivePlayers: Crowding.CrowdingPlayer[];
+    offsideDefender: Crowding.CrowdingPlayer | undefined;
     defenseCrossedLineOfScrimmage: boolean;
     quarterbackCrossedLineOfScrimmage: boolean;
     ballBeyondLineOfScrimmage: boolean;
@@ -48,99 +48,6 @@ type SnapFrame = {
     isBlitzAllowed: boolean;
     nextBallMoveTick: number | null;
 };
-
-const CROWDING_OUTER_FOUL_TICKS = ticks({ seconds: 3 });
-const CROWDING_INNER_WEIGHT = 5;
-const CROWDING_GRACE_TICKS = ticks({ seconds: 1 });
-const DEFAULT_CROWDING_BLOCK_DISTANCE = 15;
-const CROWDING_PENALTY_YARDS = 5;
-
-type CrowdingEntry = {
-    playerId: number;
-    startedAt: number;
-    endedAt?: number;
-};
-
-type CrowdingData = {
-    outer: CrowdingEntry[];
-    inner: CrowdingEntry[];
-    startedAt?: number;
-};
-
-type CrowdingPlayer = GameState["players"][number];
-
-type CrowdingFoulContribution = {
-    playerId: number;
-    weightedTicks: number;
-};
-
-type CrowdingFoulInfo = {
-    contributions: CrowdingFoulContribution[];
-    players: Array<{ id: number; name: string }>;
-};
-
-type CrowdingEvaluation =
-    | {
-          updatedCrowdingData: CrowdingData;
-          shouldUpdate: boolean;
-          hasFoul: true;
-          foulInfo: CrowdingFoulInfo;
-          nextDownState: DownState;
-      }
-    | {
-          updatedCrowdingData: CrowdingData;
-          shouldUpdate: boolean;
-          hasFoul: false;
-          foulInfo: null;
-          nextDownState: null;
-      };
-
-type DefenderCrowdingState = {
-    id: number;
-    inInner: boolean;
-    inCrowding: boolean;
-};
-
-const createEmptyCrowdingData = (startedAt?: number): CrowdingData =>
-    startedAt === undefined
-        ? { outer: [], inner: [] }
-        : { outer: [], inner: [], startedAt };
-
-const updateCrowdingIntervals = (
-    entries: CrowdingEntry[],
-    playerIds: number[],
-    tick: number,
-): CrowdingEntry[] => {
-    const hasOpenEntry = (playerId: number) =>
-        entries.some(
-            (entry) =>
-                entry.playerId === playerId && entry.endedAt === undefined,
-        );
-
-    const closedEntries = entries.map((entry) => {
-        if (entry.endedAt !== undefined) return entry;
-
-        return playerIds.includes(entry.playerId)
-            ? entry
-            : { ...entry, endedAt: tick };
-    });
-
-    const newEntries = playerIds
-        .filter((playerId) => !hasOpenEntry(playerId))
-        .map((playerId) => ({ playerId, startedAt: tick }));
-
-    return [...closedEntries, ...newEntries];
-};
-
-const getCrowdingEntryDurationTicks = (
-    entry: CrowdingEntry,
-    tick: number,
-    minStartAt: number,
-) =>
-    Math.max(
-        0,
-        (entry.endedAt ?? tick) - Math.max(entry.startedAt, minStartAt),
-    );
 
 const uniqueNumbers = (values: number[]) =>
     values.filter((value, index, list) => list.indexOf(value) === index);
@@ -155,214 +62,316 @@ const setPlayerAvatars = (
     });
 };
 
-const sumPlayerCrowdingTicks = (
-    entries: CrowdingEntry[],
-    playerId: number,
-    tick: number,
-    minStartAt: number,
-) =>
-    entries
-        .filter((entry) => entry.playerId === playerId)
-        .map((entry) => getCrowdingEntryDurationTicks(entry, tick, minStartAt))
-        .reduce((total, value) => total + value, 0);
+namespace Crowding {
+    const CROWDING_OUTER_FOUL_TICKS = ticks({ seconds: 3 });
+    const CROWDING_INNER_WEIGHT = 5;
+    const CROWDING_GRACE_TICKS = ticks({ seconds: 1 });
+    const DEFAULT_CROWDING_BLOCK_DISTANCE = 15;
+    export const CROWDING_PENALTY_YARDS = 5;
 
-const buildCrowdingFoulContributions = (
-    data: CrowdingData,
-    tick: number,
-    minStartAt: number,
-): Array<{ playerId: number; weightedTicks: number }> => {
-    const playerIds = uniqueNumbers([
-        ...data.outer.map((entry) => entry.playerId),
-        ...data.inner.map((entry) => entry.playerId),
-    ]);
-
-    return playerIds
-        .map((playerId) => {
-            const outerTicks = sumPlayerCrowdingTicks(
-                data.outer,
-                playerId,
-                tick,
-                minStartAt,
-            );
-            const innerTicks = sumPlayerCrowdingTicks(
-                data.inner,
-                playerId,
-                tick,
-                minStartAt,
-            );
-            const weightedTicks =
-                outerTicks + innerTicks * CROWDING_INNER_WEIGHT;
-
-            return { playerId, weightedTicks };
-        })
-        .filter((entry) => entry.weightedTicks > 0);
-};
-
-const getCrowdingDefenderBlockDistance = (player: CrowdingPlayer) =>
-    player.radius > 0 ? player.radius : DEFAULT_CROWDING_BLOCK_DISTANCE;
-
-const isCrowdingDefenderBlocked = (
-    defensivePlayer: CrowdingPlayer,
-    offensivePlayers: CrowdingPlayer[],
-) =>
-    offensivePlayers.some(
-        (offensivePlayer) =>
-            getDistance(offensivePlayer, defensivePlayer) <=
-            getCrowdingDefenderBlockDistance(defensivePlayer),
-    );
-
-const getDefenderCrowdingState = (
-    player: CrowdingPlayer,
-    offensivePlayers: CrowdingPlayer[],
-    offensiveTeam: DownState["offensiveTeam"],
-    fieldPos: DownState["fieldPos"],
-): DefenderCrowdingState => {
-    const isBlocked = isCrowdingDefenderBlocked(player, offensivePlayers);
-    const inInner =
-        !isBlocked && isInInnerCrowdingArea(player, offensiveTeam, fieldPos);
-    const inCrowding =
-        !isBlocked &&
-        (inInner || isInCrowdingArea(player, offensiveTeam, fieldPos));
-
-    return { id: player.id, inInner, inCrowding };
-};
-
-const sameCrowdingEntry = (left: CrowdingEntry, right: CrowdingEntry) =>
-    left.playerId === right.playerId &&
-    left.startedAt === right.startedAt &&
-    left.endedAt === right.endedAt;
-
-const sameCrowdingEntries = (left: CrowdingEntry[], right: CrowdingEntry[]) =>
-    left.length === right.length &&
-    left.every((entry, index) => {
-        const other = right[index];
-        return other ? sameCrowdingEntry(entry, other) : false;
-    });
-
-const sameCrowdingData = (left: CrowdingData, right: CrowdingData) =>
-    left.startedAt === right.startedAt &&
-    sameCrowdingEntries(left.outer, right.outer) &&
-    sameCrowdingEntries(left.inner, right.inner);
-
-export const evaluateCrowding = ({
-    state,
-    quarterbackId,
-    downState,
-    crowdingData,
-}: {
-    state: GameState;
-    quarterbackId: number;
-    downState: DownState;
-    crowdingData: CrowdingData;
-}): CrowdingEvaluation => {
-    const { offensiveTeam, fieldPos } = downState;
-    const crowdingWindowStartTick = crowdingData.startedAt ?? state.tickNumber;
-    const graceWindowEndsAtTick =
-        crowdingWindowStartTick + CROWDING_GRACE_TICKS;
-
-    const nonQuarterbacks = state.players.filter(
-        (player) => player.id !== quarterbackId,
-    );
-    const offensePlayers = nonQuarterbacks.filter(
-        (player) => player.team === offensiveTeam,
-    );
-    const defensePlayers = nonQuarterbacks.filter(
-        (player) => player.team !== offensiveTeam,
-    );
-
-    const offenseInCrowdingArea = offensePlayers.some((player) =>
-        isInCrowdingArea(player, offensiveTeam, fieldPos),
-    );
-
-    const defenderCrowdingStates = defensePlayers.map((player) =>
-        getDefenderCrowdingState(
-            player,
-            offensePlayers,
-            offensiveTeam,
-            fieldPos,
-        ),
-    );
-
-    const innerZoneDefenderIds = defenderCrowdingStates
-        .filter((status) => status.inInner)
-        .map((status) => status.id);
-
-    const outerZoneDefenderIds = defenderCrowdingStates
-        .filter((status) => status.inCrowding && !status.inInner)
-        .map((status) => status.id);
-
-    const hasDefenderInCrowdingZone = defenderCrowdingStates.some(
-        (status) => status.inCrowding,
-    );
-
-    const shouldRestartCrowdingWindow =
-        offenseInCrowdingArea || !hasDefenderInCrowdingZone;
-
-    const updatedCrowdingData = shouldRestartCrowdingWindow
-        ? createEmptyCrowdingData(crowdingWindowStartTick)
-        : {
-              outer: updateCrowdingIntervals(
-                  crowdingData.outer,
-                  outerZoneDefenderIds,
-                  state.tickNumber,
-              ),
-              inner: updateCrowdingIntervals(
-                  crowdingData.inner,
-                  innerZoneDefenderIds,
-                  state.tickNumber,
-              ),
-              startedAt: crowdingWindowStartTick,
-          };
-
-    const crowdingFoulContributions = shouldRestartCrowdingWindow
-        ? []
-        : buildCrowdingFoulContributions(
-              updatedCrowdingData,
-              state.tickNumber,
-              graceWindowEndsAtTick,
-          );
-
-    const totalWeightedCrowdingFoulTicks = crowdingFoulContributions.reduce(
-        (total, entry) => total + entry.weightedTicks,
-        0,
-    );
-
-    const isCrowdingFoul =
-        !shouldRestartCrowdingWindow &&
-        totalWeightedCrowdingFoulTicks >= CROWDING_OUTER_FOUL_TICKS;
-
-    const shouldRefreshCrowdingData = !sameCrowdingData(
-        crowdingData,
-        updatedCrowdingData,
-    );
-
-    const evaluationBase = {
-        updatedCrowdingData,
-        shouldUpdate: shouldRefreshCrowdingData,
+    type CrowdingEntry = {
+        playerId: number;
+        startedAt: number;
+        endedAt?: number;
     };
 
-    return isCrowdingFoul
-        ? {
-              ...evaluationBase,
-              hasFoul: true,
-              foulInfo: {
-                  contributions: crowdingFoulContributions,
-                  players: state.players,
-              },
-              nextDownState: applyDefensivePenalty(
-                  downState,
-                  CROWDING_PENALTY_YARDS,
-              ).downState,
-          }
-        : {
-              ...evaluationBase,
-              hasFoul: false,
-              foulInfo: null,
-              nextDownState: null,
-          };
-};
+    export type CrowdingData = {
+        outer: CrowdingEntry[];
+        inner: CrowdingEntry[];
+        startedAt?: number;
+    };
 
-const getCrowdingOffenderNames = (info: CrowdingFoulInfo): string => {
+    export type CrowdingPlayer = GameStatePlayer;
+
+    type CrowdingFoulContribution = {
+        playerId: number;
+        weightedTicks: number;
+    };
+
+    export type CrowdingFoulInfo = {
+        contributions: CrowdingFoulContribution[];
+        players: Array<{ id: number; name: string }>;
+    };
+
+    export type CrowdingEvaluation =
+        | {
+              updatedCrowdingData: CrowdingData;
+              shouldUpdate: boolean;
+              hasFoul: true;
+              foulInfo: CrowdingFoulInfo;
+              nextDownState: DownState;
+          }
+        | {
+              updatedCrowdingData: CrowdingData;
+              shouldUpdate: boolean;
+              hasFoul: false;
+              foulInfo: null;
+              nextDownState: null;
+          };
+
+    type DefenderCrowdingState = {
+        id: number;
+        inInner: boolean;
+        inCrowding: boolean;
+    };
+
+    const createEmptyCrowdingData = (startedAt?: number): CrowdingData =>
+        startedAt === undefined
+            ? { outer: [], inner: [] }
+            : { outer: [], inner: [], startedAt };
+
+    const updateCrowdingIntervals = (
+        entries: CrowdingEntry[],
+        playerIds: number[],
+        tick: number,
+    ): CrowdingEntry[] => {
+        const hasOpenEntry = (playerId: number) =>
+            entries.some(
+                (entry) =>
+                    entry.playerId === playerId && entry.endedAt === undefined,
+            );
+
+        const closedEntries = entries.map((entry) => {
+            if (entry.endedAt !== undefined) return entry;
+
+            return playerIds.includes(entry.playerId)
+                ? entry
+                : { ...entry, endedAt: tick };
+        });
+
+        const newEntries = playerIds
+            .filter((playerId) => !hasOpenEntry(playerId))
+            .map((playerId) => ({ playerId, startedAt: tick }));
+
+        return [...closedEntries, ...newEntries];
+    };
+
+    const getCrowdingEntryDurationTicks = (
+        entry: CrowdingEntry,
+        tick: number,
+        minStartAt: number,
+    ) =>
+        Math.max(
+            0,
+            (entry.endedAt ?? tick) - Math.max(entry.startedAt, minStartAt),
+        );
+
+    const sumPlayerCrowdingTicks = (
+        entries: CrowdingEntry[],
+        playerId: number,
+        tick: number,
+        minStartAt: number,
+    ) =>
+        entries
+            .filter((entry) => entry.playerId === playerId)
+            .map((entry) =>
+                getCrowdingEntryDurationTicks(entry, tick, minStartAt),
+            )
+            .reduce((total, value) => total + value, 0);
+
+    const buildCrowdingFoulContributions = (
+        data: CrowdingData,
+        tick: number,
+        minStartAt: number,
+    ): Array<{ playerId: number; weightedTicks: number }> => {
+        const playerIds = uniqueNumbers([
+            ...data.outer.map((entry) => entry.playerId),
+            ...data.inner.map((entry) => entry.playerId),
+        ]);
+
+        return playerIds
+            .map((playerId) => {
+                const outerTicks = sumPlayerCrowdingTicks(
+                    data.outer,
+                    playerId,
+                    tick,
+                    minStartAt,
+                );
+                const innerTicks = sumPlayerCrowdingTicks(
+                    data.inner,
+                    playerId,
+                    tick,
+                    minStartAt,
+                );
+                const weightedTicks =
+                    outerTicks + innerTicks * CROWDING_INNER_WEIGHT;
+
+                return { playerId, weightedTicks };
+            })
+            .filter((entry) => entry.weightedTicks > 0);
+    };
+
+    const getCrowdingDefenderBlockDistance = (player: CrowdingPlayer) =>
+        player.radius > 0 ? player.radius : DEFAULT_CROWDING_BLOCK_DISTANCE;
+
+    const isCrowdingDefenderBlocked = (
+        defensivePlayer: CrowdingPlayer,
+        offensivePlayers: CrowdingPlayer[],
+    ) =>
+        offensivePlayers.some(
+            (offensivePlayer) =>
+                getDistance(offensivePlayer, defensivePlayer) <=
+                getCrowdingDefenderBlockDistance(defensivePlayer),
+        );
+
+    const getDefenderCrowdingState = (
+        player: CrowdingPlayer,
+        offensivePlayers: CrowdingPlayer[],
+        offensiveTeam: DownState["offensiveTeam"],
+        fieldPos: DownState["fieldPos"],
+    ): DefenderCrowdingState => {
+        const isBlocked = isCrowdingDefenderBlocked(player, offensivePlayers);
+        const inInner =
+            !isBlocked &&
+            isInInnerCrowdingArea(player, offensiveTeam, fieldPos);
+        const inCrowding =
+            !isBlocked &&
+            (inInner || isInCrowdingArea(player, offensiveTeam, fieldPos));
+
+        return { id: player.id, inInner, inCrowding };
+    };
+
+    const sameCrowdingEntry = (left: CrowdingEntry, right: CrowdingEntry) =>
+        left.playerId === right.playerId &&
+        left.startedAt === right.startedAt &&
+        left.endedAt === right.endedAt;
+
+    const sameCrowdingEntries = (
+        left: CrowdingEntry[],
+        right: CrowdingEntry[],
+    ) =>
+        left.length === right.length &&
+        left.every((entry, index) => {
+            const other = right[index];
+            return other ? sameCrowdingEntry(entry, other) : false;
+        });
+
+    const sameCrowdingData = (left: CrowdingData, right: CrowdingData) =>
+        left.startedAt === right.startedAt &&
+        sameCrowdingEntries(left.outer, right.outer) &&
+        sameCrowdingEntries(left.inner, right.inner);
+
+    export const evaluateCrowding = ({
+        state,
+        quarterbackId,
+        downState,
+        crowdingData,
+    }: {
+        state: GameState;
+        quarterbackId: number;
+        downState: DownState;
+        crowdingData: CrowdingData;
+    }): CrowdingEvaluation => {
+        const { offensiveTeam, fieldPos } = downState;
+        const crowdingWindowStartTick =
+            crowdingData.startedAt ?? state.tickNumber;
+        const graceWindowEndsAtTick =
+            crowdingWindowStartTick + CROWDING_GRACE_TICKS;
+
+        const nonQuarterbacks = state.players.filter(
+            (player) => player.id !== quarterbackId,
+        );
+        const offensePlayers = nonQuarterbacks.filter(
+            (player) => player.team === offensiveTeam,
+        );
+        const defensePlayers = nonQuarterbacks.filter(
+            (player) => player.team !== offensiveTeam,
+        );
+
+        const offenseInCrowdingArea = offensePlayers.some((player) =>
+            isInCrowdingArea(player, offensiveTeam, fieldPos),
+        );
+
+        const defenderCrowdingStates = defensePlayers.map((player) =>
+            getDefenderCrowdingState(
+                player,
+                offensePlayers,
+                offensiveTeam,
+                fieldPos,
+            ),
+        );
+
+        const innerZoneDefenderIds = defenderCrowdingStates
+            .filter((status) => status.inInner)
+            .map((status) => status.id);
+
+        const outerZoneDefenderIds = defenderCrowdingStates
+            .filter((status) => status.inCrowding && !status.inInner)
+            .map((status) => status.id);
+
+        const hasDefenderInCrowdingZone = defenderCrowdingStates.some(
+            (status) => status.inCrowding,
+        );
+
+        const shouldRestartCrowdingWindow =
+            offenseInCrowdingArea || !hasDefenderInCrowdingZone;
+
+        const updatedCrowdingData = shouldRestartCrowdingWindow
+            ? createEmptyCrowdingData(crowdingWindowStartTick)
+            : {
+                  outer: updateCrowdingIntervals(
+                      crowdingData.outer,
+                      outerZoneDefenderIds,
+                      state.tickNumber,
+                  ),
+                  inner: updateCrowdingIntervals(
+                      crowdingData.inner,
+                      innerZoneDefenderIds,
+                      state.tickNumber,
+                  ),
+                  startedAt: crowdingWindowStartTick,
+              };
+
+        const crowdingFoulContributions = shouldRestartCrowdingWindow
+            ? []
+            : buildCrowdingFoulContributions(
+                  updatedCrowdingData,
+                  state.tickNumber,
+                  graceWindowEndsAtTick,
+              );
+
+        const totalWeightedCrowdingFoulTicks = crowdingFoulContributions.reduce(
+            (total, entry) => total + entry.weightedTicks,
+            0,
+        );
+
+        const isCrowdingFoul =
+            !shouldRestartCrowdingWindow &&
+            totalWeightedCrowdingFoulTicks >= CROWDING_OUTER_FOUL_TICKS;
+
+        const shouldRefreshCrowdingData = !sameCrowdingData(
+            crowdingData,
+            updatedCrowdingData,
+        );
+
+        const evaluationBase = {
+            updatedCrowdingData,
+            shouldUpdate: shouldRefreshCrowdingData,
+        };
+
+        return isCrowdingFoul
+            ? {
+                  ...evaluationBase,
+                  hasFoul: true,
+                  foulInfo: {
+                      contributions: crowdingFoulContributions,
+                      players: state.players,
+                  },
+                  nextDownState: applyDefensivePenalty(
+                      downState,
+                      CROWDING_PENALTY_YARDS,
+                  ).downState,
+              }
+            : {
+                  ...evaluationBase,
+                  hasFoul: false,
+                  foulInfo: null,
+                  nextDownState: null,
+              };
+    };
+}
+
+const getCrowdingOffenderNames = (info: Crowding.CrowdingFoulInfo): string => {
     const offenderContributions = info.contributions.filter(
         (entry) => entry.weightedTicks > 0,
     );
@@ -403,7 +412,7 @@ export function Snap({
 }: {
     quarterbackId: number;
     downState: DownState;
-    crowdingData?: CrowdingData;
+    crowdingData?: Crowding.CrowdingData;
     ballMovedAt?: number | null;
 }) {
     const { fieldPos, offensiveTeam, downAndDistance } = downState;
@@ -583,10 +592,12 @@ export function Snap({
         });
     }
 
-    function $getCrowdingResult(frame: SnapFrame): CrowdingEvaluation | null {
+    function $getCrowdingResult(
+        frame: SnapFrame,
+    ): Crowding.CrowdingEvaluation | null {
         if (frame.isBlitzAllowed) return null;
 
-        return evaluateCrowding({
+        return Crowding.evaluateCrowding({
             state: frame.state,
             quarterbackId,
             downState,
@@ -594,12 +605,14 @@ export function Snap({
         });
     }
 
-    function $handleCrowdingFoul(crowdingResult: CrowdingEvaluation | null) {
+    function $handleCrowdingFoul(
+        crowdingResult: Crowding.CrowdingEvaluation | null,
+    ) {
         if (!crowdingResult || !crowdingResult.hasFoul) return;
 
         const penaltyResult = applyDefensivePenalty(
             downState,
-            CROWDING_PENALTY_YARDS,
+            Crowding.CROWDING_PENALTY_YARDS,
         );
 
         const crowdingOffenderNames = getCrowdingOffenderNames(
@@ -627,7 +640,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive crowding foul by ${crowdingOffenderNames}, ${CROWDING_PENALTY_YARDS} yard penalty.`,
+                            t`Defensive crowding foul by ${crowdingOffenderNames}, ${Crowding.CROWDING_PENALTY_YARDS} yard penalty.`,
                         ),
                     );
                 });
@@ -644,7 +657,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive crowding foul (${crowdingOffenderNames}), ${CROWDING_PENALTY_YARDS} yard penalty. Automatic first down.`,
+                            t`Defensive crowding foul (${crowdingOffenderNames}), ${Crowding.CROWDING_PENALTY_YARDS} yard penalty. Automatic first down.`,
                         ),
                     );
                 });
@@ -662,7 +675,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive crowding foul (${crowdingOffenderNames}), ${CROWDING_PENALTY_YARDS} yard penalty. Automatic touchdown.`,
+                            t`Defensive crowding foul (${crowdingOffenderNames}), ${Crowding.CROWDING_PENALTY_YARDS} yard penalty. Automatic touchdown.`,
                         ),
                     );
 
@@ -1018,7 +1031,7 @@ export function Snap({
 
     function $refreshSnapState(
         frame: SnapFrame,
-        crowdingResult: CrowdingEvaluation | null,
+        crowdingResult: Crowding.CrowdingEvaluation | null,
     ) {
         const shouldRefreshSnapState =
             crowdingResult?.shouldUpdate ||

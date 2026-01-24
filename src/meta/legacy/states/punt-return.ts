@@ -18,6 +18,10 @@ import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
 type EndzoneState = "TOUCHBACK" | "SAFETY";
+type PuntReturnFrame = {
+    player: GameStatePlayer;
+    defenders: GameStatePlayer[];
+};
 
 export function PuntReturn({
     playerId,
@@ -101,38 +105,84 @@ export function PuntReturn({
         }
     }
 
-    function run(state: GameState) {
+    function buildPuntReturnFrame(state: GameState): PuntReturnFrame | null {
         const player = state.players.find((p) => p.id === playerId);
-        if (!player) return;
+        if (!player) return null;
 
+        const defenders = state.players.filter(
+            (p) => p.team === opposite(receivingTeam),
+        );
+
+        return { player, defenders };
+    }
+
+    function $advanceEndzoneState(frame: PuntReturnFrame) {
         if (
-            isCompletelyInsideMainField(player) &&
-            endzoneState === "TOUCHBACK"
+            !isCompletelyInsideMainField(frame.player) ||
+            endzoneState !== "TOUCHBACK"
         ) {
-            $next({
-                to: "PUNT_RETURN",
-                params: {
-                    playerId,
-                    receivingTeam,
-                    endzoneState: "SAFETY",
-                },
-            });
+            return;
         }
 
+        $next({
+            to: "PUNT_RETURN",
+            params: {
+                playerId,
+                receivingTeam,
+                endzoneState: "SAFETY",
+            },
+        });
+    }
+
+    function $handleTouchdown(frame: PuntReturnFrame) {
         if (
-            isTouchdown({
-                player,
+            !isTouchdown({
+                player: frame.player,
                 offensiveTeam: receivingTeam,
             })
         ) {
-            $global((state) =>
-                state.incrementScore(receivingTeam, SCORES.TOUCHDOWN),
-            );
+            return;
+        }
 
+        $global((state) =>
+            state.incrementScore(receivingTeam, SCORES.TOUCHDOWN),
+        );
+
+        $effect(($) => {
+            $.send(t`Punt return touchdown by ${frame.player.name}!`);
+            $.stat("PUNT_RETURN_TOUCHDOWN");
+            $.setAvatar(playerId, AVATARS.FIRE);
+        });
+
+        $dispose(() => {
             $effect(($) => {
-                $.send(t`Punt return touchdown by ${player.name}!`);
-                $.stat("PUNT_RETURN_TOUCHDOWN");
-                $.setAvatar(playerId, AVATARS.FIRE);
+                $.setAvatar(playerId, null);
+            });
+        });
+
+        $next({
+            to: "KICKOFF",
+            params: {
+                forTeam: receivingTeam,
+            },
+            wait: ticks({ seconds: 3 }),
+        });
+    }
+
+    function $handleOutOfBounds(frame: PuntReturnFrame) {
+        if (!isOutOfBounds(frame.player)) return;
+
+        const fieldPos = getFieldPosition(frame.player.x);
+
+        if (isCompletelyInsideMainField(frame.player)) {
+            $effect(($) => {
+                $.send(
+                    t`${frame.player.name} went out of bounds during punt return!`,
+                );
+
+                $.stat("PUNT_RETURN_OUT_OF_BOUNDS");
+
+                $.setAvatar(playerId, AVATARS.CANCEL);
             });
 
             $dispose(() => {
@@ -142,169 +192,148 @@ export function PuntReturn({
             });
 
             $next({
-                to: "KICKOFF",
+                to: "PRESNAP",
                 params: {
-                    forTeam: receivingTeam,
+                    downState: getInitialDownState(receivingTeam, fieldPos),
                 },
-                wait: ticks({ seconds: 3 }),
+                wait: ticks({ seconds: 1 }),
+            });
+        } else {
+            $effect(($) => {
+                $.send(
+                    t`${frame.player.name} went out of bounds in the end zone for a safety!`,
+                );
+
+                $.stat("PUNT_RETURN_SAFETY");
+
+                $.setAvatar(playerId, AVATARS.CLOWN);
+            });
+
+            $dispose(() => {
+                $effect(($) => {
+                    $.setAvatar(playerId, null);
+                });
+            });
+
+            $next({
+                to: "SAFETY",
+                params: {
+                    kickingTeam: receivingTeam,
+                },
+                wait: ticks({ seconds: 2 }),
             });
         }
+    }
 
-        if (isOutOfBounds(player)) {
-            const fieldPos = getFieldPosition(player.x);
+    function $handleTackle(frame: PuntReturnFrame) {
+        const catchers = findCatchers(frame.player, frame.defenders);
 
-            if (isCompletelyInsideMainField(player)) {
-                $effect(($) => {
-                    $.send(
-                        t`${player.name} went out of bounds during punt return!`,
-                    );
+        if (catchers.length === 0) return;
 
-                    $.stat("PUNT_RETURN_OUT_OF_BOUNDS");
-
-                    $.setAvatar(playerId, AVATARS.CANCEL);
-                });
-
-                $dispose(() => {
+        if (isPartiallyOutsideMainField(frame.player)) {
+            switch (endzoneState) {
+                case "TOUCHBACK":
                     $effect(($) => {
-                        $.setAvatar(playerId, null);
-                    });
-                });
-
-                $next({
-                    to: "PRESNAP",
-                    params: {
-                        downState: getInitialDownState(receivingTeam, fieldPos),
-                    },
-                    wait: ticks({ seconds: 1 }),
-                });
-            } else {
-                $effect(($) => {
-                    $.send(
-                        t`${player.name} went out of bounds in the end zone for a safety!`,
-                    );
-
-                    $.stat("PUNT_RETURN_SAFETY");
-
-                    $.setAvatar(playerId, AVATARS.CLOWN);
-                });
-
-                $dispose(() => {
-                    $effect(($) => {
-                        $.setAvatar(playerId, null);
-                    });
-                });
-
-                $next({
-                    to: "SAFETY",
-                    params: {
-                        kickingTeam: receivingTeam,
-                    },
-                    wait: ticks({ seconds: 2 }),
-                });
-            }
-        }
-
-        const catchers = findCatchers(
-            player,
-            state.players.filter((p) => p.team === opposite(receivingTeam)),
-        );
-
-        if (catchers.length > 0) {
-            if (isPartiallyOutsideMainField(player)) {
-                switch (endzoneState) {
-                    case "TOUCHBACK":
-                        $effect(($) => {
-                            $.send(
-                                t`${player.name} tackled in the end zone for a touchback!`,
-                            );
-
-                            $.stat("PUNT_RETURN_TOUCHBACK_TACKLED");
-
-                            $.setAvatar(playerId, AVATARS.CANCEL);
-                        });
-
-                        $dispose(() => {
-                            $effect(($) => {
-                                $.setAvatar(playerId, null);
-                            });
-                        });
-
-                        $next({
-                            to: "PRESNAP",
-                            params: {
-                                downState: getInitialDownState(receivingTeam, {
-                                    yards: TOUCHBACK_YARD_LINE,
-                                    side: receivingTeam,
-                                }),
-                            },
-                            wait: ticks({ seconds: 1 }),
-                        });
-                    case "SAFETY":
-                        $effect(($) => {
-                            $.send(
-                                t`${player.name} tackled in the end zone for a safety!`,
-                            );
-
-                            $.stat("PUNT_RETURN_SAFETY_TACKLED");
-
-                            $.setAvatar(playerId, AVATARS.CLOWN);
-                        });
-
-                        $dispose(() => {
-                            $effect(($) => {
-                                $.setAvatar(playerId, null);
-                            });
-                        });
-
-                        $global((state) =>
-                            state.incrementScore(
-                                opposite(receivingTeam),
-                                SCORES.SAFETY,
-                            ),
+                        $.send(
+                            t`${frame.player.name} tackled in the end zone for a touchback!`,
                         );
 
-                        $next({
-                            to: "SAFETY",
-                            params: {
-                                kickingTeam: opposite(receivingTeam),
-                            },
-                            wait: ticks({ seconds: 2 }),
-                        });
-                }
-            } else {
-                const catcherNames = formatNames(catchers);
-                const fieldPos = getFieldPosition(player.x);
+                        $.stat("PUNT_RETURN_TOUCHBACK_TACKLED");
 
+                        $.setAvatar(playerId, AVATARS.CANCEL);
+                    });
+
+                    $dispose(() => {
+                        $effect(($) => {
+                            $.setAvatar(playerId, null);
+                        });
+                    });
+
+                    $next({
+                        to: "PRESNAP",
+                        params: {
+                            downState: getInitialDownState(receivingTeam, {
+                                yards: TOUCHBACK_YARD_LINE,
+                                side: receivingTeam,
+                            }),
+                        },
+                        wait: ticks({ seconds: 1 }),
+                    });
+                case "SAFETY":
+                    $effect(($) => {
+                        $.send(
+                            t`${frame.player.name} tackled in the end zone for a safety!`,
+                        );
+
+                        $.stat("PUNT_RETURN_SAFETY_TACKLED");
+
+                        $.setAvatar(playerId, AVATARS.CLOWN);
+                    });
+
+                    $dispose(() => {
+                        $effect(($) => {
+                            $.setAvatar(playerId, null);
+                        });
+                    });
+
+                    $global((state) =>
+                        state.incrementScore(
+                            opposite(receivingTeam),
+                            SCORES.SAFETY,
+                        ),
+                    );
+
+                    $next({
+                        to: "SAFETY",
+                        params: {
+                            kickingTeam: opposite(receivingTeam),
+                        },
+                        wait: ticks({ seconds: 2 }),
+                    });
+            }
+        } else {
+            const catcherNames = formatNames(catchers);
+            const fieldPos = getFieldPosition(frame.player.x);
+
+            $effect(($) => {
+                $.send(t`${frame.player.name} tackled by ${catcherNames}!`);
+                $.stat("PUNT_RETURN_TACKLED");
+
+                catchers.forEach((p) => {
+                    $.setAvatar(p.id, AVATARS.MUSCLE);
+                });
+
+                $.setAvatar(playerId, AVATARS.CANCEL);
+            });
+
+            $dispose(() => {
                 $effect(($) => {
-                    $.send(t`${player.name} tackled by ${catcherNames}!`);
-                    $.stat("PUNT_RETURN_TACKLED");
+                    $.setAvatar(playerId, null);
 
                     catchers.forEach((p) => {
-                        $.setAvatar(p.id, AVATARS.MUSCLE);
-                    });
-
-                    $.setAvatar(playerId, AVATARS.CANCEL);
-                });
-
-                $dispose(() => {
-                    $effect(($) => {
-                        $.setAvatar(playerId, null);
-
-                        catchers.forEach((p) => {
-                            $.setAvatar(p.id, null);
-                        });
+                        $.setAvatar(p.id, null);
                     });
                 });
+            });
 
-                $next({
-                    to: "PRESNAP",
-                    params: {
-                        downState: getInitialDownState(receivingTeam, fieldPos),
-                    },
-                    wait: ticks({ seconds: 1 }),
-                });
-            }
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: getInitialDownState(receivingTeam, fieldPos),
+                },
+                wait: ticks({ seconds: 1 }),
+            });
         }
+    }
+
+    function run(state: GameState) {
+        const frame = buildPuntReturnFrame(state);
+        if (!frame) return;
+
+        $advanceEndzoneState(frame);
+        $handleTouchdown(frame);
+        $handleOutOfBounds(frame);
+        $handleTackle(frame);
     }
 
     function dispose() {

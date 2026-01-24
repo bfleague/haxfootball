@@ -1,4 +1,4 @@
-import type { GameState } from "@common/engine";
+import type { GameState, GameStatePlayer } from "@common/engine";
 import { $dispose, $effect, $next } from "@common/runtime";
 import { AVATARS, findBallCatchers, findCatchers, ticks } from "@common/utils";
 import {
@@ -6,7 +6,7 @@ import {
     DownState,
     processDownEvent,
 } from "@meta/legacy/utils/down";
-import { cn } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/utils/message";
 import {
     applyOffensivePenalty,
     processOffensivePenalty,
@@ -29,6 +29,13 @@ import {
 } from "@meta/legacy/hooks/game";
 
 const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
+
+type BlitzFrame = {
+    state: GameState;
+    quarterback: GameStatePlayer;
+    defenders: GameStatePlayer[];
+    quarterbackCrossedLineOfScrimmage: boolean;
+};
 
 export function Blitz({
     downState,
@@ -55,92 +62,13 @@ export function Blitz({
         $.setAvatar(quarterbackId, AVATARS.BALL);
     });
 
-    function run(state: GameState) {
+    function buildBlitzFrame(state: GameState): BlitzFrame | null {
         const quarterback = state.players.find((p) => p.id === quarterbackId);
-        if (!quarterback) return;
+        if (!quarterback) return null;
 
         const defenders = state.players.filter(
             (player) => player.team !== offensiveTeam,
         );
-
-        if (!ballIsDead && quarterback.isKickingBall) {
-            $next({
-                to: "SNAP_IN_FLIGHT",
-                params: { downState },
-            });
-        }
-
-        const offensiveTouchers = findBallCatchers(
-            state.ball,
-            state.players.filter(
-                (player) =>
-                    player.team === offensiveTeam &&
-                    player.id !== quarterbackId,
-            ),
-        );
-
-        if (offensiveTouchers.length > 0) {
-            const offenderNames = offensiveTouchers
-                .map((player) => player.name)
-                .join(", ");
-
-            const baseMessage =
-                offenderNames.length > 0
-                    ? t`Illegal touching by ${offenderNames}, 5 yard penalty.`
-                    : t`Illegal touching, 5 yard penalty.`;
-
-            const penaltyResult = applyOffensivePenalty(
-                downState,
-                -OFFENSIVE_FOUL_PENALTY_YARDS,
-            );
-
-            processOffensivePenalty({
-                event: penaltyResult.event,
-                onNextDown() {
-                    $effect(($) => {
-                        $.send(
-                            cn(
-                                penaltyResult.downState,
-                                `${baseMessage} ${t`Loss of down.`}`,
-                            ),
-                        );
-                    });
-                },
-                onTurnoverOnDowns() {
-                    $effect(($) => {
-                        $.send(
-                            cn(
-                                penaltyResult.downState,
-                                `${baseMessage} ${t`Turnover on downs.`}`,
-                            ),
-                        );
-                    });
-                },
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: penaltyResult.downState,
-                },
-            });
-        }
-
-        if (!ballIsDead) {
-            const defensiveTouchers = findBallCatchers(state.ball, defenders);
-
-            if (defensiveTouchers.length > 0) {
-                $setBallInactive();
-                $next({
-                    to: "BLITZ",
-                    params: {
-                        downState,
-                        quarterbackId,
-                        ballIsDead: true,
-                    },
-                });
-            }
-        }
 
         const quarterbackCrossedLineOfScrimmage =
             calculateDirectionalGain(
@@ -148,131 +76,119 @@ export function Blitz({
                 quarterback.x - lineOfScrimmageX,
             ) > 0;
 
-        if (quarterbackCrossedLineOfScrimmage) {
-            $effect(($) => {
-                $.send(
-                    t`Quarterback has crossed the line of scrimmage, starting quarterback run.`,
-                );
-            });
+        return {
+            state,
+            quarterback,
+            defenders,
+            quarterbackCrossedLineOfScrimmage,
+        };
+    }
 
-            $next({
-                to: "QUARTERBACK_RUN",
-                params: {
-                    playerId: quarterbackId,
-                    downState,
-                },
-            });
-        }
+    function $handleQuarterbackKick(frame: BlitzFrame) {
+        if (ballIsDead || !frame.quarterback.isKickingBall) return;
 
-        if (isOutOfBounds(quarterback)) {
-            const fieldPos = getFieldPosition(quarterback.x);
+        $next({
+            to: "SNAP_IN_FLIGHT",
+            params: { downState },
+        });
+    }
 
-            if (isInMainField(quarterback)) {
-                const { downState: nextDownState, event } = advanceDownState(
-                    downState,
-                    fieldPos,
-                );
+    function $handleOffensiveIllegalTouching(frame: BlitzFrame) {
+        const offensiveTouchers = findBallCatchers(
+            frame.state.ball,
+            frame.state.players.filter(
+                (player) =>
+                    player.team === offensiveTeam &&
+                    player.id !== frame.quarterback.id,
+            ),
+        );
 
-                processDownEvent({
-                    event,
-                    onFirstDown() {
-                        $effect(($) => {
-                            $.send(
-                                cn(nextDownState, t`First down!`),
-                            );
-                        });
-                    },
-                    onNextDown: {
-                        onYardsGained(yardsGained: number) {
-                            $effect(($) => {
-                                $.send(
-                                    cn(
-                                        nextDownState,
-                                        t`Next down after a gain of ${yardsGained} yards!`,
-                                    ),
-                                );
-                            });
-                        },
-                        onNoGain() {
-                            $effect(($) => {
-                                $.send(
-                                    cn(
-                                        nextDownState,
-                                        t`Next down with no gain!`,
-                                    ),
-                                );
-                            });
-                        },
-                        onLoss(yardsLost: number) {
-                            $effect(($) => {
-                                $.send(
-                                    cn(
-                                        nextDownState,
-                                        t`Next down after a loss of ${yardsLost} yards!`,
-                                    ),
-                                );
-                            });
-                        },
-                    },
-                    onTurnoverOnDowns() {
-                        $effect(($) => {
-                            $.send(
-                                cn(nextDownState, t`Turnover on downs!`),
-                            );
-                        });
-                    },
-                });
+        if (offensiveTouchers.length === 0) return;
 
-                $effect(($) => {
-                    $.setAvatar(quarterbackId, AVATARS.CANCEL);
-                });
+        const offenderNames = formatNames(offensiveTouchers);
 
-                $dispose(() => {
-                    $effect(($) => {
-                        $.setAvatar(quarterbackId, null);
-                    });
-                });
+        const penaltyResult = applyOffensivePenalty(
+            downState,
+            -OFFENSIVE_FOUL_PENALTY_YARDS,
+        );
 
-                $next({
-                    to: "PRESNAP",
-                    params: {
-                        downState: nextDownState,
-                    },
-                    wait: ticks({ seconds: 1 }),
-                });
-            } else {
+        processOffensivePenalty({
+            event: penaltyResult.event,
+            onNextDown() {
                 $effect(($) => {
                     $.send(
-                        t`${quarterback.name} went out of bounds in the end zone for a safety!`,
+                        cn(
+                            penaltyResult.downState,
+                            t`Illegal touching by ${offenderNames}, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Loss of down.`,
+                        ),
                     );
-
-                    $.setAvatar(quarterbackId, AVATARS.CLOWN);
                 });
-
-                $dispose(() => {
-                    $effect(($) => {
-                        $.setAvatar(quarterbackId, null);
-                    });
+            },
+            onTurnoverOnDowns() {
+                $effect(($) => {
+                    $.send(
+                        cn(
+                            penaltyResult.downState,
+                            t`Illegal touching by ${offenderNames}, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Turnover on downs.`,
+                        ),
+                    );
                 });
+            },
+        });
 
-                $next({
-                    to: "SAFETY",
-                    params: {
-                        kickingTeam: offensiveTeam,
-                    },
-                    wait: ticks({ seconds: 2 }),
-                });
-            }
-        }
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: penaltyResult.downState,
+            },
+        });
+    }
 
-        const catchers = findCatchers(quarterback, defenders);
+    function $handleDefensiveTouching(frame: BlitzFrame) {
+        if (ballIsDead) return;
 
-        if (catchers.length > 0) {
-            const catcherNames = catchers
-                .map((player) => player.name)
-                .join(", ");
-            const fieldPos = getFieldPosition(quarterback.x);
+        const defensiveTouchers = findBallCatchers(
+            frame.state.ball,
+            frame.defenders,
+        );
 
+        if (defensiveTouchers.length === 0) return;
+
+        $setBallInactive();
+        $next({
+            to: "BLITZ",
+            params: {
+                downState,
+                quarterbackId,
+                ballIsDead: true,
+            },
+        });
+    }
+
+    function $handleQuarterbackCrossedLine(frame: BlitzFrame) {
+        if (!frame.quarterbackCrossedLineOfScrimmage) return;
+
+        $effect(($) => {
+            $.send(
+                t`Quarterback has crossed the line of scrimmage, starting quarterback run.`,
+            );
+        });
+
+        $next({
+            to: "QUARTERBACK_RUN",
+            params: {
+                playerId: quarterbackId,
+                downState,
+            },
+        });
+    }
+
+    function $handleQuarterbackOutOfBounds(frame: BlitzFrame) {
+        if (!isOutOfBounds(frame.quarterback)) return;
+
+        const fieldPos = getFieldPosition(frame.quarterback.x);
+
+        if (isInMainField(frame.quarterback)) {
             const { downState: nextDownState, event } = advanceDownState(
                 downState,
                 fieldPos,
@@ -282,12 +198,7 @@ export function Blitz({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(
-                            cn(
-                                nextDownState,
-                                t`${quarterback.name} sacked by ${catcherNames} for a first down!`,
-                            ),
-                        );
+                        $.send(cn(nextDownState, t`First down!`));
                     });
                 },
                 onNextDown: {
@@ -296,19 +207,14 @@ export function Blitz({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`${quarterback.name} sacked by ${catcherNames} for a gain of ${yardsGained} yards, next down!`,
+                                    t`Next down after a gain of ${yardsGained} yards!`,
                                 ),
                             );
                         });
                     },
                     onNoGain() {
                         $effect(($) => {
-                            $.send(
-                                cn(
-                                    nextDownState,
-                                    t`${quarterback.name} sacked by ${catcherNames} with no gain, next down!`,
-                                ),
-                            );
+                            $.send(cn(nextDownState, t`Next down with no gain!`));
                         });
                     },
                     onLoss(yardsLost: number) {
@@ -316,7 +222,7 @@ export function Blitz({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`${quarterback.name} sacked by ${catcherNames} for a loss of ${yardsLost} yards, next down!`,
+                                    t`Next down after a loss of ${yardsLost} yards!`,
                                 ),
                             );
                         });
@@ -324,31 +230,18 @@ export function Blitz({
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(
-                            cn(
-                                nextDownState,
-                                t`${quarterback.name} sacked by ${catcherNames}, turnover on downs!`,
-                            ),
-                        );
+                        $.send(cn(nextDownState, t`Turnover on downs!`));
                     });
                 },
             });
 
             $effect(($) => {
                 $.setAvatar(quarterbackId, AVATARS.CANCEL);
-
-                catchers.forEach((player) => {
-                    $.setAvatar(player.id, AVATARS.MUSCLE);
-                });
             });
 
             $dispose(() => {
                 $effect(($) => {
                     $.setAvatar(quarterbackId, null);
-
-                    catchers.forEach((player) => {
-                        $.setAvatar(player.id, null);
-                    });
                 });
             });
 
@@ -359,7 +252,136 @@ export function Blitz({
                 },
                 wait: ticks({ seconds: 1 }),
             });
+        } else {
+            $effect(($) => {
+                $.send(
+                    t`${frame.quarterback.name} went out of bounds in the end zone for a safety!`,
+                );
+
+                $.setAvatar(quarterbackId, AVATARS.CLOWN);
+            });
+
+            $dispose(() => {
+                $effect(($) => {
+                    $.setAvatar(quarterbackId, null);
+                });
+            });
+
+            $next({
+                to: "SAFETY",
+                params: {
+                    kickingTeam: offensiveTeam,
+                },
+                wait: ticks({ seconds: 2 }),
+            });
         }
+    }
+
+    function $handleQuarterbackSacked(frame: BlitzFrame) {
+        const catchers = findCatchers(frame.quarterback, frame.defenders);
+        if (catchers.length === 0) return;
+
+        const catcherNames = formatNames(catchers);
+        const fieldPos = getFieldPosition(frame.quarterback.x);
+
+        const { downState: nextDownState, event } = advanceDownState(
+            downState,
+            fieldPos,
+        );
+
+        processDownEvent({
+            event,
+            onFirstDown() {
+                $effect(($) => {
+                    $.send(
+                        cn(
+                            nextDownState,
+                            t`${frame.quarterback.name} sacked by ${catcherNames} for a first down!`,
+                        ),
+                    );
+                });
+            },
+            onNextDown: {
+                onYardsGained(yardsGained: number) {
+                    $effect(($) => {
+                        $.send(
+                            cn(
+                                nextDownState,
+                                t`${frame.quarterback.name} sacked by ${catcherNames} for a gain of ${yardsGained} yards, next down!`,
+                            ),
+                        );
+                    });
+                },
+                onNoGain() {
+                    $effect(($) => {
+                        $.send(
+                            cn(
+                                nextDownState,
+                                t`${frame.quarterback.name} sacked by ${catcherNames} with no gain, next down!`,
+                            ),
+                        );
+                    });
+                },
+                onLoss(yardsLost: number) {
+                    $effect(($) => {
+                        $.send(
+                            cn(
+                                nextDownState,
+                                t`${frame.quarterback.name} sacked by ${catcherNames} for a loss of ${yardsLost} yards, next down!`,
+                            ),
+                        );
+                    });
+                },
+            },
+            onTurnoverOnDowns() {
+                $effect(($) => {
+                    $.send(
+                        cn(
+                            nextDownState,
+                            t`${frame.quarterback.name} sacked by ${catcherNames}, turnover on downs!`,
+                        ),
+                    );
+                });
+            },
+        });
+
+        $effect(($) => {
+            $.setAvatar(quarterbackId, AVATARS.CANCEL);
+
+            catchers.forEach((player) => {
+                $.setAvatar(player.id, AVATARS.MUSCLE);
+            });
+        });
+
+        $dispose(() => {
+            $effect(($) => {
+                $.setAvatar(quarterbackId, null);
+
+                catchers.forEach((player) => {
+                    $.setAvatar(player.id, null);
+                });
+            });
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: nextDownState,
+            },
+            wait: ticks({ seconds: 1 }),
+        });
+    }
+
+    function run(state: GameState) {
+        const frame = buildBlitzFrame(state);
+        if (!frame) return;
+
+        $handleQuarterbackKick(frame);
+        $handleOffensiveIllegalTouching(frame);
+        $handleDefensiveTouching(frame);
+        $handleQuarterbackCrossedLine(frame);
+        $handleQuarterbackOutOfBounds(frame);
+        $handleQuarterbackSacked(frame);
     }
 
     function dispose() {
