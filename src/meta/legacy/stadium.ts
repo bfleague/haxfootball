@@ -10,7 +10,7 @@ import {
     vLine,
 } from "@stadium/utils";
 
-export const legacyStadiumSchema = {
+const schema = {
     name: "HaxFootball (Legacy)",
     canBeStored: false,
     width: 1090,
@@ -1095,4 +1095,4 @@ export const legacyStadiumSchema = {
 } satisfies StadiumSchema;
 
 export const { stadium: legacyStadium, index: legacyStadiumIndex } =
-    defineStadium(legacyStadiumSchema);
+    defineStadium(schema);
