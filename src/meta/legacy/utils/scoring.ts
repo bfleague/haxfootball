@@ -1,11 +1,12 @@
-import { opposite, PointLike } from "@common/utils";
+import { PointLike } from "@common/math";
+import { opposite } from "@common/game";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
     intersectsEndZone,
     isOutOfBounds,
 } from "./stadium";
-import { FieldTeam } from "@common/models";
+import { FieldTeam } from "@runtime/models";
 
 export const SCORES = {
     SAFETY: 2,

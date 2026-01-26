@@ -27,6 +27,7 @@ module.exports = {
                     "@environment": "./src/environments",
                     "@meta": "./src/meta",
                     "@room": "./src/room",
+                    "@runtime": "./src/runtime",
                     "@types": "./src/types",
                     "@dev": "./src/dev",
                     "@i18n": "./src/i18n",

@@ -20,7 +20,7 @@
         "noEmit": true,
         "baseUrl": ".",
         "paths": {
-            "@common/*": ["./src/common/*"],
+            "@runtime/*": ["./src/runtime/*"],
             "@core/*": ["./src/core/*"],
             "@haxball/*": ["./src/haxball/*"],
             "@environment/*": ["./src/environments/*"],
@@ -28,7 +28,8 @@
             "@room/*": ["./src/room/*"],
             "@types/*": ["./src/types/*"],
             "@dev/*": ["./src/dev/*"],
-            "@i18n": ["./src/i18n.ts"]
+            "@i18n": ["./src/i18n.ts"],
+            "@common/*": ["./src/common/*"]
         }
     },
     "exclude": ["prettier.config.js"]

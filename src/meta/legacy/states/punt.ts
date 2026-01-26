@@ -1,9 +1,10 @@
-import type { GameState } from "@common/engine";
-import { Team, type FieldTeam } from "@common/models";
-import { distributeOnLine, opposite } from "@common/utils";
+import type { GameState } from "@runtime/engine";
+import { Team, type FieldTeam } from "@runtime/models";
+import { distributeOnLine } from "@common/math";
+import { opposite } from "@common/game";
 import { t } from "@lingui/core/macro";
-import { $dispose, $effect } from "@common/hooks";
-import { $next } from "@common/runtime";
+import { $dispose, $effect } from "@runtime/hooks";
+import { $next } from "@runtime/runtime";
 import {
     $lockBall,
     $setBallKickForce,

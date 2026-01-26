@@ -1,6 +1,7 @@
-import type { GameState, GameStatePlayer } from "@common/engine";
-import { $dispose, $effect, $next } from "@common/runtime";
-import { AVATARS, findBallCatchers, findCatchers, ticks } from "@common/utils";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
+import { $dispose, $effect, $next } from "@runtime/runtime";
+import { ticks } from "@common/time";
+import { AVATARS, findBallCatchers, findCatchers } from "@common/game";
 import {
     advanceDownState,
     DownState,
@@ -229,7 +230,9 @@ export function Blitz({
                     },
                     onNoGain() {
                         $effect(($) => {
-                            $.send(cn(nextDownState, t`Next down with no gain!`));
+                            $.send(
+                                cn(nextDownState, t`Next down with no gain!`),
+                            );
                         });
                     },
                     onLoss(yardsLost: number) {
@@ -303,10 +306,7 @@ export function Blitz({
             downState,
             fieldPos,
         );
-        const nextDownState = withLastBallY(
-            baseDownState,
-            frame.quarterback.y,
-        );
+        const nextDownState = withLastBallY(baseDownState, frame.quarterback.y);
 
         processDownEvent({
             event,

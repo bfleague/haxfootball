@@ -1,37 +1,15 @@
-import { Team, type FieldTeam } from "@common/models";
+export type Point = { x: number; y: number };
 
-export const AVATARS = {
-    BALL: "🏈",
-    CANCEL: "❌",
-    MUSCLE: "💪",
-    CLOWN: "🤡",
-    FIRE: "🔥",
-    CONSTRUCTION: "🚧",
-    DIZZY: "😵",
-};
-
-export const DEFAULT_TOUCHING_DISTANCE = 0.5;
-
-export function opposite(t: FieldTeam): FieldTeam {
-    return t === Team.RED ? Team.BLUE : Team.RED;
-}
-
-export type FieldPosition = { yards: number; side: FieldTeam };
-
-export type PointLike = { x: number; y: number; radius?: number | null };
-type IdentifiedPointLike = PointLike & { id: number };
-type MaybeKickableIdentifiedPointLike = IdentifiedPointLike & {
-    isKickingBall?: boolean;
-};
+export type PointLike = Point & { radius?: number | null };
 
 export interface Line {
-    start: { x: number; y: number };
-    end: { x: number; y: number };
+    start: Point;
+    end: Point;
 }
 
 export interface Ray {
-    origin: { x: number; y: number };
-    direction: { x: number; y: number };
+    origin: Point;
+    direction: Point;
 }
 
 export type LineDistributionMode =
@@ -77,63 +55,34 @@ export function getMidpoint(a: PointLike, b: PointLike): PointLike {
     };
 }
 
-export function findBallCatchers<T extends MaybeKickableIdentifiedPointLike>(
-    ball: PointLike,
-    players: T[],
-    maxDistance = DEFAULT_TOUCHING_DISTANCE,
-): T[] {
-    return players.filter((p) => {
-        const distance = getDistance(p, ball);
-
-        return p.isKickingBall || distance <= maxDistance;
-    });
-}
-
-export function findBallCatcher<T extends MaybeKickableIdentifiedPointLike>(
-    ball: PointLike,
-    players: T[],
-    maxDistance = DEFAULT_TOUCHING_DISTANCE,
+export function findClosest<T extends PointLike>(
+    target: PointLike,
+    points: T[],
 ): T | null {
-    for (const p of players) {
-        const distance = getDistance(p, ball);
+    if (points.length === 0) return null;
 
-        if (p.isKickingBall || distance <= maxDistance) {
-            return p;
-        }
-    }
+    return points.reduce<T | null>((closest, point) => {
+        if (!closest) return point;
 
-    return null;
+        const closestDistance = getDistance(closest, target);
+        const pointDistance = getDistance(point, target);
+
+        return pointDistance < closestDistance ? point : closest;
+    }, null);
 }
 
-export function findCatchers<T extends MaybeKickableIdentifiedPointLike>(
-    a: MaybeKickableIdentifiedPointLike,
-    players: T[],
-    maxDistance = DEFAULT_TOUCHING_DISTANCE,
-): T[] {
-    return players.filter((p) => {
-        if (p.id === a.id) return false;
+export type Selector<T, R> = (item: T) => R;
 
-        const distance = getDistance(p, a);
-        return distance <= maxDistance;
-    });
+export function sortBy<T>(items: T[], selector: Selector<T, number>): T[] {
+    return [...items].sort((a, b) => selector(a) - selector(b));
 }
 
-export function findCatcher<T extends MaybeKickableIdentifiedPointLike>(
-    a: MaybeKickableIdentifiedPointLike,
-    players: T[],
-    maxDistance = DEFAULT_TOUCHING_DISTANCE,
-): T | null {
-    for (const p of players) {
-        if (p.id === a.id) continue;
-
-        const distance = getDistance(p, a);
-
-        if (distance <= maxDistance) {
-            return p;
-        }
-    }
-
-    return null;
+export function verticalLine(x: number, centerY: number, height: number): Line {
+    const halfHeight = height / 2;
+    return {
+        start: { x, y: centerY - halfHeight },
+        end: { x, y: centerY + halfHeight },
+    };
 }
 
 export function distributeOnLine<T extends PointLike>(
@@ -222,67 +171,6 @@ export function distributeOnLine<T extends PointLike>(
             y,
         };
     });
-}
-
-export function calculateFieldPosition(
-    x: number,
-    startX: number,
-    endX: number,
-    yardLength: number,
-): FieldPosition {
-    if (x < startX) return { side: Team.RED, yards: 1 };
-    if (x > endX) return { side: Team.BLUE, yards: 1 };
-
-    const yardsFromCenter = Math.round(x / yardLength);
-    const yardsComplement = 50 - Math.abs(yardsFromCenter);
-
-    return {
-        side: yardsFromCenter < 0 ? Team.RED : Team.BLUE,
-        yards: yardsComplement || 1,
-    };
-}
-
-export function calculatePositionFromFieldPosition(
-    position: FieldPosition,
-    startX: number,
-    endX: number,
-    yardLength: number,
-): number {
-    if (position.side === Team.RED) {
-        return startX + yardLength * position.yards;
-    } else {
-        return endX - yardLength * position.yards;
-    }
-}
-
-type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
-    T,
-    Exclude<keyof T, Keys>
-> &
-    {
-        [K in Keys]-?: Required<Pick<T, K>> &
-            Partial<Pick<T, Exclude<Keys, K>>>;
-    }[Keys];
-
-export type TimeInput = RequireAtLeastOne<{
-    hours?: number;
-    minutes?: number;
-    seconds?: number;
-    milliseconds?: number;
-}>;
-
-export function ticks(time: TimeInput): number {
-    const hours = time.hours ?? 0;
-    const minutes = time.minutes ?? 0;
-    const seconds = time.seconds ?? 0;
-    const milliseconds = time.milliseconds ?? 0;
-
-    const totalSeconds = (hours * 60 + minutes) * 60 + seconds;
-    const ticksFromSeconds = totalSeconds * 60;
-
-    const ticksFromMs = Math.round((milliseconds * 60) / 1000);
-
-    return ticksFromSeconds + ticksFromMs;
 }
 
 type VertexID = number;

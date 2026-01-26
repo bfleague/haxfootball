@@ -1,4 +1,4 @@
-import { CommandConfig, CommandResponse, CommandSpec } from "@common/commands";
+import { CommandConfig, CommandResponse, CommandSpec } from "@runtime/commands";
 import { Room } from "@core/room";
 
 type NormalizedCommandConfig = {
@@ -230,9 +230,7 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
 
     const commandConfigs = modules
         .map((module) => module.getCommandConfig())
-        .filter(
-            (config): config is NormalizedCommandConfig => config !== null,
-        );
+        .filter((config): config is NormalizedCommandConfig => config !== null);
 
     const commandSpec = commandConfigs[0]?.spec ?? null;
 

@@ -1,7 +1,8 @@
-import { $dispose, $effect, $next } from "@common/hooks";
-import type { FieldTeam } from "@common/models";
-import { opposite, findBallCatcher, ticks, AVATARS } from "@common/utils";
-import type { GameState, GameStatePlayer } from "@common/engine";
+import { $dispose, $effect, $next } from "@runtime/hooks";
+import type { FieldTeam } from "@runtime/models";
+import { ticks } from "@common/time";
+import { AVATARS, findBallCatcher, opposite } from "@common/game";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
 import {
     getFieldPosition,

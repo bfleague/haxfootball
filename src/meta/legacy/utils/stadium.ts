@@ -1,14 +1,17 @@
-import { Team, type FieldTeam } from "@common/models";
+import { Team, type FieldTeam } from "@runtime/models";
 import {
-    calculateFieldPosition,
-    calculatePositionFromFieldPosition,
     dashedRectangleFromSegments,
-    FieldPosition,
+    getDistance,
     intersectsRectangle,
     Line,
     PointLike,
     Ray,
-} from "@common/utils";
+} from "@common/math";
+import {
+    calculateFieldPosition,
+    calculatePositionFromFieldPosition,
+    FieldPosition,
+} from "@common/game";
 
 const MapMeasures = {
     END_ZONE_RED: {
@@ -107,6 +110,14 @@ export const SPECIAL_HIDDEN_POSITION = {
 
 export const TOUCHBACK_YARD_LINE = 25;
 export const KICKOFF_OUT_OF_BOUNDS_YARD_LINE = 40;
+
+export function offsetXByYards(
+    baseX: number,
+    direction: 1 | -1,
+    yards: number,
+): number {
+    return baseX + direction * yards * YARD_LENGTH;
+}
 
 export const BALL_DISC_ID = 0;
 export const BALL_ACTIVE_COLOR = 0x631515;
@@ -724,23 +735,17 @@ export function getRayIntersectionWithOuterField(ray: Ray): PointLike | null {
             (result): result is { intersects: true; point: PointLike } =>
                 result.intersects,
         )
-        .map((result) => {
-            const dx = result.point.x - ray.origin.x;
-            const dy = result.point.y - ray.origin.y;
-
-            return {
-                point: result.point,
-                distanceSquared: dx * dx + dy * dy,
-            };
-        });
+        .map((result) => ({
+            point: result.point,
+            distance: getDistance(result.point, ray.origin),
+        }));
 
     const [first] = intersections;
 
     if (!first) return null;
 
     const closest = intersections.reduce(
-        (best, current) =>
-            current.distanceSquared < best.distanceSquared ? current : best,
+        (best, current) => (current.distance < best.distance ? current : best),
         first,
     );
 

@@ -1,5 +1,5 @@
-import { FieldTeam } from "@common/models";
-import { FieldPosition, opposite } from "@common/utils";
+import { FieldTeam } from "@runtime/models";
+import { FieldPosition, opposite } from "@common/game";
 import { calculateYardsGained, isInRedZone } from "./stadium";
 
 export type DownAndDistance = {

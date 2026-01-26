@@ -1,9 +1,9 @@
 import { createModule } from "@core/module";
-import { COMMAND_PREFIX } from "@common/commands";
-import { createEngine, type Engine } from "@common/engine";
+import { COMMAND_PREFIX } from "@runtime/commands";
+import { createEngine, type Engine } from "@runtime/engine";
 import { registry, stadium } from "@meta/legacy/meta";
 import { defaultConfig, type Config } from "@meta/legacy/config";
-import { Team } from "@common/models";
+import { Team } from "@runtime/models";
 import { initializeGlobalState } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
 

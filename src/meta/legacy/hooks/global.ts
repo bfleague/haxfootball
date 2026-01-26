@@ -1,4 +1,4 @@
-import { $effect } from "@common/runtime";
+import { $effect } from "@runtime/runtime";
 import { getGlobalState, GlobalState, GlobalStore } from "@meta/legacy/global";
 
 export function $global(fn: (state: GlobalStore) => void): void;

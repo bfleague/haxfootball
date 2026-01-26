@@ -1,4 +1,4 @@
-import type { GameState, GameStatePlayer } from "@common/engine";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
 import {
     advanceDownState,
     DownState,
@@ -7,8 +7,9 @@ import {
 } from "@meta/legacy/utils/down";
 import { cn, formatNames } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
-import { $dispose, $effect, $next } from "@common/runtime";
-import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
+import { $dispose, $effect, $next } from "@runtime/runtime";
+import { ticks } from "@common/time";
+import { AVATARS, findCatchers, opposite } from "@common/game";
 import {
     getFieldPosition,
     isInMainField,
@@ -112,10 +113,7 @@ export function QuarterbackRun({
                 downState,
                 fieldPos,
             );
-            const nextDownState = withLastBallY(
-                baseDownState,
-                frame.player.y,
-            );
+            const nextDownState = withLastBallY(baseDownState, frame.player.y);
 
             processDownEvent({
                 event,

@@ -1,6 +1,6 @@
-import { $effect } from "@common/hooks";
-import { Team } from "@common/models";
-import type { EffectApi } from "@common/runtime";
+import { $effect } from "@runtime/hooks";
+import { Team } from "@runtime/models";
+import type { EffectApi } from "@runtime/runtime";
 
 const PLAYER_MOVEABLE_INV_MASS = 0.5;
 const PLAYER_UNMOVEABLE_INV_MASS = 1e26;

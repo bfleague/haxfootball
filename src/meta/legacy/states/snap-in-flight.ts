@@ -1,6 +1,7 @@
-import { $dispose, $effect, $next } from "@common/hooks";
-import { findBallCatcher, ticks } from "@common/utils";
-import type { GameState } from "@common/engine";
+import { $dispose, $effect, $next } from "@runtime/hooks";
+import { ticks } from "@common/time";
+import { findBallCatcher } from "@common/game";
+import type { GameState } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
 import { isOutOfBounds } from "@meta/legacy/utils/stadium";
 import {

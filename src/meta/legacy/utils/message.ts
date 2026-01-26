@@ -1,8 +1,8 @@
 import { i18n } from "@lingui/core";
 import { plural, t } from "@lingui/core/macro";
 import { DownState } from "./down";
-import { FieldPosition } from "@common/utils";
-import { Team } from "@common/models";
+import { FieldPosition } from "@common/game";
+import { Team } from "@runtime/models";
 import { RED_ZONE_FOUL_LIMIT } from "./penalty";
 
 export const DIV = t`•`;

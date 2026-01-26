@@ -1,13 +1,13 @@
-import type { GameState, GameStateBall, GameStatePlayer } from "@common/engine";
-import { FieldTeam } from "@common/models";
-import { $before, $dispose, $effect, $next } from "@common/runtime";
-import {
-    AVATARS,
-    findCatchers,
-    opposite,
-    PointLike,
-    ticks,
-} from "@common/utils";
+import type {
+    GameState,
+    GameStateBall,
+    GameStatePlayer,
+} from "@runtime/engine";
+import { FieldTeam } from "@runtime/models";
+import { $before, $dispose, $effect, $next } from "@runtime/runtime";
+import { PointLike } from "@common/math";
+import { ticks } from "@common/time";
+import { AVATARS, findCatchers, opposite } from "@common/game";
 import {
     $hideInterceptionPath,
     $setBallActive,

@@ -1,6 +1,7 @@
-import { Team, type FieldTeam } from "@common/models";
-import type { GameState } from "@common/engine";
-import { distributeOnLine, FieldPosition, opposite } from "@common/utils";
+import { Team, type FieldTeam } from "@runtime/models";
+import type { GameState } from "@runtime/engine";
+import { distributeOnLine } from "@common/math";
+import { FieldPosition, opposite } from "@common/game";
 import {
     $setBallKickForce,
     $setBallMoveable,
@@ -10,14 +11,14 @@ import {
     $trapTeamInEndZone,
     $untrapAllTeams,
 } from "@meta/legacy/hooks/physics";
-import { $dispose, $effect } from "@common/hooks";
+import { $dispose, $effect } from "@runtime/hooks";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
 } from "@meta/legacy/utils/stadium";
 import { $global } from "@meta/legacy/hooks/global";
 import { SCORES } from "@meta/legacy/utils/scoring";
-import { $next } from "@common/runtime";
+import { $next } from "@runtime/runtime";
 import { t } from "@lingui/core/macro";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {

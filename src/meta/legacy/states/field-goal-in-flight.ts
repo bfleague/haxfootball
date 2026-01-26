@@ -1,7 +1,8 @@
-import type { GameState } from "@common/engine";
-import { opposite, ticks } from "@common/utils";
+import type { GameState } from "@runtime/engine";
+import { ticks } from "@common/time";
+import { opposite } from "@common/game";
 import { t } from "@lingui/core/macro";
-import { $dispose, $effect, $next } from "@common/runtime";
+import { $dispose, $effect, $next } from "@runtime/runtime";
 import { $global } from "@meta/legacy/hooks/global";
 import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
@@ -19,11 +20,7 @@ const FIELD_GOAL_SUCCESS_DELAY = ticks({ seconds: 3 });
 const BALL_STOPPED_SPEED = 0.05;
 const BALL_STOPPED_SPEED_SQUARED = BALL_STOPPED_SPEED * BALL_STOPPED_SPEED;
 
-export function FieldGoalInFlight({
-    downState,
-}: {
-    downState: DownState;
-}) {
+export function FieldGoalInFlight({ downState }: { downState: DownState }) {
     const { offensiveTeam, fieldPos } = downState;
     const defensiveTeam = opposite(offensiveTeam);
     const failureDownState = getInitialDownState(

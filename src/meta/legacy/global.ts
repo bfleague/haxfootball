@@ -1,4 +1,4 @@
-import { FieldTeam, Team } from "@common/models";
+import { FieldTeam, Team } from "@runtime/models";
 import { createStore } from "zustand/vanilla";
 
 export type GlobalState = {

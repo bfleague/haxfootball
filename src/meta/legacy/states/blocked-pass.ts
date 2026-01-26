@@ -1,12 +1,13 @@
-import { GameState } from "@common/engine";
-import { $dispose, $effect, $next } from "@common/runtime";
+import { GameState } from "@runtime/engine";
+import { $dispose, $effect, $next } from "@runtime/runtime";
 import {
     DownState,
     incrementDownState,
     processDownEventIncrement,
     withLastBallYAtCenter,
 } from "@meta/legacy/utils/down";
-import { AVATARS, ticks } from "@common/utils";
+import { ticks } from "@common/time";
+import { AVATARS } from "@common/game";
 import {
     $setBallActive,
     $setBallInactive,

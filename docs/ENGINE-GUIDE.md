@@ -13,8 +13,8 @@ Check the meta registry for the authoritative list of states and their file path
 ## State API at a Glance
 
 ```ts
-import type { GameState, GameStatePlayer } from "@common/engine";
-import { $dispose, $effect, $next } from "@common/runtime";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
+import { $dispose, $effect, $next } from "@runtime/runtime";
 
 export function MyState({ someParam }: { someParam: number }) {
     // State setup happens when the state is created.
@@ -106,7 +106,7 @@ $effect(($) => {
 
 ## Common Helpers You Should Use
 
-Use project helpers rather than re-implementing rules or geometry. In this repo they live under `src/meta/legacy/utils/` and `src/meta/legacy/hooks/`, but future metas may organize them differently. Also use `@common/utils` helpers like `ticks`, `findCatchers`, `findBallCatchers`, and `distributeOnLine`.
+Use project helpers rather than re-implementing rules or geometry. In this repo they live under `src/meta/legacy/utils/` and `src/meta/legacy/hooks/`, but future metas may organize them differently. Also use `@runtime/utils` helpers like `ticks`, `findCatchers`, `findBallCatchers`, and `distributeOnLine`.
 
 ## Cleanup Discipline
 

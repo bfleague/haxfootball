@@ -1,4 +1,4 @@
-import type { GameState, GameStatePlayer } from "@common/engine";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
 import {
     advanceDownState,
     DownState,
@@ -8,8 +8,9 @@ import {
 } from "@meta/legacy/utils/down";
 import { cn, formatNames } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
-import { $before, $dispose, $effect, $next } from "@common/runtime";
-import { AVATARS, findCatchers, opposite, ticks } from "@common/utils";
+import { $before, $dispose, $effect, $next } from "@runtime/runtime";
+import { ticks } from "@common/time";
+import { AVATARS, findCatchers, opposite } from "@common/game";
 import {
     getFieldPosition,
     isInMainField,
@@ -183,19 +184,14 @@ export function LiveBall({
                 downState,
                 fieldPos,
             );
-            const nextDownState = withLastBallY(
-                baseDownState,
-                frame.player.y,
-            );
+            const nextDownState = withLastBallY(baseDownState, frame.player.y);
 
             processDownEvent({
                 event,
                 onFirstDown() {
                     $effect(($) => {
                         $.send(cn(nextDownState, t`First down!`));
-                        $.stat(
-                            "LIVE_BALL_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE",
-                        );
+                        $.stat("LIVE_BALL_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
                     });
                 },
                 onNextDown: {
@@ -215,10 +211,7 @@ export function LiveBall({
                     onNoGain() {
                         $effect(($) => {
                             $.send(
-                                cn(
-                                    nextDownState,
-                                    t`Next down with no gain!`,
-                                ),
+                                cn(nextDownState, t`Next down with no gain!`),
                             );
                             $.stat(
                                 "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",

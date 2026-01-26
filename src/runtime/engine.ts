@@ -5,10 +5,10 @@ import {
     createMutationBuffer,
     type MutationBuffer,
     type Transition,
-} from "@common/runtime";
+} from "@runtime/runtime";
 import { Room } from "@core/room";
-import { Team, type FieldTeam, isFieldTeam } from "@common/models";
-import { CommandHandleResult, CommandSpec } from "@common/commands";
+import { Team, type FieldTeam, isFieldTeam } from "@runtime/models";
+import { CommandHandleResult, CommandSpec } from "@runtime/commands";
 
 /**
  * Metas register state factories by string key.

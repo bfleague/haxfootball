@@ -1,11 +1,7 @@
-import type { GameState, GameStatePlayer } from "@common/engine";
-import {
-    AVATARS,
-    findBallCatchers,
-    findCatchers,
-    getDistance,
-    ticks,
-} from "@common/utils";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
+import { getDistance } from "@common/math";
+import { ticks } from "@common/time";
+import { AVATARS, findBallCatchers, findCatchers } from "@common/game";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     $hideCrowdingBoxes,
@@ -24,7 +20,7 @@ import {
     processOffensivePenalty,
 } from "@meta/legacy/utils/penalty";
 import { SCORES } from "@meta/legacy/utils/scoring";
-import { $before, $dispose, $effect, $next } from "@common/runtime";
+import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,

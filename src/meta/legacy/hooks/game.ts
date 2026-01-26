@@ -1,6 +1,7 @@
-import { $effect } from "@common/runtime";
-import { FieldPosition, Line } from "@common/utils";
-import { Team, type FieldTeam } from "@common/models";
+import { $effect } from "@runtime/runtime";
+import { Line } from "@common/math";
+import { FieldPosition } from "@common/game";
+import { Team, type FieldTeam } from "@runtime/models";
 import {
     arrangeCrowdingBoxes,
     getLineOfScrimmage,

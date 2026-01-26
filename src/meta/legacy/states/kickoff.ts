@@ -1,6 +1,7 @@
-import { $dispose, $effect, $next } from "@common/hooks";
-import { Team, type FieldTeam } from "@common/models";
-import { distributeOnLine, getMidpoint, opposite } from "@common/utils";
+import { $dispose, $effect, $next } from "@runtime/hooks";
+import { Team, type FieldTeam } from "@runtime/models";
+import { distributeOnLine, getMidpoint } from "@common/math";
+import { opposite } from "@common/game";
 import {
     $trapTeamInMidField,
     $trapTeamInEndZone,
@@ -13,7 +14,7 @@ import {
     $setBallInMiddleOfField,
     $setBallUnmoveableByPlayer,
 } from "@meta/legacy/hooks/physics";
-import type { GameState, GameStatePlayer } from "@common/engine";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
 
 const KICKOFF_START_LINE = {
     [Team.RED]: {

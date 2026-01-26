@@ -1,15 +1,20 @@
-import type { GameState, GameStateBall, GameStatePlayer } from "@common/engine";
-import { Team } from "@common/models";
+import type {
+    GameState,
+    GameStateBall,
+    GameStatePlayer,
+} from "@runtime/engine";
+import { Team } from "@runtime/models";
 import {
     distributeOnLine,
-    findBallCatchers,
-    findCatchers,
+    findClosest,
     getDistance,
-    opposite,
-    ticks,
-} from "@common/utils";
+    sortBy,
+    verticalLine,
+} from "@common/math";
+import { ticks } from "@common/time";
+import { findBallCatchers, findCatchers, opposite } from "@common/game";
 import { t } from "@lingui/core/macro";
-import { $before, $dispose, $effect, $next } from "@common/runtime";
+import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
     $setFirstDownLine,
     $setLineOfScrimmage,
@@ -34,10 +39,11 @@ import {
     getPositionFromFieldPosition,
     getRayIntersectionWithOuterField,
     intersectsGoalPosts,
+    offsetXByYards,
     YARD_LENGTH,
 } from "@meta/legacy/utils/stadium";
 
-const FIELD_GOAL_LINE_HALF_HEIGHT = 100;
+const FIELD_GOAL_LINE_HEIGHT = 200;
 const OFFENSE_LINE_OFFSET_YARDS = 20;
 const DEFENSE_LINE_OFFSET_YARDS = 15;
 const CENTER_OFFSET_YARDS = 10;
@@ -51,46 +57,6 @@ type Formation = {
     defenseLine: GameStatePlayer[];
     center: GameStatePlayer | null;
     kicker: GameStatePlayer | null;
-};
-
-const sortPlayersByY = (players: GameStatePlayer[]) =>
-    players.reduce<GameStatePlayer[]>((sorted, player) => {
-        const index = sorted.findIndex((item) => item.y > player.y);
-
-        return index === -1
-            ? [...sorted, player]
-            : [...sorted.slice(0, index), player, ...sorted.slice(index)];
-    }, []);
-
-const getClosestPlayer = (
-    players: GameStatePlayer[],
-    target: { x: number; y: number },
-): GameStatePlayer | null =>
-    players.reduce<GameStatePlayer | null>((closest, player) => {
-        if (!closest) return player;
-
-        const closestDistance = getDistance(closest, target);
-        const playerDistance = getDistance(player, target);
-
-        return playerDistance < closestDistance ? player : closest;
-    }, null);
-
-const getLineX = (ballX: number, direction: 1 | -1, offsetYards: number) =>
-    ballX + direction * offsetYards * YARD_LENGTH;
-
-const getLine = (lineX: number, centerY: number) => ({
-    start: { x: lineX, y: centerY - FIELD_GOAL_LINE_HALF_HEIGHT },
-    end: { x: lineX, y: centerY + FIELD_GOAL_LINE_HALF_HEIGHT },
-});
-
-const distanceSquared = (
-    a: { x: number; y: number },
-    b: { x: number; y: number },
-) => {
-    const dx = a.x - b.x;
-    const dy = a.y - b.y;
-
-    return dx * dx + dy * dy;
 };
 
 export function FieldGoal({
@@ -148,7 +114,7 @@ export function FieldGoal({
     const defenders = beforeState.players.filter(
         (player) => player.team === opposite(offensiveTeam),
     );
-    const center = getClosestPlayer(offensivePlayers, ballPos);
+    const center = findClosest(ballPos, offensivePlayers);
     const defenseLine = center
         ? offensivePlayers.filter((player) => player.id !== center.id)
         : offensivePlayers;
@@ -160,12 +126,12 @@ export function FieldGoal({
         center,
         kicker: kicker ?? null,
     };
-    const rawOffenseLineX = getLineX(
+    const rawOffenseLineX = offsetXByYards(
         ballPos.x,
         direction,
         OFFENSE_LINE_OFFSET_YARDS,
     );
-    const rawDefenseLineX = getLineX(
+    const rawDefenseLineX = offsetXByYards(
         ballPos.x,
         direction,
         DEFENSE_LINE_OFFSET_YARDS,
@@ -183,10 +149,14 @@ export function FieldGoal({
 
     $effect(($) => {
         if (formation.offenseLine.length > 0) {
-            const line = getLine(offenseLineX, ballPos.y);
+            const line = verticalLine(
+                offenseLineX,
+                ballPos.y,
+                FIELD_GOAL_LINE_HEIGHT,
+            );
 
             distributeOnLine(
-                sortPlayersByY(formation.offenseLine),
+                sortBy(formation.offenseLine, (p) => p.y),
                 line,
             ).forEach(({ id, x, y }) => {
                 $.setPlayerDiscProperties(id, { x, y, xspeed: 0, yspeed: 0 });
@@ -194,10 +164,14 @@ export function FieldGoal({
         }
 
         if (formation.defenseLine.length > 0) {
-            const line = getLine(defenseLineX, ballPos.y);
+            const line = verticalLine(
+                defenseLineX,
+                ballPos.y,
+                FIELD_GOAL_LINE_HEIGHT,
+            );
 
             distributeOnLine(
-                sortPlayersByY(formation.defenseLine),
+                sortBy(formation.defenseLine, (p) => p.y),
                 line,
             ).forEach(({ id, x, y }) => {
                 $.setPlayerDiscProperties(id, { x, y, xspeed: 0, yspeed: 0 });
@@ -205,7 +179,11 @@ export function FieldGoal({
         }
 
         if (formation.center) {
-            const centerX = getLineX(ballPos.x, direction, CENTER_OFFSET_YARDS);
+            const centerX = offsetXByYards(
+                ballPos.x,
+                direction,
+                CENTER_OFFSET_YARDS,
+            );
 
             $.setPlayerDiscProperties(formation.center.id, {
                 x: centerX,
@@ -216,7 +194,11 @@ export function FieldGoal({
         }
 
         if (formation.kicker) {
-            const kickerX = getLineX(ballPos.x, direction, KICKER_OFFSET_YARDS);
+            const kickerX = offsetXByYards(
+                ballPos.x,
+                direction,
+                KICKER_OFFSET_YARDS,
+            );
 
             $.setPlayerDiscProperties(formation.kicker.id, {
                 x: kickerX,
@@ -238,11 +220,8 @@ export function FieldGoal({
         if (!outOfBoundsPoint) return false;
         if (!goalIntersection.intersects) return true;
 
-        const goalDistance = distanceSquared(
-            ray.origin,
-            goalIntersection.point,
-        );
-        const outDistance = distanceSquared(ray.origin, outOfBoundsPoint);
+        const goalDistance = getDistance(ray.origin, goalIntersection.point);
+        const outDistance = getDistance(ray.origin, outOfBoundsPoint);
 
         return outDistance < goalDistance;
     };
