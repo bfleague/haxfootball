@@ -87,6 +87,7 @@ export function SafetyKickInFlight({
                     downState: getInitialDownState(
                         receivingTeam,
                         getFieldPosition(kickingTeamCatcher.x),
+                        kickingTeamCatcher.y,
                     ),
                 },
                 wait: ticks({ seconds: 2 }),

@@ -3,6 +3,7 @@ import {
     advanceDownState,
     DownState,
     processDownEvent,
+    withLastBallY,
 } from "@meta/legacy/utils/down";
 import { cn, formatNames } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
@@ -107,9 +108,13 @@ export function Run({
         const fieldPos = getFieldPosition(frame.player.x);
 
         if (isInMainField(frame.player)) {
-            const { downState: nextDownState, event } = advanceDownState(
+            const { downState: baseDownState, event } = advanceDownState(
                 downState,
                 fieldPos,
+            );
+            const nextDownState = withLastBallY(
+                baseDownState,
+                frame.player.y,
             );
 
             processDownEvent({
@@ -216,10 +221,11 @@ export function Run({
         const catcherNames = formatNames(catchers);
         const fieldPos = getFieldPosition(frame.player.x);
 
-        const { downState: nextDownState, event } = advanceDownState(
+        const { downState: baseDownState, event } = advanceDownState(
             downState,
             fieldPos,
         );
+        const nextDownState = withLastBallY(baseDownState, frame.player.y);
 
         processDownEvent({
             event,

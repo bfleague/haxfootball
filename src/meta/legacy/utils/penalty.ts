@@ -113,6 +113,7 @@ function getPenaltyOutcome(
                       distance: DISTANCE_TO_FIRST_DOWN,
                   },
                   redZoneFouls: downState.redZoneFouls,
+                  lastBallY: downState.lastBallY,
               }
             : {
                   offensiveTeam,
@@ -122,6 +123,7 @@ function getPenaltyOutcome(
                       distance: adjustedDistance,
                   },
                   redZoneFouls: downState.redZoneFouls,
+                  lastBallY: downState.lastBallY,
               };
 
     return { updatedDownState, yardsGained, newDistance };
@@ -203,6 +205,7 @@ export function applyOffensivePenalty(
                 fieldPos: updatedDownState.fieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
                 redZoneFouls: 0,
+                lastBallY: updatedDownState.lastBallY,
             },
             event: { type: "TURNOVER_ON_DOWNS", yardsLost },
         };

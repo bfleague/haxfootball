@@ -4,6 +4,7 @@ import {
     DownState,
     incrementDownState,
     processDownEventIncrement,
+    withLastBallYAtCenter,
 } from "@meta/legacy/utils/down";
 import { AVATARS, ticks } from "@common/utils";
 import {
@@ -38,8 +39,9 @@ export function BlockedPass({
         const blocker = state.players.find((p) => p.id === blockerId);
         if (!blocker) return;
 
-        const { event, downState: nextDownState } =
+        const { event, downState: baseDownState } =
             incrementDownState(downState);
+        const nextDownState = withLastBallYAtCenter(baseDownState);
 
         $effect(($) => {
             $.setAvatar(blockerId, AVATARS.CONSTRUCTION);

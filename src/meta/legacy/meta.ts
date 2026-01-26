@@ -18,6 +18,9 @@ import { SnapInFlight } from "./states/snap-in-flight";
 import { BlockedPass } from "./states/blocked-pass";
 import { InterceptionAttempt } from "./states/interception-attempt";
 import { Blitz } from "./states/blitz";
+import { FieldGoal } from "./states/field-goal";
+import { FakeFieldGoal } from "./states/fake-field-goal";
+import { FieldGoalInFlight } from "./states/field-goal-in-flight";
 
 export { default as stadium } from "@meta/legacy/stadium";
 
@@ -42,4 +45,7 @@ export const registry = {
     BLOCKED_PASS: BlockedPass,
     INTERCEPTION: Interception,
     INTERCEPTION_ATTEMPT: InterceptionAttempt,
+    FIELD_GOAL: FieldGoal,
+    FAKE_FIELD_GOAL: FakeFieldGoal,
+    FIELD_GOAL_IN_FLIGHT: FieldGoalInFlight,
 };

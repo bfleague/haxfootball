@@ -172,7 +172,11 @@ export function Interception({
             $next({
                 to: "PRESNAP",
                 params: {
-                    downState: getInitialDownState(playerTeam, fieldPos),
+                    downState: getInitialDownState(
+                        playerTeam,
+                        fieldPos,
+                        frame.player.y,
+                    ),
                 },
                 wait: ticks({ seconds: 1 }),
             });
@@ -297,7 +301,11 @@ export function Interception({
             $next({
                 to: "PRESNAP",
                 params: {
-                    downState: getInitialDownState(playerTeam, fieldPos),
+                    downState: getInitialDownState(
+                        playerTeam,
+                        fieldPos,
+                        frame.player.y,
+                    ),
                 },
                 wait: ticks({ seconds: 1 }),
             });

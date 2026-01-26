@@ -27,7 +27,7 @@ const mainModule = createModule()
 const matchModule = createModule()
     .setCommands({
         spec: { prefix: COMMAND_PREFIX },
-        commands: ["punt", "version"],
+        commands: ["punt", "fg", "version"],
     })
     .onGameStart((room) => {
         initializeGlobalState();

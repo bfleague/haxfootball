@@ -12,6 +12,7 @@ export type DownState = {
     offensiveTeam: FieldTeam;
     fieldPos: FieldPosition;
     redZoneFouls: number;
+    lastBallY: number;
 };
 
 export type DownEvent =
@@ -45,12 +46,14 @@ export const INITIAL_DOWN_AND_DISTANCE: DownAndDistance = {
 export function getInitialDownState(
     offensiveTeam: FieldTeam,
     fieldPos: FieldPosition,
+    lastBallY: number = 0,
 ): DownState {
     return {
         offensiveTeam,
         downAndDistance: INITIAL_DOWN_AND_DISTANCE,
         fieldPos,
         redZoneFouls: 0,
+        lastBallY,
     };
 }
 
@@ -74,6 +77,7 @@ export function incrementDownState(current: DownState): NextDownStateIncrement {
                 fieldPos: current.fieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
                 redZoneFouls: 0,
+                lastBallY: current.lastBallY,
             },
             event: { type: "TURNOVER_ON_DOWNS" },
         };
@@ -88,6 +92,7 @@ export function incrementDownState(current: DownState): NextDownStateIncrement {
                 distance: current.downAndDistance.distance,
             },
             redZoneFouls,
+            lastBallY: current.lastBallY,
         },
         event: { type: "NEXT_DOWN" },
     };
@@ -117,6 +122,7 @@ export function advanceDownState(
                     distance: DISTANCE_TO_FIRST_DOWN,
                 },
                 redZoneFouls,
+                lastBallY: current.lastBallY,
             },
             event: { type: "FIRST_DOWN", yardsGained },
         };
@@ -131,6 +137,7 @@ export function advanceDownState(
                 fieldPos: actualFieldPos,
                 downAndDistance: INITIAL_DOWN_AND_DISTANCE,
                 redZoneFouls: 0,
+                lastBallY: current.lastBallY,
             },
             event: { type: "TURNOVER_ON_DOWNS" },
         };
@@ -145,9 +152,24 @@ export function advanceDownState(
                 distance: newDistance,
             },
             redZoneFouls,
+            lastBallY: current.lastBallY,
         },
         event: { type: "NEXT_DOWN", yardsGained },
     };
+}
+
+export function withLastBallY(
+    downState: DownState,
+    lastBallY: number,
+): DownState {
+    return {
+        ...downState,
+        lastBallY,
+    };
+}
+
+export function withLastBallYAtCenter(downState: DownState): DownState {
+    return withLastBallY(downState, 0);
 }
 
 export function processDownEvent({

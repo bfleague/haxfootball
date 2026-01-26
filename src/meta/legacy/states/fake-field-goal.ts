@@ -24,12 +24,12 @@ import {
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
-type QuarterbackRunFrame = {
+type FakeFieldGoalFrame = {
     player: GameStatePlayer;
     defenders: GameStatePlayer[];
 };
 
-export function QuarterbackRun({
+export function FakeFieldGoal({
     playerId,
     downState,
 }: {
@@ -56,7 +56,7 @@ export function QuarterbackRun({
         $setBallActive();
     });
 
-    function buildRunFrame(state: GameState): QuarterbackRunFrame | null {
+    function buildRunFrame(state: GameState): FakeFieldGoalFrame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
 
@@ -67,7 +67,7 @@ export function QuarterbackRun({
         return { player, defenders };
     }
 
-    function $handleTouchdown(frame: QuarterbackRunFrame) {
+    function $handleTouchdown(frame: FakeFieldGoalFrame) {
         if (
             !isTouchdown({
                 player: frame.player,
@@ -102,7 +102,7 @@ export function QuarterbackRun({
         });
     }
 
-    function $handleOutOfBounds(frame: QuarterbackRunFrame) {
+    function $handleOutOfBounds(frame: FakeFieldGoalFrame) {
         if (!isOutOfBounds(frame.player)) return;
 
         const fieldPos = getFieldPosition(frame.player.x);
@@ -122,7 +122,7 @@ export function QuarterbackRun({
                 onFirstDown() {
                     $effect(($) => {
                         $.send(cn(nextDownState, t`First down!`));
-                        $.stat("QB_RUN_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
+                        $.stat("RUN_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
                     });
                 },
                 onNextDown: {
@@ -134,7 +134,7 @@ export function QuarterbackRun({
                                     t`Next down after a gain of ${yardsGained} yards!`,
                                 ),
                             );
-                            $.stat("QB_RUN_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE");
+                            $.stat("RUN_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE");
                         });
                     },
                     onNoGain() {
@@ -143,7 +143,7 @@ export function QuarterbackRun({
                                 cn(nextDownState, t`Next down with no gain!`),
                             );
                             $.stat(
-                                "QB_RUN_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
+                                "RUN_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
                             );
                         });
                     },
@@ -156,7 +156,7 @@ export function QuarterbackRun({
                                 ),
                             );
                             $.stat(
-                                "QB_RUN_OUT_OF_BOUNDS_NEXT_DOWN_LOSS_YARD_LINE",
+                                "RUN_OUT_OF_BOUNDS_NEXT_DOWN_LOSS_YARD_LINE",
                             );
                         });
                     },
@@ -164,9 +164,7 @@ export function QuarterbackRun({
                 onTurnoverOnDowns() {
                     $effect(($) => {
                         $.send(cn(nextDownState, t`Turnover on downs!`));
-                        $.stat(
-                            "QB_RUN_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE",
-                        );
+                        $.stat("RUN_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE");
                     });
                 },
             });
@@ -214,7 +212,7 @@ export function QuarterbackRun({
         }
     }
 
-    function $handleTackle(frame: QuarterbackRunFrame) {
+    function $handleTackle(frame: FakeFieldGoalFrame) {
         const catchers = findCatchers(frame.player, frame.defenders);
         if (catchers.length === 0) return;
 
@@ -237,7 +235,7 @@ export function QuarterbackRun({
                             t`${frame.player.name} tackled by ${catcherNames} for a first down!`,
                         ),
                     );
-                    $.stat("QB_RUN_TACKLE_FIRST_DOWN_YARD_LINE");
+                    $.stat("RUN_TACKLE_FIRST_DOWN_YARD_LINE");
                 });
             },
             onNextDown: {
@@ -249,7 +247,7 @@ export function QuarterbackRun({
                                 t`${frame.player.name} tackled by ${catcherNames} for a gain of ${yardsGained} yards, next down!`,
                             ),
                         );
-                        $.stat("QB_RUN_TACKLE_NEXT_DOWN_YARD_LINE");
+                        $.stat("RUN_TACKLE_NEXT_DOWN_YARD_LINE");
                     });
                 },
                 onNoGain() {
@@ -260,7 +258,7 @@ export function QuarterbackRun({
                                 t`${frame.player.name} tackled by ${catcherNames} with no gain, next down!`,
                             ),
                         );
-                        $.stat("QB_RUN_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE");
+                        $.stat("RUN_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE");
                     });
                 },
                 onLoss(yardsLost: number) {
@@ -271,7 +269,7 @@ export function QuarterbackRun({
                                 t`${frame.player.name} tackled by ${catcherNames} for a loss of ${yardsLost} yards, next down!`,
                             ),
                         );
-                        $.stat("QB_RUN_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
+                        $.stat("RUN_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
                     });
                 },
             },
@@ -283,7 +281,7 @@ export function QuarterbackRun({
                             t`${frame.player.name} tackled by ${catcherNames}, turnover on downs!`,
                         ),
                     );
-                    $.stat("QB_RUN_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");
+                    $.stat("RUN_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");
                 });
             },
         });

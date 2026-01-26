@@ -4,6 +4,7 @@ import {
     DownState,
     getInitialDownState,
     processDownEvent,
+    withLastBallY,
 } from "@meta/legacy/utils/down";
 import { cn, formatNames } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
@@ -94,6 +95,7 @@ export function LiveBall({
         const nextDownState = getInitialDownState(
             opposite(offensiveTeam),
             fieldPos,
+            player.y,
         );
 
         $effect(($) => {
@@ -177,9 +179,13 @@ export function LiveBall({
         const fieldPos = getFieldPosition(frame.player.x);
 
         if (isInMainField(frame.player)) {
-            const { downState: nextDownState, event } = advanceDownState(
+            const { downState: baseDownState, event } = advanceDownState(
                 downState,
                 fieldPos,
+            );
+            const nextDownState = withLastBallY(
+                baseDownState,
+                frame.player.y,
             );
 
             processDownEvent({
@@ -293,10 +299,11 @@ export function LiveBall({
         const catcherNames = formatNames(catchers);
         const fieldPos = getFieldPosition(frame.player.x);
 
-        const { downState: nextDownState, event } = advanceDownState(
+        const { downState: baseDownState, event } = advanceDownState(
             downState,
             fieldPos,
         );
+        const nextDownState = withLastBallY(baseDownState, frame.player.y);
 
         processDownEvent({
             event,

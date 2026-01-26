@@ -5,6 +5,7 @@ import {
     advanceDownState,
     DownState,
     processDownEvent,
+    withLastBallY,
 } from "@meta/legacy/utils/down";
 import { cn, formatNames } from "@meta/legacy/utils/message";
 import {
@@ -199,9 +200,13 @@ export function Blitz({
         const fieldPos = getFieldPosition(frame.quarterback.x);
 
         if (isInMainField(frame.quarterback)) {
-            const { downState: nextDownState, event } = advanceDownState(
+            const { downState: baseDownState, event } = advanceDownState(
                 downState,
                 fieldPos,
+            );
+            const nextDownState = withLastBallY(
+                baseDownState,
+                frame.quarterback.y,
             );
 
             processDownEvent({
@@ -294,9 +299,13 @@ export function Blitz({
         const catcherNames = formatNames(catchers);
         const fieldPos = getFieldPosition(frame.quarterback.x);
 
-        const { downState: nextDownState, event } = advanceDownState(
+        const { downState: baseDownState, event } = advanceDownState(
             downState,
             fieldPos,
+        );
+        const nextDownState = withLastBallY(
+            baseDownState,
+            frame.quarterback.y,
         );
 
         processDownEvent({

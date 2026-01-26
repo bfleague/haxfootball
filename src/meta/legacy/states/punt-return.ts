@@ -60,7 +60,11 @@ export function PuntReturn({
                 $next({
                     to: "PRESNAP",
                     params: {
-                        downState: getInitialDownState(receivingTeam, fieldPos),
+                        downState: getInitialDownState(
+                            receivingTeam,
+                            fieldPos,
+                            player.y,
+                        ),
                     },
                     wait: ticks({ seconds: 1 }),
                 });
@@ -202,7 +206,11 @@ export function PuntReturn({
             $next({
                 to: "PRESNAP",
                 params: {
-                    downState: getInitialDownState(receivingTeam, fieldPos),
+                    downState: getInitialDownState(
+                        receivingTeam,
+                        fieldPos,
+                        frame.player.y,
+                    ),
                 },
                 wait: ticks({ seconds: 1 }),
             });
@@ -327,7 +335,11 @@ export function PuntReturn({
             $next({
                 to: "PRESNAP",
                 params: {
-                    downState: getInitialDownState(receivingTeam, fieldPos),
+                    downState: getInitialDownState(
+                        receivingTeam,
+                        fieldPos,
+                        frame.player.y,
+                    ),
                 },
                 wait: ticks({ seconds: 1 }),
             });

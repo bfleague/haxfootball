@@ -92,9 +92,14 @@ const CROWDING_OUTER_BEHIND_YARDS = 2;
 const CROWDING_OUTER_AHEAD_YARDS = 8;
 const CROWDING_INNER_AHEAD_YARDS = 4;
 
+const HASH_UPPER_CENTER_Y =
+    MapMeasures.HASHES_HEIGHT.upperY + MapMeasures.SINGLE_HASH_HEIGHT / 2;
+const HASH_LOWER_CENTER_Y =
+    MapMeasures.HASHES_HEIGHT.lowerY - MapMeasures.SINGLE_HASH_HEIGHT / 2;
+
 export const BALL_RADIUS = 7.125;
 export const BALL_OFFSET_YARDS = 2;
-
+export const YARD_LENGTH = MapMeasures.YARD;
 export const SPECIAL_HIDDEN_POSITION = {
     x: 2000,
     y: 2000,
@@ -112,6 +117,61 @@ const SPECIAL_DISC_IDS = {
     FIRST_DOWN: [5, 6],
     INTERCEPTION_PATH: [50, 51],
 } as const;
+
+const OUTER_FIELD_EDGES: Line[] = [
+    {
+        start: {
+            x: MapMeasures.OUTER_FIELD.topLeft.x,
+            y: MapMeasures.OUTER_FIELD.topLeft.y,
+        },
+        end: {
+            x: MapMeasures.OUTER_FIELD.bottomRight.x,
+            y: MapMeasures.OUTER_FIELD.topLeft.y,
+        },
+    },
+    {
+        start: {
+            x: MapMeasures.OUTER_FIELD.bottomRight.x,
+            y: MapMeasures.OUTER_FIELD.topLeft.y,
+        },
+        end: {
+            x: MapMeasures.OUTER_FIELD.bottomRight.x,
+            y: MapMeasures.OUTER_FIELD.bottomRight.y,
+        },
+    },
+    {
+        start: {
+            x: MapMeasures.OUTER_FIELD.bottomRight.x,
+            y: MapMeasures.OUTER_FIELD.bottomRight.y,
+        },
+        end: {
+            x: MapMeasures.OUTER_FIELD.topLeft.x,
+            y: MapMeasures.OUTER_FIELD.bottomRight.y,
+        },
+    },
+    {
+        start: {
+            x: MapMeasures.OUTER_FIELD.topLeft.x,
+            y: MapMeasures.OUTER_FIELD.bottomRight.y,
+        },
+        end: {
+            x: MapMeasures.OUTER_FIELD.topLeft.x,
+            y: MapMeasures.OUTER_FIELD.topLeft.y,
+        },
+    },
+];
+
+export function clampToHashCenterY(y: number): number {
+    if (y < HASH_UPPER_CENTER_Y) {
+        return HASH_UPPER_CENTER_Y;
+    }
+
+    if (y > HASH_LOWER_CENTER_Y) {
+        return HASH_LOWER_CENTER_Y;
+    }
+
+    return y;
+}
 
 export function getFieldPosition(
     x: number,
@@ -656,6 +716,37 @@ export function intersectRayWithSegment(
     return { intersects: false };
 }
 
+export function getRayIntersectionWithOuterField(ray: Ray): PointLike | null {
+    const intersections = OUTER_FIELD_EDGES.map((edge) =>
+        intersectRayWithSegment(ray, edge),
+    )
+        .filter(
+            (result): result is { intersects: true; point: PointLike } =>
+                result.intersects,
+        )
+        .map((result) => {
+            const dx = result.point.x - ray.origin.x;
+            const dy = result.point.y - ray.origin.y;
+
+            return {
+                point: result.point,
+                distanceSquared: dx * dx + dy * dy,
+            };
+        });
+
+    const [first] = intersections;
+
+    if (!first) return null;
+
+    const closest = intersections.reduce(
+        (best, current) =>
+            current.distanceSquared < best.distanceSquared ? current : best,
+        first,
+    );
+
+    return closest.point;
+}
+
 export type GoalPostIntersectionResult =
     | { intersects: true; line: Line; point: PointLike }
     | { intersects: false };
@@ -664,10 +755,7 @@ export function intersectsGoalPosts(
     ray: Ray,
     team: FieldTeam,
 ): GoalPostIntersectionResult {
-    const goalLine =
-        team === Team.RED
-            ? MapMeasures.RED_GOAL_LINE
-            : MapMeasures.BLUE_GOAL_LINE;
+    const goalLine = getGoalLine(team);
 
     const intersection = intersectRayWithSegment(ray, goalLine);
 
@@ -683,4 +771,22 @@ export function intersectsGoalPosts(
     }
 
     return { intersects: false };
+}
+
+export function getGoalLine(team: FieldTeam): Line {
+    return team === Team.RED
+        ? MapMeasures.RED_GOAL_LINE
+        : MapMeasures.BLUE_GOAL_LINE;
+}
+
+export function isWithinGoalPosts(
+    position: PointLike,
+    team: FieldTeam,
+): boolean {
+    const goalLine = getGoalLine(team);
+    const minY = Math.min(goalLine.start.y, goalLine.end.y);
+    const maxY = Math.max(goalLine.start.y, goalLine.end.y);
+    const radius = Math.max(0, position.radius ?? 0);
+
+    return position.y + radius >= minY && position.y - radius <= maxY;
 }

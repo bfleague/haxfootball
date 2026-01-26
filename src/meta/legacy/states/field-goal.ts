@@ -1,0 +1,410 @@
+import type { GameState, GameStateBall, GameStatePlayer } from "@common/engine";
+import { Team } from "@common/models";
+import {
+    distributeOnLine,
+    findBallCatchers,
+    findCatchers,
+    getDistance,
+    opposite,
+    ticks,
+} from "@common/utils";
+import { t } from "@lingui/core/macro";
+import { $before, $dispose, $effect, $next } from "@common/runtime";
+import {
+    $setFirstDownLine,
+    $setLineOfScrimmage,
+    $unsetFirstDownLine,
+    $unsetLineOfScrimmage,
+    $setBallActive,
+} from "@meta/legacy/hooks/game";
+import {
+    $lockBall,
+    $setBallMoveable,
+    $unlockBall,
+} from "@meta/legacy/hooks/physics";
+import { DownState, getInitialDownState } from "@meta/legacy/utils/down";
+import { formatNames } from "@meta/legacy/utils/message";
+import {
+    BALL_OFFSET_YARDS,
+    calculateDirectionalGain,
+    calculateSnapBallPosition,
+    clampToHashCenterY,
+    getBallPath,
+    getGoalLine,
+    getPositionFromFieldPosition,
+    getRayIntersectionWithOuterField,
+    intersectsGoalPosts,
+    YARD_LENGTH,
+} from "@meta/legacy/utils/stadium";
+
+const FIELD_GOAL_LINE_HALF_HEIGHT = 100;
+const OFFENSE_LINE_OFFSET_YARDS = 20;
+const DEFENSE_LINE_OFFSET_YARDS = 15;
+const CENTER_OFFSET_YARDS = 10;
+const KICKER_OFFSET_YARDS = -6;
+const KICKER_Y_OFFSET_YARDS = 0.5;
+const FAKE_FIELD_GOAL_DELAY = ticks({ seconds: 2 });
+const FIELD_GOAL_RESULT_DELAY = ticks({ seconds: 2 });
+
+type Formation = {
+    offenseLine: GameStatePlayer[];
+    defenseLine: GameStatePlayer[];
+    center: GameStatePlayer | null;
+    kicker: GameStatePlayer | null;
+};
+
+const sortPlayersByY = (players: GameStatePlayer[]) =>
+    players.reduce<GameStatePlayer[]>((sorted, player) => {
+        const index = sorted.findIndex((item) => item.y > player.y);
+
+        return index === -1
+            ? [...sorted, player]
+            : [...sorted.slice(0, index), player, ...sorted.slice(index)];
+    }, []);
+
+const getClosestPlayer = (
+    players: GameStatePlayer[],
+    target: { x: number; y: number },
+): GameStatePlayer | null =>
+    players.reduce<GameStatePlayer | null>((closest, player) => {
+        if (!closest) return player;
+
+        const closestDistance = getDistance(closest, target);
+        const playerDistance = getDistance(player, target);
+
+        return playerDistance < closestDistance ? player : closest;
+    }, null);
+
+const getLineX = (ballX: number, direction: 1 | -1, offsetYards: number) =>
+    ballX + direction * offsetYards * YARD_LENGTH;
+
+const getLine = (lineX: number, centerY: number) => ({
+    start: { x: lineX, y: centerY - FIELD_GOAL_LINE_HALF_HEIGHT },
+    end: { x: lineX, y: centerY + FIELD_GOAL_LINE_HALF_HEIGHT },
+});
+
+const distanceSquared = (
+    a: { x: number; y: number },
+    b: { x: number; y: number },
+) => {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+
+    return dx * dx + dy * dy;
+};
+
+export function FieldGoal({
+    kickerId,
+    downState,
+}: {
+    kickerId: number;
+    downState: DownState;
+}) {
+    const { offensiveTeam, fieldPos, downAndDistance } = downState;
+    const lastBallY = downState.lastBallY;
+    const ballY = clampToHashCenterY(lastBallY);
+    const ballPos = {
+        ...calculateSnapBallPosition(
+            offensiveTeam,
+            fieldPos,
+            BALL_OFFSET_YARDS,
+        ),
+        y: ballY,
+    };
+    const lineOfScrimmageX = getPositionFromFieldPosition(fieldPos);
+    const direction: 1 | -1 = offensiveTeam === Team.RED ? 1 : -1;
+    const kickerYOffset =
+        (offensiveTeam === Team.RED ? 1 : -1) *
+        KICKER_Y_OFFSET_YARDS *
+        YARD_LENGTH;
+    const failureDownState = getInitialDownState(
+        opposite(offensiveTeam),
+        fieldPos,
+        downState.lastBallY,
+    );
+
+    $setBallMoveable();
+    $unlockBall();
+    $setBallActive();
+    $setLineOfScrimmage(fieldPos);
+    $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
+
+    $effect(($) => {
+        $.setBall({ ...ballPos, xspeed: 0, yspeed: 0 });
+    });
+
+    $dispose(() => {
+        $unlockBall();
+        $unsetLineOfScrimmage();
+        $unsetFirstDownLine();
+    });
+
+    const beforeState = $before();
+
+    const startTick = beforeState.tickNumber;
+    const offensivePlayers = beforeState.players.filter(
+        (player) => player.team === offensiveTeam && player.id !== kickerId,
+    );
+    const defenders = beforeState.players.filter(
+        (player) => player.team === opposite(offensiveTeam),
+    );
+    const center = getClosestPlayer(offensivePlayers, ballPos);
+    const defenseLine = center
+        ? offensivePlayers.filter((player) => player.id !== center.id)
+        : offensivePlayers;
+    const offenseLine = defenders;
+    const kicker = beforeState.players.find((player) => player.id === kickerId);
+    const formation: Formation = {
+        offenseLine,
+        defenseLine,
+        center,
+        kicker: kicker ?? null,
+    };
+    const rawOffenseLineX = getLineX(
+        ballPos.x,
+        direction,
+        OFFENSE_LINE_OFFSET_YARDS,
+    );
+    const rawDefenseLineX = getLineX(
+        ballPos.x,
+        direction,
+        DEFENSE_LINE_OFFSET_YARDS,
+    );
+    const goalLineX = getGoalLine(opposite(offensiveTeam)).start.x;
+    const offenseLineIsClosest =
+        Math.abs(goalLineX - rawOffenseLineX) <=
+        Math.abs(goalLineX - rawDefenseLineX);
+    const offenseLineX = offenseLineIsClosest
+        ? rawOffenseLineX
+        : rawDefenseLineX;
+    const defenseLineX = offenseLineIsClosest
+        ? rawDefenseLineX
+        : rawOffenseLineX;
+
+    $effect(($) => {
+        if (formation.offenseLine.length > 0) {
+            const line = getLine(offenseLineX, ballPos.y);
+
+            distributeOnLine(
+                sortPlayersByY(formation.offenseLine),
+                line,
+            ).forEach(({ id, x, y }) => {
+                $.setPlayerDiscProperties(id, { x, y, xspeed: 0, yspeed: 0 });
+            });
+        }
+
+        if (formation.defenseLine.length > 0) {
+            const line = getLine(defenseLineX, ballPos.y);
+
+            distributeOnLine(
+                sortPlayersByY(formation.defenseLine),
+                line,
+            ).forEach(({ id, x, y }) => {
+                $.setPlayerDiscProperties(id, { x, y, xspeed: 0, yspeed: 0 });
+            });
+        }
+
+        if (formation.center) {
+            const centerX = getLineX(ballPos.x, direction, CENTER_OFFSET_YARDS);
+
+            $.setPlayerDiscProperties(formation.center.id, {
+                x: centerX,
+                y: ballPos.y,
+                xspeed: 0,
+                yspeed: 0,
+            });
+        }
+
+        if (formation.kicker) {
+            const kickerX = getLineX(ballPos.x, direction, KICKER_OFFSET_YARDS);
+
+            $.setPlayerDiscProperties(formation.kicker.id, {
+                x: kickerX,
+                y: ballPos.y + kickerYOffset,
+                xspeed: 0,
+                yspeed: 0,
+            });
+        }
+    });
+
+    const isEarlyOutOfBounds = (ball: GameStateBall): boolean => {
+        const ray = getBallPath(ball.x, ball.y, ball.xspeed, ball.yspeed);
+        const goalIntersection = intersectsGoalPosts(
+            ray,
+            opposite(offensiveTeam),
+        );
+        const outOfBoundsPoint = getRayIntersectionWithOuterField(ray);
+
+        if (!outOfBoundsPoint) return false;
+        if (!goalIntersection.intersects) return true;
+
+        const goalDistance = distanceSquared(
+            ray.origin,
+            goalIntersection.point,
+        );
+        const outDistance = distanceSquared(ray.origin, outOfBoundsPoint);
+
+        return outDistance < goalDistance;
+    };
+
+    function run(state: GameState) {
+        const kicker = state.players.find((player) => player.id === kickerId);
+        if (!kicker) return;
+
+        if (kicker.isKickingBall) {
+            $lockBall();
+
+            if (isEarlyOutOfBounds(state.ball)) {
+                $effect(($) => {
+                    $.send(t`Field goal went out of bounds.`);
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: failureDownState,
+                    },
+                    wait: FIELD_GOAL_RESULT_DELAY,
+                });
+            }
+
+            $next({
+                to: "FIELD_GOAL_IN_FLIGHT",
+                params: {
+                    downState,
+                },
+            });
+        }
+
+        const defenders = state.players.filter(
+            (player) => player.team === opposite(offensiveTeam),
+        );
+        const offensiveTeammates = state.players.filter(
+            (player) => player.team === offensiveTeam && player.id !== kickerId,
+        );
+
+        const offensiveBallTouchers = findBallCatchers(
+            state.ball,
+            offensiveTeammates,
+        );
+
+        if (offensiveBallTouchers.length > 0) {
+            const offenderNames = formatNames(offensiveBallTouchers);
+
+            $effect(($) => {
+                $.send(
+                    t`Illegal touching by ${offenderNames} before the kick. Field goal failed.`,
+                );
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: failureDownState,
+                },
+                wait: FIELD_GOAL_RESULT_DELAY,
+            });
+        }
+
+        const defensiveBallTouchers = findBallCatchers(state.ball, defenders);
+
+        if (defensiveBallTouchers.length > 0) {
+            const offenderNames = formatNames(defensiveBallTouchers);
+
+            $effect(($) => {
+                $.send(
+                    t`Defensive touching by ${offenderNames} before the kick. Field goal failed.`,
+                );
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: failureDownState,
+                },
+                wait: FIELD_GOAL_RESULT_DELAY,
+            });
+        }
+
+        const defensiveKickerTouchers = findCatchers(kicker, defenders);
+
+        if (defensiveKickerTouchers.length > 0) {
+            const offenderNames = formatNames(defensiveKickerTouchers);
+
+            $effect(($) => {
+                $.send(
+                    t`Defensive contact by ${offenderNames} on ${kicker.name} before the kick. Field goal failed.`,
+                );
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: failureDownState,
+                },
+                wait: FIELD_GOAL_RESULT_DELAY,
+            });
+        }
+
+        const kickerCrossedLine =
+            calculateDirectionalGain(
+                offensiveTeam,
+                kicker.x - lineOfScrimmageX,
+            ) > 0;
+        const canFake = state.tickNumber - startTick >= FAKE_FIELD_GOAL_DELAY;
+
+        if (kickerCrossedLine && canFake) {
+            $effect(($) => {
+                $.send(t`${kicker.name} fakes the field goal!`);
+            });
+
+            $next({
+                to: "FAKE_FIELD_GOAL",
+                params: {
+                    playerId: kicker.id,
+                    downState,
+                },
+            });
+        }
+
+        if (kickerCrossedLine && !canFake) {
+            $effect(($) => {
+                $.send(
+                    t`${kicker.name} crossed the line too early. Field goal failed.`,
+                );
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: failureDownState,
+                },
+                wait: FIELD_GOAL_RESULT_DELAY,
+            });
+        }
+
+        const ballCrossedLine =
+            calculateDirectionalGain(
+                offensiveTeam,
+                state.ball.x - lineOfScrimmageX,
+            ) > 0;
+
+        if (!kicker.isKickingBall && ballCrossedLine) {
+            $effect(($) => {
+                $.send(
+                    t`Ball crossed the line of scrimmage before the kick. Field goal failed.`,
+                );
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: failureDownState,
+                },
+                wait: FIELD_GOAL_RESULT_DELAY,
+            });
+        }
+    }
+
+    return { run };
+}

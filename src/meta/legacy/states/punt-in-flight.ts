@@ -106,6 +106,7 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
                     downState: getInitialDownState(
                         receivingTeam,
                         getFieldPosition(kickingTeamCatcher.x),
+                        kickingTeamCatcher.y,
                     ),
                 },
                 wait: ticks({ seconds: 2 }),

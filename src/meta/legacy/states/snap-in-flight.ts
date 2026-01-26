@@ -3,7 +3,11 @@ import { findBallCatcher, ticks } from "@common/utils";
 import type { GameState } from "@common/engine";
 import { t } from "@lingui/core/macro";
 import { isOutOfBounds } from "@meta/legacy/utils/stadium";
-import { advanceDownState, DownState } from "@meta/legacy/utils/down";
+import {
+    advanceDownState,
+    DownState,
+    withLastBallYAtCenter,
+} from "@meta/legacy/utils/down";
 import {
     $setBallActive,
     $setBallInactive,
@@ -26,8 +30,9 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
 
     function run(state: GameState) {
         if (isOutOfBounds(state.ball)) {
-            const { downState: nextDownState, event } =
+            const { downState: baseDownState, event } =
                 advanceDownState(downState);
+            const nextDownState = withLastBallYAtCenter(baseDownState);
 
             $setBallInactive();
 

@@ -211,6 +211,41 @@ export function Presnap({ downState }: { downState: DownState }) {
         command: CommandSpec,
     ): CommandHandleResult {
         switch (command.name) {
+            case "fg": {
+                if (player.team !== offensiveTeam) {
+                    $effect(($) => {
+                        $.send(
+                            t`Only the offensive team can attempt a field goal.`,
+                            player.id,
+                        );
+                    });
+
+                    return { handled: true };
+                }
+
+                if (
+                    getDistance(player, ballWithRadius(ballPosWithOffset)) >
+                    HIKING_DISTANCE_LIMIT
+                ) {
+                    $effect(($) => {
+                        $.send(
+                            t`You are too far from the ball to attempt a field goal.`,
+                            player.id,
+                        );
+                    });
+
+                    return { handled: true };
+                }
+
+                $effect(($) => {
+                    $.send(t`${player.name} lines up for a field goal!`);
+                });
+
+                $next({
+                    to: "FIELD_GOAL",
+                    params: { downState, kickerId: player.id },
+                });
+            }
             case "punt": {
                 if (player.team !== offensiveTeam) {
                     $effect(($) => {
