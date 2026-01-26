@@ -13,8 +13,9 @@ import {
     FieldPosition,
 } from "@common/game";
 import type { Pair, Quad } from "@common/types";
-import { index } from "@meta/legacy/stadium";
+import { BALL_COLOR, BALL_RADIUS, index } from "@meta/legacy/stadium";
 import { pair } from "@common/general";
+import { hexColorToNumber } from "@common/color";
 
 const MapMeasures = {
     END_ZONE_RED: {
@@ -111,7 +112,7 @@ const SPECIAL_DISC_IDS = {
 };
 
 export const BALL_DISC_ID = 0;
-export const BALL_ACTIVE_COLOR = 0x631515;
+export const BALL_ACTIVE_COLOR = hexColorToNumber(BALL_COLOR);
 export const BALL_INACTIVE_COLOR = 0x808080;
 
 const CROWDING_OUTER_BEHIND_YARDS = 2;
@@ -123,7 +124,6 @@ const HASH_UPPER_CENTER_Y =
 const HASH_LOWER_CENTER_Y =
     MapMeasures.HASHES_HEIGHT.lowerY - MapMeasures.SINGLE_HASH_HEIGHT / 2;
 
-export const BALL_RADIUS = 7.125;
 export const BALL_OFFSET_YARDS = 2;
 export const YARD_LENGTH = MapMeasures.YARD;
 export const SPECIAL_HIDDEN_POSITION = {

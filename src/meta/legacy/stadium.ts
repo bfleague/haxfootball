@@ -11,6 +11,9 @@ import {
     vLine,
 } from "@stadium/utils";
 
+export const BALL_RADIUS = 7.75;
+export const BALL_COLOR = "631515";
+
 const YARD_LINE_BASE = {
     yStart: -266,
     yEnd: 266,
@@ -38,7 +41,7 @@ const YARD_LINE_GREEN = {
 };
 
 const HASH_MARK_BASE = {
-    segment: { color: "FFFFFF", cMask: [] },
+    segment: { color: "d7e3cf", cMask: [] },
     vertex: { cMask: [] },
 };
 
@@ -143,7 +146,7 @@ const schema = {
         kickStrength: 7,
     },
     ballPhysics: {
-        radius: 7.125,
+        radius: BALL_RADIUS,
         bCoef: 0.5,
         cMask: ["red", "blue", "wall"],
         color: "631515",
