@@ -77,6 +77,10 @@ export function sortBy<T>(items: T[], selector: Selector<T, number>): T[] {
     return [...items].sort((a, b) => selector(a) - selector(b));
 }
 
+export function unique<T>(items: T[]): T[] {
+    return items.filter((item, index, list) => list.indexOf(item) === index);
+}
+
 export function verticalLine(x: number, centerY: number, height: number): Line {
     const halfHeight = height / 2;
     return {

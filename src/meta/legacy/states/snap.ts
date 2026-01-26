@@ -1,7 +1,12 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
-import { getDistance } from "@common/math";
+import { getDistance, unique } from "@common/math";
 import { ticks } from "@common/time";
-import { AVATARS, findBallCatchers, findCatchers } from "@common/game";
+import {
+    AVATARS,
+    findBallCatchers,
+    findCatchers,
+    setPlayerAvatars,
+} from "@common/game";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     $hideCrowdingBoxes,
@@ -43,19 +48,6 @@ type SnapFrame = {
     ballBehindLineOfScrimmage: boolean;
     isBlitzAllowed: boolean;
     nextBallMoveTick: number | null;
-};
-
-const uniqueNumbers = (values: number[]) =>
-    values.filter((value, index, list) => list.indexOf(value) === index);
-
-const setPlayerAvatars = (
-    playerIds: number[],
-    setAvatar: (playerId: number, avatar: string | null) => void,
-    avatar: string | null,
-) => {
-    playerIds.forEach((playerId) => {
-        setAvatar(playerId, avatar);
-    });
 };
 
 namespace Crowding {
@@ -170,7 +162,7 @@ namespace Crowding {
         tick: number,
         minStartAt: number,
     ): Array<{ playerId: number; weightedTicks: number }> => {
-        const playerIds = uniqueNumbers([
+        const playerIds = unique([
             ...data.outer.map((entry) => entry.playerId),
             ...data.inner.map((entry) => entry.playerId),
         ]);
@@ -623,7 +615,7 @@ export function Snap({
             crowdingResult.foulInfo,
         );
 
-        const crowdingOffenderIds = uniqueNumbers(
+        const crowdingOffenderIds = unique(
             crowdingResult.foulInfo.contributions
                 .filter((entry) => entry.weightedTicks > 0)
                 .map((entry) => entry.playerId),

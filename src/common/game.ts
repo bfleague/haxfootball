@@ -113,3 +113,15 @@ export function calculatePositionFromFieldPosition(
         return endX - yardLength * position.yards;
     }
 }
+
+export type SetAvatarFn = (playerId: number, avatar: string | null) => void;
+
+export function setPlayerAvatars(
+    playerIds: number[],
+    setAvatar: SetAvatarFn,
+    avatar: string | null,
+): void {
+    playerIds.forEach((playerId) => {
+        setAvatar(playerId, avatar);
+    });
+}
