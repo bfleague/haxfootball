@@ -59,6 +59,19 @@ type Formation = {
     kicker: GameStatePlayer | null;
 };
 
+type FieldGoalFrame = {
+    state: GameState;
+    kicker: GameStatePlayer;
+    defenders: GameStatePlayer[];
+    offensiveTeammates: GameStatePlayer[];
+    offensiveBallTouchers: GameStatePlayer[];
+    defensiveBallTouchers: GameStatePlayer[];
+    defensiveKickerTouchers: GameStatePlayer[];
+    kickerCrossedLine: boolean;
+    canFake: boolean;
+    ballCrossedLine: boolean;
+};
+
 export function FieldGoal({
     kickerId,
     downState,
@@ -226,34 +239,9 @@ export function FieldGoal({
         return outDistance < goalDistance;
     };
 
-    function run(state: GameState) {
+    function buildFieldGoalFrame(state: GameState): FieldGoalFrame | null {
         const kicker = state.players.find((player) => player.id === kickerId);
-        if (!kicker) return;
-
-        if (kicker.isKickingBall) {
-            $lockBall();
-
-            if (isEarlyOutOfBounds(state.ball)) {
-                $effect(($) => {
-                    $.send(t`Field goal went out of bounds.`);
-                });
-
-                $next({
-                    to: "PRESNAP",
-                    params: {
-                        downState: failureDownState,
-                    },
-                    wait: FIELD_GOAL_RESULT_DELAY,
-                });
-            }
-
-            $next({
-                to: "FIELD_GOAL_IN_FLIGHT",
-                params: {
-                    downState,
-                },
-            });
-        }
+        if (!kicker) return null;
 
         const defenders = state.players.filter(
             (player) => player.team === opposite(offensiveTeam),
@@ -266,64 +254,8 @@ export function FieldGoal({
             state.ball,
             offensiveTeammates,
         );
-
-        if (offensiveBallTouchers.length > 0) {
-            const offenderNames = formatNames(offensiveBallTouchers);
-
-            $effect(($) => {
-                $.send(
-                    t`Illegal touching by ${offenderNames} before the kick. Field goal failed.`,
-                );
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: failureDownState,
-                },
-                wait: FIELD_GOAL_RESULT_DELAY,
-            });
-        }
-
         const defensiveBallTouchers = findBallCatchers(state.ball, defenders);
-
-        if (defensiveBallTouchers.length > 0) {
-            const offenderNames = formatNames(defensiveBallTouchers);
-
-            $effect(($) => {
-                $.send(
-                    t`Defensive touching by ${offenderNames} before the kick. Field goal failed.`,
-                );
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: failureDownState,
-                },
-                wait: FIELD_GOAL_RESULT_DELAY,
-            });
-        }
-
         const defensiveKickerTouchers = findCatchers(kicker, defenders);
-
-        if (defensiveKickerTouchers.length > 0) {
-            const offenderNames = formatNames(defensiveKickerTouchers);
-
-            $effect(($) => {
-                $.send(
-                    t`Defensive contact by ${offenderNames} on ${kicker.name} before the kick. Field goal failed.`,
-                );
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: failureDownState,
-                },
-                wait: FIELD_GOAL_RESULT_DELAY,
-            });
-        }
 
         const kickerCrossedLine =
             calculateDirectionalGain(
@@ -331,47 +263,134 @@ export function FieldGoal({
                 kicker.x - lineOfScrimmageX,
             ) > 0;
         const canFake = state.tickNumber - startTick >= FAKE_FIELD_GOAL_DELAY;
-
-        if (kickerCrossedLine && canFake) {
-            $effect(($) => {
-                $.send(t`${kicker.name} fakes the field goal!`);
-            });
-
-            $next({
-                to: "FAKE_FIELD_GOAL",
-                params: {
-                    playerId: kicker.id,
-                    downState,
-                },
-            });
-        }
-
-        if (kickerCrossedLine && !canFake) {
-            $effect(($) => {
-                $.send(
-                    t`${kicker.name} crossed the line too early. Field goal failed.`,
-                );
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: failureDownState,
-                },
-                wait: FIELD_GOAL_RESULT_DELAY,
-            });
-        }
-
         const ballCrossedLine =
             calculateDirectionalGain(
                 offensiveTeam,
                 state.ball.x - lineOfScrimmageX,
             ) > 0;
 
-        if (!kicker.isKickingBall && ballCrossedLine) {
+        return {
+            state,
+            kicker,
+            defenders,
+            offensiveTeammates,
+            offensiveBallTouchers,
+            defensiveBallTouchers,
+            defensiveKickerTouchers,
+            kickerCrossedLine,
+            canFake,
+            ballCrossedLine,
+        };
+    }
+
+    function $handleKick(frame: FieldGoalFrame) {
+        if (!frame.kicker.isKickingBall) return;
+
+        $lockBall();
+
+        if (isEarlyOutOfBounds(frame.state.ball)) {
+            $effect(($) => {
+                $.send(t`Field goal went out of bounds.`);
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: failureDownState,
+                },
+                wait: FIELD_GOAL_RESULT_DELAY,
+            });
+        }
+
+        $next({
+            to: "FIELD_GOAL_IN_FLIGHT",
+            params: {
+                downState,
+            },
+        });
+    }
+
+    function $handleIllegalTouching(frame: FieldGoalFrame) {
+        if (frame.offensiveBallTouchers.length === 0) return;
+
+        const offenderNames = formatNames(frame.offensiveBallTouchers);
+
+        $effect(($) => {
+            $.send(
+                t`Illegal touching by ${offenderNames} before the kick. Field goal failed.`,
+            );
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: failureDownState,
+            },
+            wait: FIELD_GOAL_RESULT_DELAY,
+        });
+    }
+
+    function $handleDefensiveTouching(frame: FieldGoalFrame) {
+        if (frame.defensiveBallTouchers.length === 0) return;
+
+        const offenderNames = formatNames(frame.defensiveBallTouchers);
+
+        $effect(($) => {
+            $.send(
+                t`Defensive touching by ${offenderNames} before the kick. Field goal failed.`,
+            );
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: failureDownState,
+            },
+            wait: FIELD_GOAL_RESULT_DELAY,
+        });
+    }
+
+    function $handleDefensiveContact(frame: FieldGoalFrame) {
+        if (frame.defensiveKickerTouchers.length === 0) return;
+
+        const offenderNames = formatNames(frame.defensiveKickerTouchers);
+
+        $effect(($) => {
+            $.send(
+                t`Defensive contact by ${offenderNames} on ${frame.kicker.name} before the kick. Field goal failed.`,
+            );
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: failureDownState,
+            },
+            wait: FIELD_GOAL_RESULT_DELAY,
+        });
+    }
+
+    function $handleFakeFieldGoal(frame: FieldGoalFrame) {
+        if (!frame.kickerCrossedLine) return;
+
+        if (frame.canFake) {
+            $effect(($) => {
+                $.send(t`${frame.kicker.name} fakes the field goal!`);
+            });
+
+            $next({
+                to: "FAKE_FIELD_GOAL",
+                params: {
+                    playerId: frame.kicker.id,
+                    downState,
+                },
+            });
+        }
+
+        if (!frame.canFake) {
             $effect(($) => {
                 $.send(
-                    t`Ball crossed the line of scrimmage before the kick. Field goal failed.`,
+                    t`${frame.kicker.name} crossed the line too early. Field goal failed.`,
                 );
             });
 
@@ -383,6 +402,36 @@ export function FieldGoal({
                 wait: FIELD_GOAL_RESULT_DELAY,
             });
         }
+    }
+
+    function $handleBallCrossedLine(frame: FieldGoalFrame) {
+        if (frame.kicker.isKickingBall || !frame.ballCrossedLine) return;
+
+        $effect(($) => {
+            $.send(
+                t`Ball crossed the line of scrimmage before the kick. Field goal failed.`,
+            );
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: failureDownState,
+            },
+            wait: FIELD_GOAL_RESULT_DELAY,
+        });
+    }
+
+    function run(state: GameState) {
+        const frame = buildFieldGoalFrame(state);
+        if (!frame) return;
+
+        $handleKick(frame);
+        $handleIllegalTouching(frame);
+        $handleDefensiveTouching(frame);
+        $handleDefensiveContact(frame);
+        $handleFakeFieldGoal(frame);
+        $handleBallCrossedLine(frame);
     }
 
     return { run };

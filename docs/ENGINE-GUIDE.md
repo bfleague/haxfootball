@@ -106,7 +106,7 @@ $effect(($) => {
 
 ## Common Helpers You Should Use
 
-Use project helpers rather than re-implementing rules or geometry. In this repo they live under `src/meta/legacy/utils/` and `src/meta/legacy/hooks/`, but future metas may organize them differently. Also use `@runtime/utils` helpers like `ticks`, `findCatchers`, `findBallCatchers`, and `distributeOnLine`.
+Use project helpers rather than re-implementing rules or geometry. In this repo they live under `src/meta/legacy/utils/` and `src/meta/legacy/hooks/`, but future metas may organize them differently. Also use `@common` helpers like `ticks`, `findCatchers`, `findBallCatchers`, and `distributeOnLine`.
 
 ## Cleanup Discipline
 

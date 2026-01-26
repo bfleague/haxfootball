@@ -365,33 +365,35 @@ namespace Crowding {
                   nextDownState: null,
               };
     };
+
+    export const getCrowdingOffenderNames = (
+        info: Crowding.CrowdingFoulInfo,
+    ): string => {
+        const offenderContributions = info.contributions.filter(
+            (entry) => entry.weightedTicks > 0,
+        );
+
+        const totalWeightedTicks = offenderContributions.reduce(
+            (total, entry) => total + entry.weightedTicks,
+            0,
+        );
+
+        const offenderSummaryText = formatNames(
+            offenderContributions.map(({ playerId, weightedTicks }) => {
+                const playerName =
+                    info.players.find((player) => player.id === playerId)
+                        ?.name ?? "Unknown";
+                const percent =
+                    totalWeightedTicks > 0
+                        ? Math.round((weightedTicks / totalWeightedTicks) * 100)
+                        : 0;
+                return { name: `${playerName} (${percent}%)` };
+            }),
+        );
+
+        return offenderSummaryText;
+    };
 }
-
-const getCrowdingOffenderNames = (info: Crowding.CrowdingFoulInfo): string => {
-    const offenderContributions = info.contributions.filter(
-        (entry) => entry.weightedTicks > 0,
-    );
-
-    const totalWeightedTicks = offenderContributions.reduce(
-        (total, entry) => total + entry.weightedTicks,
-        0,
-    );
-
-    const offenderSummaryText = formatNames(
-        offenderContributions.map(({ playerId, weightedTicks }) => {
-            const playerName =
-                info.players.find((player) => player.id === playerId)?.name ??
-                "Unknown";
-            const percent =
-                totalWeightedTicks > 0
-                    ? Math.round((weightedTicks / totalWeightedTicks) * 100)
-                    : 0;
-            return { name: `${playerName} (${percent}%)` };
-        }),
-    );
-
-    return offenderSummaryText;
-};
 
 const DEFENSIVE_OFFSIDE_PENALTY_YARDS = 5;
 const DEFENSIVE_TOUCHING_PENALTY_YARDS = 5;
@@ -617,7 +619,7 @@ export function Snap({
             Crowding.CROWDING_PENALTY_YARDS,
         );
 
-        const crowdingOffenderNames = getCrowdingOffenderNames(
+        const crowdingOffenderNames = Crowding.getCrowdingOffenderNames(
             crowdingResult.foulInfo,
         );
 
