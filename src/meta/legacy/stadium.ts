@@ -11,7 +11,7 @@ import {
 } from "@stadium/utils";
 
 export const legacyStadiumSchema = {
-    name: "BFL (Legacy)",
+    name: "HaxFootball (Legacy)",
     canBeStored: false,
     width: 1090,
     height: 395,
