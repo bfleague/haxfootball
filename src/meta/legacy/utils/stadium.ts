@@ -12,6 +12,9 @@ import {
     calculatePositionFromFieldPosition,
     FieldPosition,
 } from "@common/game";
+import type { Pair, Quad } from "@common/types";
+import { index } from "@meta/legacy/stadium";
+import { pair } from "@common/general";
 
 const MapMeasures = {
     END_ZONE_RED: {
@@ -61,35 +64,55 @@ const MapMeasures = {
     YARDS_BETWEEN_0_MARK_AND_GOAL_LINE: 10,
 };
 
-const OUTER_CROWDING_SEGMENTS = [
-    [9, 10],
-    [11, 12],
-    [13, 14],
-    [15, 16],
-    [17, 18],
-    [19, 20],
-    [21, 22],
-    [23, 24],
-    [25, 26],
-    [27, 28],
-    [29, 30],
-    [31, 32],
-] as const;
+const OUTER_CROWDING_SEGMENTS: Pair<number>[] = [
+    pair(index("red0.a"), index("red0.b")),
+    pair(index("red1.a"), index("red1.b")),
+    pair(index("red2.a"), index("red2.b")),
+    pair(index("red3.a"), index("red3.b")),
+    pair(index("red4.a"), index("red4.b")),
+    pair(index("red5.a"), index("red5.b")),
+    pair(index("red6.a"), index("red6.b")),
+    pair(index("red7.a"), index("red7.b")),
+    pair(index("red8.a"), index("red8.b")),
+    pair(index("red9.a"), index("red9.b")),
+    pair(index("red10.a"), index("red10.b")),
+    pair(index("red11.a"), index("red11.b")),
+];
 
-const OUTER_CROWDING_CORNERS = [33, 34, 35, 36] as const;
+const OUTER_CROWDING_CORNERS: Quad<number> = [
+    index("outerCrowdingCorner0"),
+    index("outerCrowdingCorner1"),
+    index("outerCrowdingCorner2"),
+    index("outerCrowdingCorner3"),
+];
 
-const INNER_CROWDING_SEGMENTS = [
-    [37, 38],
-    [39, 40],
-    [41, 42],
-    [43, 44],
-    [45, 46],
-    [47, 48],
-    [56, 57],
-    [58, 59],
-] as const;
+const INNER_CROWDING_SEGMENTS: Pair<number>[] = [
+    pair(index("white0.a"), index("white0.b")),
+    pair(index("white1.a"), index("white1.b")),
+    pair(index("white2.a"), index("white2.b")),
+    pair(index("white3.a"), index("white3.b")),
+    pair(index("white4.a"), index("white4.b")),
+    pair(index("white5.a"), index("white5.b")),
+    pair(index("tail0.a"), index("tail0.b")),
+    pair(index("tail1.a"), index("tail1.b")),
+];
 
-const INNER_CROWDING_CORNERS = [49, 53, 54, 55] as const;
+const INNER_CROWDING_CORNERS: Quad<number> = [
+    index("innerCrowdingCorner0"),
+    index("innerCrowdingCorner1"),
+    index("innerCrowdingCorner2"),
+    index("innerCrowdingCorner3"),
+];
+
+const SPECIAL_DISC_IDS = {
+    LOS: pair(index("blue0.a"), index("blue0.b")),
+    FIRST_DOWN: pair(index("orange0.a"), index("orange0.b")),
+    INTERCEPTION_PATH: pair(index("ball0.a"), index("ball0.b")),
+};
+
+export const BALL_DISC_ID = 0;
+export const BALL_ACTIVE_COLOR = 0x631515;
+export const BALL_INACTIVE_COLOR = 0x808080;
 
 const CROWDING_OUTER_BEHIND_YARDS = 2;
 const CROWDING_OUTER_AHEAD_YARDS = 8;
@@ -118,16 +141,6 @@ export function offsetXByYards(
 ): number {
     return baseX + direction * yards * YARD_LENGTH;
 }
-
-export const BALL_DISC_ID = 0;
-export const BALL_ACTIVE_COLOR = 0x631515;
-export const BALL_INACTIVE_COLOR = 0x808080;
-
-const SPECIAL_DISC_IDS = {
-    LOS: [7, 8],
-    FIRST_DOWN: [5, 6],
-    INTERCEPTION_PATH: [50, 51],
-} as const;
 
 const OUTER_FIELD_EDGES: Line[] = [
     {
@@ -435,9 +448,9 @@ export function getInterceptionPath(
 
 type CrowdingPlacement = readonly [number, number, number];
 type CrowdingRectangle = {
-    start: [number, number];
+    start: Pair<number>;
     direction: 1 | -1;
-    extension: [number, number];
+    extension: Pair<number>;
 };
 
 function getCrowdingDirection(team: FieldTeam): 1 | -1 {
@@ -466,8 +479,8 @@ function clampCrowdingX(x: number) {
 }
 
 function crowdingDashSize(
-    segments: readonly (readonly [number, number])[],
-    extension: [number, number],
+    segments: readonly Pair<number>[],
+    extension: Pair<number>,
 ) {
     const [w, h] = extension;
     const perimeter = 2 * (Math.abs(w) + Math.abs(h));
@@ -483,8 +496,8 @@ function hiddenCrowdingRectangle(): CrowdingRectangle {
 }
 
 function placeCrowdingBox(
-    segments: readonly (readonly [number, number])[],
-    corners: readonly [number, number, number, number],
+    segments: readonly Pair<number>[],
+    corners: Quad<number>,
     rect: CrowdingRectangle,
 ): CrowdingPlacement[] {
     const [width, height] = rect.extension;
@@ -541,7 +554,7 @@ function getCrowdingRectangles(
         startX: number,
         endX: number,
         height: number,
-    ): [number, number] => {
+    ): Pair<number> => {
         const width = (endX - startX) * direction;
         return [Math.max(0, width), height];
     };

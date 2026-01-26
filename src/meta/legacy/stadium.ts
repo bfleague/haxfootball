@@ -1,6 +1,7 @@
 import { defineStadium, type StadiumSchema } from "@stadium/stadium-generator";
 import {
     anchorsFromPairs,
+    getIndexByName,
     jointsFromPairs,
     line,
     pairedIndexes,
@@ -1059,6 +1060,14 @@ const schema = {
             prefix: "tail",
             pairs: pairList([56, 57], [58, 59]),
         }),
+        { name: "outerCrowdingCorner0", index: 33 },
+        { name: "outerCrowdingCorner1", index: 34 },
+        { name: "outerCrowdingCorner2", index: 35 },
+        { name: "outerCrowdingCorner3", index: 36 },
+        { name: "innerCrowdingCorner0", index: 49 },
+        { name: "innerCrowdingCorner1", index: 53 },
+        { name: "innerCrowdingCorner2", index: 54 },
+        { name: "innerCrowdingCorner3", index: 55 },
     ],
     joints: [
         ...jointsFromPairs({
@@ -1096,3 +1105,6 @@ const schema = {
 
 export const { stadium: legacyStadium, index: legacyStadiumIndex } =
     defineStadium(schema);
+
+export const index = (name: string): number =>
+    getIndexByName(legacyStadiumIndex, name);

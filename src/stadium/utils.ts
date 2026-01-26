@@ -3,8 +3,10 @@ import type {
     JointSpec,
     LineSpec,
     SegmentProps,
+    StadiumIndex,
     VertexProps,
 } from "@stadium/stadium-generator";
+import type { Pair } from "@common/types";
 
 type LinePoint = { x: number; y: number; vertex?: VertexProps };
 type LineParams = {
@@ -86,8 +88,8 @@ export function repeat<T>(
     );
 }
 
-export const pos = (x: number, y: number): [number, number] => [x, y];
-export const lengthRange = (min: number, max: number): [number, number] => [
+export const pos = (x: number, y: number): Pair<number> => [x, y];
+export const lengthRange = (min: number, max: number): Pair<number> => [
     min,
     max,
 ];
@@ -99,7 +101,7 @@ type PairedIndexesParams = {
 export const pairedIndexes = ({
     start,
     count,
-}: PairedIndexesParams): Array<[number, number]> =>
+}: PairedIndexesParams): Array<Pair<number>> =>
     repeat(count, (index) => {
         const left = start + index * 2;
         return [left, left + 1];
@@ -107,7 +109,7 @@ export const pairedIndexes = ({
 
 type AnchorsFromPairsParams = {
     prefix: string;
-    pairs: Array<[number, number]>;
+    pairs: Array<Pair<number>>;
 };
 
 export const anchorsFromPairs = ({
@@ -121,7 +123,7 @@ export const anchorsFromPairs = ({
 
 type JointsFromPairsParams = {
     prefix: string;
-    pairs: Array<[number, number]>;
+    pairs: Array<Pair<number>>;
     color: string;
 };
 
@@ -137,4 +139,25 @@ export const jointsFromPairs = ({
         length: lengthRange(0, 99999),
     }));
 
-export const pairList = (...pairs: Array<[number, number]>) => pairs;
+export const pairList = (...pairs: Array<Pair<number>>) => pairs;
+
+type StadiumIndexKind = keyof StadiumIndex["names"];
+type StadiumIndexHit = { kind: StadiumIndexKind; index: number };
+
+const findIndexHits = (index: StadiumIndex, name: string): StadiumIndexHit[] =>
+    (Object.keys(index.names) as StadiumIndexKind[]).flatMap((kind) => {
+        const id = index.names[kind][name];
+        return id === undefined ? [] : [{ kind, index: id }];
+    });
+
+export const getIndexByName = (index: StadiumIndex, name: string): number => {
+    const hits = findIndexHits(index, name);
+    if (hits.length === 0) {
+        throw new Error(`Missing stadium index for "${name}"`);
+    }
+    if (hits.length > 1) {
+        const kinds = hits.map(({ kind }) => kind).join(", ");
+        throw new Error(`Ambiguous stadium name "${name}" found in: ${kinds}`);
+    }
+    return hits[0]!.index;
+};

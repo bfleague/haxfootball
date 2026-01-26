@@ -1,3 +1,5 @@
+import type { Pair } from "@common/types";
+
 export type Point = { x: number; y: number };
 
 export type PointLike = Point & { radius?: number | null };
@@ -180,9 +182,9 @@ export function distributeOnLine<T extends PointLike>(
 type VertexID = number;
 type DashSegment = readonly [VertexID, VertexID];
 type Corners = readonly [VertexID, VertexID, VertexID, VertexID];
-type Coordinate = readonly [number, number];
+type Coordinate = Pair<number>;
 type Direction = 1 | -1;
-type Extension = readonly [number, number];
+type Extension = Pair<number>;
 type PlacedVertex = readonly [VertexID, number, number];
 
 export function dashedRectangleFromSegments(
@@ -211,9 +213,9 @@ export function dashedRectangleFromSegments(
     const yTop = yMid - h / 2;
     const yBot = yMid + h / 2;
 
-    const posById = new Map<VertexID, [number, number]>();
+    const posById = new Map<VertexID, Pair<number>>();
 
-    const setPos = (id: VertexID, p: [number, number]) => {
+    const setPos = (id: VertexID, p: Pair<number>) => {
         const prev = posById.get(id);
         if (!prev) {
             posById.set(id, p);

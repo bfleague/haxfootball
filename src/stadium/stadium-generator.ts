@@ -6,6 +6,7 @@ import type {
     StadiumObject,
     Vertex,
 } from "@haxball/stadium";
+import type { Pair } from "@common/types";
 
 export type VertexProps = Omit<Vertex, "x" | "y">;
 export type SegmentProps = Omit<Segment, "v0" | "v1">;
@@ -35,8 +36,8 @@ export type LineSpec = {
 
 export type RectSpec = {
     name?: string;
-    x: [number, number];
-    y: [number, number];
+    x: Pair<number>;
+    y: Pair<number>;
     segment?: SegmentProps;
     vertex?: VertexProps;
     tags?: string[];
@@ -49,7 +50,7 @@ type LineRef = string | { start: PointSpec; end: PointSpec };
 type RectRef = string | RectSpec;
 
 export type PlaneSpec =
-    | ({ normal: [number, number]; dist: number } & PlaneProps & {
+    | ({ normal: Pair<number>; dist: number } & PlaneProps & {
               name?: string;
               tags?: string[];
           })
@@ -152,7 +153,7 @@ const ensureAxisAligned = (
 const planeFromVerticalLine = (
     x: number,
     side: PlaneSide,
-): { normal: [number, number]; dist: number } => {
+): { normal: Pair<number>; dist: number } => {
     if (side === "left") return { normal: [1, 0], dist: x };
     if (side === "right") return { normal: [-1, 0], dist: -x };
 
@@ -162,7 +163,7 @@ const planeFromVerticalLine = (
 const planeFromHorizontalLine = (
     y: number,
     side: PlaneSide,
-): { normal: [number, number]; dist: number } => {
+): { normal: Pair<number>; dist: number } => {
     if (side === "above") return { normal: [0, 1], dist: y };
     if (side === "below") return { normal: [0, -1], dist: -y };
 
@@ -172,7 +173,7 @@ const planeFromHorizontalLine = (
 const planesFromRect = (
     rect: RectSpec,
     side: RectPlaneSide,
-): Array<{ normal: [number, number]; dist: number }> => {
+): Array<{ normal: Pair<number>; dist: number }> => {
     const [x1, x2] = rect.x;
     const [y1, y2] = rect.y;
     const minX = Math.min(x1, x2);

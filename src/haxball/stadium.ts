@@ -113,9 +113,9 @@ export interface Segment {
  */
 export interface Goal {
     /** The coordinates of the first point of the line in an array form [x, y] */
-    p0: [number, number];
+    p0: Pair<number>;
     /** The coordinates of the second point of the line in an array form [x, y] */
-    p1: [number, number];
+    p1: Pair<number>;
     /** The team the goal belongs to */
     team: "red" | "blue";
     /** A trait to use as default values for this object */
@@ -127,7 +127,7 @@ export interface Goal {
  */
 export interface Plane {
     /** The direction vector of the plane in an array form [x, y] */
-    normal: [number, number];
+    normal: Pair<number>;
     /** The distance from coordinates [0,0] (in direction of the normal) in which the plane is located at */
     dist: number;
     /** The bouncing coefficient */
@@ -145,11 +145,11 @@ export interface Plane {
  */
 export interface Disc {
     /** The starting position of the object in array form [x, y] */
-    pos?: [number, number];
+    pos?: Pair<number>;
     /** The starting speed of the object in array form [x, y] */
-    speed?: [number, number];
+    speed?: Pair<number>;
     /** The gravity vector of the object in array form [x, y] */
-    gravity?: [number, number];
+    gravity?: Pair<number>;
     /** The radius of the disc */
     radius?: number;
     /** The inverse of the disc's mass */
@@ -173,7 +173,7 @@ export interface Disc {
  */
 export interface PlayerPhysics {
     /** Gravity vector */
-    gravity?: [number, number];
+    gravity?: Pair<number>;
     /** Radius of the player disc */
     radius?: number;
     /** Inverse of the player's mass */
@@ -205,7 +205,7 @@ export interface Joint {
     /** Index of one of the two discs connected by the joint */
     d1: number;
     /** Joint length - can be null (auto), a number, or [min, max] range */
-    length?: number | [number, number] | null;
+    length?: number | Pair<number> | null;
     /** Joint strength - can be "rigid" or a float value for spring-like behavior */
     strength?: "rigid" | number;
     /** The color of the joint. Supports "transparent" color */
@@ -278,9 +278,9 @@ export interface StadiumObject {
     /** List of joints */
     joints?: Joint[];
     /** List of spawn points used for the red team kickoff */
-    redSpawnPoints?: [number, number][];
+    redSpawnPoints?: Pair<number>[];
     /** List of spawn points used for the blue team kickoff */
-    blueSpawnPoints?: [number, number][];
+    blueSpawnPoints?: Pair<number>[];
     /** Object describing the player physics */
     playerPhysics?: PlayerPhysics;
     /** The Disc used to create the ball. Can be "disc0" to use the first disc as the ball */
