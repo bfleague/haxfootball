@@ -29,7 +29,8 @@
             "@types/*": ["./src/types/*"],
             "@dev/*": ["./src/dev/*"],
             "@i18n": ["./src/i18n.ts"],
-            "@common/*": ["./src/common/*"]
+            "@common/*": ["./src/common/*"],
+            "@stadium/*": ["./src/stadium/*"]
         }
     },
     "exclude": ["prettier.config.js"]

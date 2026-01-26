@@ -31,6 +31,7 @@ module.exports = {
                     "@types": "./src/types",
                     "@dev": "./src/dev",
                     "@i18n": "./src/i18n",
+                    "@stadium": "./src/stadium",
                 },
             },
         ],

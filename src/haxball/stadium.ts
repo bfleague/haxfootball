@@ -47,6 +47,21 @@
  */
 export type Color = "transparent" | string | [number, number, number];
 
+export type CollisionFlag =
+    | "ball"
+    | "red"
+    | "blue"
+    | "redKO"
+    | "blueKO"
+    | "wall"
+    | "all"
+    | "kick"
+    | "score"
+    | "c0"
+    | "c1"
+    | "c2"
+    | "c3";
+
 /**
  * Vertex - a point which can collide with discs but cannot move and is not visible.
  */
@@ -58,9 +73,9 @@ export interface Vertex {
     /** The bouncing coefficient */
     bCoef?: number;
     /** A list of flags that represent this object's collision mask */
-    cMask?: string[];
+    cMask?: CollisionFlag[];
     /** A list of flags that represent this object's collision group */
-    cGroup?: string[];
+    cGroup?: CollisionFlag[];
     /** A trait to use as default values for this object */
     trait?: string;
 }
@@ -82,9 +97,9 @@ export interface Segment {
     /** Determines the thickness and one-way collision behavior of the segment */
     bias?: number;
     /** A list of flags that represent this object's collision mask */
-    cMask?: string[];
+    cMask?: CollisionFlag[];
     /** A list of flags that represent this object's collision group */
-    cGroup?: string[];
+    cGroup?: CollisionFlag[];
     /** If set to false the segment will be invisible */
     vis?: boolean;
     /** The color with which the segment will be drawn */
@@ -118,9 +133,9 @@ export interface Plane {
     /** The bouncing coefficient */
     bCoef?: number;
     /** A list of flags that represent this object's collision mask */
-    cMask?: string[];
+    cMask?: CollisionFlag[];
     /** A list of flags that represent this object's collision group */
-    cGroup?: string[];
+    cGroup?: CollisionFlag[];
     /** A trait to use as default values for this object */
     trait?: string;
 }
@@ -146,9 +161,9 @@ export interface Disc {
     /** The bouncing coefficient */
     bCoef?: number;
     /** A list of flags that represent this object's collision mask */
-    cMask?: string[];
+    cMask?: CollisionFlag[];
     /** A list of flags that represent this object's collision group */
-    cGroup?: string[];
+    cGroup?: CollisionFlag[];
     /** A trait to use as default values for this object */
     trait?: string;
 }
@@ -168,7 +183,7 @@ export interface PlayerPhysics {
     /** Damping factor */
     damping?: number;
     /** Collision group */
-    cGroup?: string[];
+    cGroup?: CollisionFlag[];
     /** How fast a player accelerates when moving around with keys */
     acceleration?: number;
     /** Replaces acceleration when the player is holding the kick button */

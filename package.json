@@ -9,7 +9,7 @@
         "i18n:extract": "lingui extract",
         "i18n:compile": "lingui compile",
         "i18n": "npm run i18n:extract && npm run i18n:compile",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "vitest"
     },
     "keywords": [],
     "author": "",
@@ -28,7 +28,8 @@
         "babel-plugin-module-resolver": "^5.0.2",
         "prettier": "^3.6.2",
         "tsx": "^4.20.6",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18"
     },
     "dependencies": {
         "@koush/wrtc": "^0.5.3",

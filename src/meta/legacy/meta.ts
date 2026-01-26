@@ -22,7 +22,7 @@ import { FieldGoal } from "./states/field-goal";
 import { FakeFieldGoal } from "./states/fake-field-goal";
 import { FieldGoalInFlight } from "./states/field-goal-in-flight";
 
-export { default as stadium } from "@meta/legacy/stadium";
+export { legacyStadium as stadium } from "@meta/legacy/stadium";
 
 export const registry = {
     KICKOFF: Kickoff,
