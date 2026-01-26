@@ -41,6 +41,8 @@
  * ```
  */
 
+import { Pair } from "@common/types";
+
 /**
  * Color type for stadium objects.
  * Can be "transparent", a hex string "RRGGBB", or an RGB array [R, G, B].
