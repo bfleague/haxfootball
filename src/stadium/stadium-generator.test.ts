@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     legacyStadiumObjectOutput,
     legacyStadiumSchema,
-} from "./fixtures/legacy-stadium";
+} from "./__fixtures__/legacy-stadium";
 import { defineStadium } from "./stadium-generator";
 
 describe("defineStadium", () => {
