@@ -207,6 +207,7 @@ const resolvePointRef = (
 ): number => {
     if (typeof ref === "string") {
         const index = pointIndex.get(ref);
+
         if (index === undefined) {
             throw new Error(`Unknown stadium point: ${ref}`);
         }
@@ -216,11 +217,13 @@ const resolvePointRef = (
 
     const key = pointKey(ref);
     const existing = inlineIndex.get(key);
+
     if (existing !== undefined) {
         return existing;
     }
 
     const index = pointBaseCount + inlineVertexes.length;
+
     inlineIndex.set(key, index);
     inlineVertexes.push({
         x: ref.x,
@@ -238,12 +241,14 @@ const resolveLineRef = (
 ): { start: PointSpec; end: PointSpec } => {
     if (typeof ref === "string") {
         const line = namedLines.get(ref);
+
         if (!line) {
             throw new Error(`Unknown stadium line: ${ref}`);
         }
 
         const start =
             typeof line.from === "string" ? pointMap.get(line.from) : line.from;
+
         const end =
             typeof line.to === "string" ? pointMap.get(line.to) : line.to;
 
@@ -267,6 +272,7 @@ const resolveRectRef = (
 ): RectSpec => {
     if (typeof ref === "string") {
         const rect = namedRects.get(ref);
+
         if (!rect) {
             throw new Error(`Unknown stadium rect: ${ref}`);
         }
@@ -347,9 +353,11 @@ const setIndexName = (
     kind: string,
 ) => {
     if (!name) return;
+
     if (name in target) {
         throw new Error(`Duplicate stadium ${kind} name: ${name}`);
     }
+
     target[name] = index;
 };
 
@@ -359,12 +367,15 @@ const addIndexTags = (
     index: number,
 ) => {
     if (!tags || tags.length === 0) return;
+
     tags.forEach((tag) => {
         const bucket = target[tag];
+
         if (bucket) {
             bucket.push(index);
             return;
         }
+
         target[tag] = [index];
     });
 };
@@ -385,9 +396,10 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
         tags: _tags,
         ...rest
     } = schema;
-    const stadiumIndex = createStadiumIndex();
 
+    const stadiumIndex = createStadiumIndex();
     const namedRects = new Map<string, NamedRect>();
+
     asNamedRects(rects).forEach((rect) => {
         if (namedRects.has(rect.name)) {
             throw new Error(`Duplicate stadium rect name: ${rect.name}`);
@@ -411,6 +423,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
             pointIdx,
             "point",
         );
+
         addIndexTags(stadiumIndex.tags.vertexes, point.tags, pointIdx);
 
         return {
@@ -424,10 +437,12 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
     const inlineVertexes: Vertex[] = [];
     const allLines = [...lines, ...rects.flatMap(rectToLines)];
     const namedLines = new Map<string, NamedLine>();
+
     asNamedLines(allLines).forEach((line) => {
         if (namedLines.has(line.name)) {
             throw new Error(`Duplicate stadium line name: ${line.name}`);
         }
+
         namedLines.set(line.name, line);
     });
 
@@ -439,6 +454,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
             inlineVertexes,
             baseVertexes.length,
         );
+
         const v1 = resolvePointRef(
             line.to,
             pointNameIndex,
@@ -453,6 +469,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
             segmentIndex,
             "line",
         );
+
         addIndexTags(stadiumIndex.tags.segments, line.tags, segmentIndex);
 
         return {
@@ -475,25 +492,31 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
 
         if ("index" in anchor) {
             anchorIndex.set(anchor.name, anchor.index);
+
             setIndexName(
                 stadiumIndex.names.discs,
                 anchor.name,
                 anchor.index,
                 "anchor",
             );
+
             addIndexTags(stadiumIndex.tags.discs, anchor.tags, anchor.index);
+
             return;
         }
 
         const discIndex = builtDiscs.length;
+
         builtDiscs.push(anchor.disc);
         anchorIndex.set(anchor.name, discIndex);
+
         setIndexName(
             stadiumIndex.names.discs,
             anchor.name,
             discIndex,
             "anchor",
         );
+
         addIndexTags(stadiumIndex.tags.discs, anchor.tags, discIndex);
     });
 
@@ -544,6 +567,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
     planes.forEach((entry) => {
         if ("normal" in entry && "dist" in entry) {
             const { normal, dist, name, tags, ...rest } = entry;
+
             planeBuilds.push({
                 plane: {
                     normal,
@@ -553,16 +577,19 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
                 ...(name ? { name } : {}),
                 ...(tags ? { tags } : {}),
             });
+
             return;
         }
 
         if ("line" in entry) {
             const { props, side, name, tags } = entry;
             const line = resolveLineRef(entry.line, namedLines, pointMap);
+
             ensureAxisAligned(line.start, line.end, "Plane from line");
 
             if (line.start.x === line.end.x) {
                 const plane = planeFromVerticalLine(line.start.x, side);
+
                 planeBuilds.push({
                     plane: {
                         ...plane,
@@ -571,10 +598,12 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
                     ...(name ? { name } : {}),
                     ...(tags ? { tags } : {}),
                 });
+
                 return;
             }
 
             const plane = planeFromHorizontalLine(line.start.y, side);
+
             planeBuilds.push({
                 plane: {
                     ...plane,
@@ -583,6 +612,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
                 ...(name ? { name } : {}),
                 ...(tags ? { tags } : {}),
             });
+
             return;
         }
 
@@ -593,6 +623,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
             const derivedName = name
                 ? `${name}.${rectPlaneSuffixes[planeIndex]}`
                 : undefined;
+
             planeBuilds.push({
                 plane: {
                     ...plane,
@@ -605,6 +636,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
     });
 
     const builtPlanes = planeBuilds.map(({ plane }) => plane);
+
     planeBuilds.forEach((entry, planeIndex) => {
         setIndexName(
             stadiumIndex.names.planes,
@@ -612,18 +644,22 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
             planeIndex,
             "plane",
         );
+
         addIndexTags(stadiumIndex.tags.planes, entry.tags, planeIndex);
     });
 
     builtJoints.forEach((_, jointIndex) => {
         const entry = joints[jointIndex];
+
         if (!entry) return;
+
         setIndexName(
             stadiumIndex.names.joints,
             entry.name,
             jointIndex,
             "joint",
         );
+
         addIndexTags(stadiumIndex.tags.joints, entry.tags, jointIndex);
     });
 

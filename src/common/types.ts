@@ -9,3 +9,10 @@ export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
 
 export type Pair<T> = readonly [T, T];
 export type Quad<T> = readonly [T, T, T, T];
+
+export type DeepPartial<T> =
+    T extends Array<infer _U>
+        ? T
+        : T extends Record<string, unknown>
+          ? { [K in keyof T]?: DeepPartial<T[K]> }
+          : T;

@@ -9,6 +9,9 @@ export interface Line {
     end: Point;
 }
 
+export const pos = (x: number, y: number): Pair<number> => [x, y];
+export const range = (min: number, max: number): Pair<number> => [min, max];
+
 export interface Ray {
     origin: Point;
     direction: Point;
