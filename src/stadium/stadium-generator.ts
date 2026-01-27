@@ -73,6 +73,17 @@ export type AnchorSpec =
     | { name: string; index: number; tags?: string[] }
     | { name: string; disc: Disc; tags?: string[] };
 
+export type DynamicLineSpec = {
+    name: string;
+    joint: JointProps;
+    disc?: Partial<Disc>;
+    endpoints?: {
+        a?: Partial<Disc>;
+        b?: Partial<Disc>;
+    };
+    tags?: string[];
+};
+
 export type JointSpec =
     | ({
           from: string;
@@ -93,6 +104,7 @@ export type StadiumSchema = Omit<
     planes?: PlaneSpec[];
     discs?: Disc[];
     anchors?: AnchorSpec[];
+    dynamicLines?: DynamicLineSpec[];
     joints?: JointSpec[];
     vertexes?: Vertex[];
     segments?: Segment[];
@@ -113,6 +125,10 @@ export type StadiumIndex = {
         planes: Record<string, number[]>;
         discs: Record<string, number[]>;
         joints: Record<string, number[]>;
+    };
+    dynamicLines: {
+        names: Record<string, Pair<number>>;
+        tags: Record<string, Array<Pair<number>>>;
     };
 };
 
@@ -344,6 +360,10 @@ const createStadiumIndex = (): StadiumIndex => ({
         discs: {},
         joints: {},
     },
+    dynamicLines: {
+        names: {},
+        tags: {},
+    },
 });
 
 const setIndexName = (
@@ -380,7 +400,36 @@ const addIndexTags = (
     });
 };
 
+const addIndexPairTags = (
+    target: Record<string, Array<Pair<number>>>,
+    tags: string[] | undefined,
+    pair: Pair<number>,
+) => {
+    if (!tags || tags.length === 0) return;
+
+    tags.forEach((tag) => {
+        const bucket = target[tag];
+
+        if (bucket) {
+            bucket.push(pair);
+            return;
+        }
+
+        target[tag] = [pair];
+    });
+};
+
 const rectPlaneSuffixes = ["left", "right", "top", "bottom"] as const;
+
+const DEFAULT_DYNAMIC_LINE_DISC: Disc = {
+    radius: 0,
+    invMass: 1,
+    pos: [0, 0],
+    color: "transparent",
+    cGroup: [],
+};
+
+const DEFAULT_DYNAMIC_LINE_LENGTH: Pair<number> = [0, 99999];
 
 const buildStadium = (schema: StadiumSchema): StadiumBuild => {
     const {
@@ -390,12 +439,14 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
         planes = [],
         discs = [],
         anchors = [],
+        dynamicLines = [],
         joints = [],
         vertexes = [],
         segments = [],
         tags: _tags,
         ...rest
     } = schema;
+    const jointDiscOffset = rest.ballPhysics === "disc0" ? 0 : 1;
 
     const stadiumIndex = createStadiumIndex();
     const namedRects = new Map<string, NamedRect>();
@@ -485,6 +536,42 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
     const anchorIndex = new Map<string, number>();
     const builtDiscs = [...discs];
 
+    const dynamicLineJoints: JointSpec[] = [];
+
+    dynamicLines.forEach((line) => {
+        if (line.name in stadiumIndex.dynamicLines.names) {
+            throw new Error(`Duplicate dynamic line name: ${line.name}`);
+        }
+
+        const discA: Disc = {
+            ...DEFAULT_DYNAMIC_LINE_DISC,
+            ...(line.disc ?? {}),
+            ...(line.endpoints?.a ?? {}),
+        };
+        const discB: Disc = {
+            ...DEFAULT_DYNAMIC_LINE_DISC,
+            ...(line.disc ?? {}),
+            ...(line.endpoints?.b ?? {}),
+        };
+
+        const d0 = builtDiscs.length;
+        builtDiscs.push(discA);
+        const d1 = builtDiscs.length;
+        builtDiscs.push(discB);
+
+        const { length, ...jointProps } = line.joint;
+        dynamicLineJoints.push({
+            d0,
+            d1,
+            length: length ?? DEFAULT_DYNAMIC_LINE_LENGTH,
+            ...jointProps,
+        });
+
+        const pair: Pair<number> = [d0, d1];
+        stadiumIndex.dynamicLines.names[line.name] = pair;
+        addIndexPairTags(stadiumIndex.dynamicLines.tags, line.tags, pair);
+    });
+
     anchors.forEach((anchor) => {
         if (anchorIndex.has(anchor.name)) {
             throw new Error(`Duplicate stadium anchor name: ${anchor.name}`);
@@ -520,7 +607,9 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
         addIndexTags(stadiumIndex.tags.discs, anchor.tags, discIndex);
     });
 
-    const builtJoints = joints.flatMap((entry) => {
+    const allJoints = [...dynamicLineJoints, ...joints];
+
+    const builtJoints = allJoints.flatMap((entry) => {
         if ("from" in entry) {
             const d0 = anchorIndex.get(entry.from);
             const d1 = anchorIndex.get(entry.to);
@@ -543,8 +632,8 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
 
             return [
                 {
-                    d0,
-                    d1,
+                    d0: d0 + jointDiscOffset,
+                    d1: d1 + jointDiscOffset,
                     ...rest,
                 },
             ];
@@ -554,8 +643,8 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
 
         return [
             {
-                d0,
-                d1,
+                d0: d0 + jointDiscOffset,
+                d1: d1 + jointDiscOffset,
                 ...rest,
             },
         ];
@@ -649,7 +738,7 @@ const buildStadium = (schema: StadiumSchema): StadiumBuild => {
     });
 
     builtJoints.forEach((_, jointIndex) => {
-        const entry = joints[jointIndex];
+        const entry = allJoints[jointIndex];
 
         if (!entry) return;
 

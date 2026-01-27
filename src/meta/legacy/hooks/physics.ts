@@ -1,6 +1,7 @@
 import { $effect } from "@runtime/hooks";
 import { Team } from "@runtime/models";
 import type { EffectApi } from "@runtime/runtime";
+import { getPlaneMask } from "@meta/legacy/utils/stadium";
 
 const PLAYER_MOVEABLE_INV_MASS = 0.5;
 const PLAYER_UNMOVEABLE_INV_MASS = 1e26;
@@ -18,6 +19,11 @@ const getTeamCollisionGroup = (
             return 0;
     }
 };
+
+const getPlaneCollisionGroup = (
+    cf: CollisionFlagsObject,
+    name: Parameters<typeof getPlaneMask>[0],
+): number => cf[getPlaneMask(name)];
 
 const setCollisionConfig = ($: EffectApi, playerId: number, cGroup: number) => {
     $.setPlayerDisc(playerId, {
@@ -48,7 +54,10 @@ export function $trapPlayerInEndZone(playerId: number) {
         if (!disc) return;
 
         const cf = $.CollisionFlags;
-        const bit = player.team === Team.RED ? cf.c0 : cf.c1;
+        const bit = getPlaneCollisionGroup(
+            cf,
+            player.team === Team.RED ? "redEndZoneTrap" : "blueEndZoneTrap",
+        );
         const baseTeamGroup = getTeamCollisionGroup(cf, player.team);
 
         setCollisionConfig($, player.id, bit | baseTeamGroup);
@@ -71,7 +80,10 @@ export function $trapTeamInEndZone(team: Team) {
 
             if (!disc) return;
 
-            const bit = team === Team.RED ? cf.c0 : cf.c1;
+            const bit = getPlaneCollisionGroup(
+                cf,
+                team === Team.RED ? "redEndZoneTrap" : "blueEndZoneTrap",
+            );
 
             setCollisionConfig($, p.id, bit | baseTeamGroup);
         });
@@ -106,7 +118,10 @@ export function $trapPlayerInMidField(playerId: number) {
 
         if (!disc) return;
 
-        const bit = player.team === Team.RED ? cf.c2 : cf.c3;
+        const bit = getPlaneCollisionGroup(
+            cf,
+            player.team === Team.RED ? "midfieldPlaneRed" : "midfieldPlaneBlue",
+        );
 
         const baseTeamGroup = getTeamCollisionGroup(cf, player.team);
 
@@ -117,7 +132,10 @@ export function $trapPlayerInMidField(playerId: number) {
 export function $trapTeamInMidField(team: Team) {
     $effect(($) => {
         const cf = $.CollisionFlags;
-        const bit = team === Team.RED ? cf.c2 : cf.c3;
+        const bit = getPlaneCollisionGroup(
+            cf,
+            team === Team.RED ? "midfieldPlaneRed" : "midfieldPlaneBlue",
+        );
         const baseTeamGroup = getTeamCollisionGroup(cf, team);
 
         $.getPlayerList()

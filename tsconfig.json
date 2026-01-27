@@ -30,7 +30,8 @@
             "@dev/*": ["./src/dev/*"],
             "@i18n": ["./src/i18n.ts"],
             "@common/*": ["./src/common/*"],
-            "@stadium/*": ["./src/stadium/*"]
+            "@stadium/*": ["./src/stadium/*"],
+            "@stadium-builder/*": ["./src/stadium-builder/*"]
         }
     },
     "exclude": ["prettier.config.js"]

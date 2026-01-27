@@ -13,71 +13,31 @@ import {
     FieldPosition,
 } from "@common/game";
 import type { Pair, Quad } from "@common/types";
-import { BALL_COLOR, BALL_RADIUS, index } from "@meta/legacy/stadium";
-import { pair } from "@common/general";
+import {
+    BALL_COLOR,
+    BALL_RADIUS,
+    index,
+    legacyMapMeasures as MapMeasures,
+    lineIndex,
+    PlaneMaskName,
+    PLANE_MASK_BY_NAME,
+} from "@meta/legacy/stadium";
 import { hexColorToNumber } from "@common/color";
-
-const MapMeasures = {
-    END_ZONE_RED: {
-        topLeft: { x: -930, y: -266 },
-        bottomRight: { x: -775, y: 266 },
-    },
-    END_ZONE_BLUE: {
-        topLeft: { x: 930, y: -266 },
-        bottomRight: { x: 775, y: 266 },
-    },
-    RED_ZONE_RED: {
-        topLeft: { x: -775, y: -266 },
-        bottomRight: { x: -462, y: 266 },
-    },
-    RED_ZONE_BLUE: {
-        topLeft: { x: 775, y: 266 },
-        bottomRight: { x: 462, y: -266 },
-    },
-    INNER_FIELD: {
-        topLeft: { x: -775, y: -266 },
-        bottomRight: { x: 775, y: 266 },
-    },
-    OUTER_FIELD: {
-        topLeft: { x: -930, y: -266 },
-        bottomRight: { x: 930, y: 266 },
-    },
-    RED_GOAL_LINE: {
-        start: { x: -930, y: -60 },
-        end: { x: -930, y: 60 },
-    },
-    BLUE_GOAL_LINE: {
-        start: { x: 930, y: -60 },
-        end: { x: 930, y: 60 },
-    },
-    GOAL_POST_RADIUS: 4,
-    HASHES_HEIGHT: {
-        upperY: -80,
-        lowerY: 80,
-    },
-    SINGLE_HASH_HEIGHT: 20,
-    RED_END_ZONE_START_POSITION_X: -775,
-    BLUE_END_ZONE_START_POSITION_X: 775,
-    RED_END_ZONE_LINE_CENTER: { x: -775, y: 0 },
-    BLUE_END_ZONE_LINE_CENTER: { x: 775, y: 0 },
-    YARD: 15.5,
-    HASH_SUBDIVISION: 31,
-    YARDS_BETWEEN_0_MARK_AND_GOAL_LINE: 10,
-};
+import { CollisionFlag } from "@haxball/stadium";
 
 const OUTER_CROWDING_SEGMENTS: Pair<number>[] = [
-    pair(index("red0.a"), index("red0.b")),
-    pair(index("red1.a"), index("red1.b")),
-    pair(index("red2.a"), index("red2.b")),
-    pair(index("red3.a"), index("red3.b")),
-    pair(index("red4.a"), index("red4.b")),
-    pair(index("red5.a"), index("red5.b")),
-    pair(index("red6.a"), index("red6.b")),
-    pair(index("red7.a"), index("red7.b")),
-    pair(index("red8.a"), index("red8.b")),
-    pair(index("red9.a"), index("red9.b")),
-    pair(index("red10.a"), index("red10.b")),
-    pair(index("red11.a"), index("red11.b")),
+    lineIndex("red0"),
+    lineIndex("red1"),
+    lineIndex("red2"),
+    lineIndex("red3"),
+    lineIndex("red4"),
+    lineIndex("red5"),
+    lineIndex("red6"),
+    lineIndex("red7"),
+    lineIndex("red8"),
+    lineIndex("red9"),
+    lineIndex("red10"),
+    lineIndex("red11"),
 ];
 
 const OUTER_CROWDING_CORNERS: Quad<number> = [
@@ -88,14 +48,14 @@ const OUTER_CROWDING_CORNERS: Quad<number> = [
 ];
 
 const INNER_CROWDING_SEGMENTS: Pair<number>[] = [
-    pair(index("white0.a"), index("white0.b")),
-    pair(index("white1.a"), index("white1.b")),
-    pair(index("white2.a"), index("white2.b")),
-    pair(index("white3.a"), index("white3.b")),
-    pair(index("white4.a"), index("white4.b")),
-    pair(index("white5.a"), index("white5.b")),
-    pair(index("tail0.a"), index("tail0.b")),
-    pair(index("tail1.a"), index("tail1.b")),
+    lineIndex("white0"),
+    lineIndex("white1"),
+    lineIndex("white2"),
+    lineIndex("white3"),
+    lineIndex("white4"),
+    lineIndex("white5"),
+    lineIndex("tail0"),
+    lineIndex("tail1"),
 ];
 
 const INNER_CROWDING_CORNERS: Quad<number> = [
@@ -106,10 +66,13 @@ const INNER_CROWDING_CORNERS: Quad<number> = [
 ];
 
 const SPECIAL_DISC_IDS = {
-    LOS: pair(index("blue0.a"), index("blue0.b")),
-    FIRST_DOWN: pair(index("orange0.a"), index("orange0.b")),
-    INTERCEPTION_PATH: pair(index("ball0.a"), index("ball0.b")),
+    LOS: lineIndex("blue0"),
+    FIRST_DOWN: lineIndex("orange0"),
+    INTERCEPTION_PATH: lineIndex("ball0"),
 };
+
+export const getPlaneMask = (name: PlaneMaskName): CollisionFlag =>
+    PLANE_MASK_BY_NAME[name];
 
 export const BALL_DISC_ID = 0;
 export const BALL_ACTIVE_COLOR = hexColorToNumber(BALL_COLOR);

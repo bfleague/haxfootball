@@ -24,17 +24,17 @@ const YARD_LINE_WHITE = {
 
 const YARD_LINE_RED = {
     extend: YARD_LINE_BASE,
-    segment: { color: "d0312d", cMask: [] },
+    segment: { color: "D0312D", cMask: [] },
 };
 
 const YARD_LINE_YELLOW = {
     extend: YARD_LINE_BASE,
-    segment: { color: "ffea00", cMask: [] },
+    segment: { color: "FFEA00", cMask: [] },
 };
 
 const YARD_LINE_GREEN = {
     extend: YARD_LINE_BASE,
-    segment: { color: "acde97", cMask: [] },
+    segment: { color: "ACDE97", cMask: [] },
 };
 
 const HASH_MARK_BASE = {
@@ -85,7 +85,7 @@ const COLLISION_MIDLINE_BASE = {
 const COLLISION_SIDELINE_BASE = {
     segment: {
         vis: false,
-        color: "ffea00",
+        color: "FFEA00",
         bCoef: 0.1,
         cMask: mask("red", "blue"),
         cGroup: [],
@@ -95,7 +95,7 @@ const COLLISION_SIDELINE_BASE = {
     yEnd: 375,
 };
 
-const GOAL_POST_SEGMENT = { color: "ffea00", cMask: [] };
+const GOAL_POST_SEGMENT = { color: "FFEA00", cMask: [] };
 const GOAL_POST_VERTEX = { cMask: [] };
 const GOAL_POST_VERTICAL_BASE = {
     segment: GOAL_POST_SEGMENT,
@@ -115,11 +115,11 @@ const BALL_BOUNDARY_BASE = {
 };
 const BALL_BOUNDARY_LEFT_BASE = {
     extend: BALL_BOUNDARY_BASE,
-    segment: { color: "FF" },
+    segment: { color: "0000FF" },
 };
 const BALL_BOUNDARY_RIGHT_BASE = {
     extend: BALL_BOUNDARY_BASE,
-    segment: { color: "d0312d" },
+    segment: { color: "D0312D" },
 };
 
 export const legacyStadiumSchema = {
@@ -831,7 +831,7 @@ export const legacyStadiumSchema = {
             radius: 1,
             invMass: 1,
             pos: pos(9999, 9999),
-            color: "f5f5f5",
+            color: "F5F5F5",
             cGroup: [],
         }),
         ...repeat(2, {
@@ -846,7 +846,7 @@ export const legacyStadiumSchema = {
             radius: 1,
             invMass: 1,
             pos: pos(9999, 9999),
-            color: "f5f5f5",
+            color: "F5F5F5",
             cGroup: [],
         }),
         ...repeat(4, {
@@ -858,60 +858,60 @@ export const legacyStadiumSchema = {
         }),
     ],
     anchors: [
-        ...anchorsFromPairs({ prefix: "orange", pairs: pairList([5, 6]) }),
-        ...anchorsFromPairs({ prefix: "blue", pairs: pairList([7, 8]) }),
-        ...anchorsFromPairs({ prefix: "ball", pairs: pairList([50, 51]) }),
+        ...anchorsFromPairs({ prefix: "orange", pairs: pairList([4, 5]) }),
+        ...anchorsFromPairs({ prefix: "blue", pairs: pairList([6, 7]) }),
+        ...anchorsFromPairs({ prefix: "ball", pairs: pairList([49, 50]) }),
         ...anchorsFromPairs({
             prefix: "red",
-            pairs: pairedIndexes({ start: 9, count: 12 }),
+            pairs: pairedIndexes({ start: 8, count: 12 }),
         }),
         ...anchorsFromPairs({
             prefix: "white",
-            pairs: pairedIndexes({ start: 37, count: 6 }),
+            pairs: pairedIndexes({ start: 36, count: 6 }),
         }),
         ...anchorsFromPairs({
             prefix: "tail",
-            pairs: pairList([56, 57], [58, 59]),
+            pairs: pairList([55, 56], [57, 58]),
         }),
-        { name: "outerCrowdingCorner0", index: 33 },
-        { name: "outerCrowdingCorner1", index: 34 },
-        { name: "outerCrowdingCorner2", index: 35 },
-        { name: "outerCrowdingCorner3", index: 36 },
-        { name: "innerCrowdingCorner0", index: 49 },
-        { name: "innerCrowdingCorner1", index: 53 },
-        { name: "innerCrowdingCorner2", index: 54 },
-        { name: "innerCrowdingCorner3", index: 55 },
+        { name: "outerCrowdingCorner0", index: 32 },
+        { name: "outerCrowdingCorner1", index: 33 },
+        { name: "outerCrowdingCorner2", index: 34 },
+        { name: "outerCrowdingCorner3", index: 35 },
+        { name: "innerCrowdingCorner0", index: 48 },
+        { name: "innerCrowdingCorner1", index: 52 },
+        { name: "innerCrowdingCorner2", index: 53 },
+        { name: "innerCrowdingCorner3", index: 54 },
     ],
     joints: [
         ...jointsFromPairs({
             prefix: "orange",
-            pairs: pairList([5, 6]),
-            color: "ff9912",
+            pairs: pairList([4, 5]),
+            color: "FF9912",
         }),
         ...jointsFromPairs({
             prefix: "blue",
-            pairs: pairList([7, 8]),
-            color: "3e67cf",
+            pairs: pairList([6, 7]),
+            color: "3E67CF",
         }),
         ...jointsFromPairs({
             prefix: "ball",
-            pairs: pairList([50, 51]),
+            pairs: pairList([49, 50]),
             color: "FFAA00",
         }),
         ...jointsFromPairs({
             prefix: "red",
-            pairs: pairedIndexes({ start: 9, count: 12 }),
+            pairs: pairedIndexes({ start: 8, count: 12 }),
             color: "FF0000",
         }),
         ...jointsFromPairs({
             prefix: "white",
-            pairs: pairedIndexes({ start: 37, count: 6 }),
-            color: "f5f5f5",
+            pairs: pairedIndexes({ start: 36, count: 6 }),
+            color: "F5F5F5",
         }),
         ...jointsFromPairs({
             prefix: "tail",
-            pairs: pairList([56, 57], [58, 59]),
-            color: "f5f5f5",
+            pairs: pairList([55, 56], [57, 58]),
+            color: "F5F5F5",
         }),
     ],
 } satisfies StadiumSchema;
@@ -2188,7 +2188,7 @@ export const legacyStadiumObjectOutput: StadiumObject = {
             v0: 2,
             v1: 3,
             vis: false,
-            color: "ffea00",
+            color: "FFEA00",
             bCoef: 0.1,
             cMask: ["red", "blue"],
             cGroup: [],
@@ -2197,7 +2197,7 @@ export const legacyStadiumObjectOutput: StadiumObject = {
             v0: 4,
             v1: 5,
             vis: false,
-            color: "ffea00",
+            color: "FFEA00",
             bCoef: 0.1,
             cMask: ["red", "blue"],
             cGroup: [],
@@ -2205,7 +2205,7 @@ export const legacyStadiumObjectOutput: StadiumObject = {
         {
             v0: 6,
             v1: 7,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
@@ -2217,7 +2217,7 @@ export const legacyStadiumObjectOutput: StadiumObject = {
         {
             v0: 10,
             v1: 11,
-            color: "d0312d",
+            color: "D0312D",
             cMask: [],
         },
         {
@@ -2247,7 +2247,7 @@ export const legacyStadiumObjectOutput: StadiumObject = {
         {
             v0: 20,
             v1: 21,
-            color: "d0312d",
+            color: "D0312D",
             cMask: [],
         },
         {
@@ -2259,13 +2259,13 @@ export const legacyStadiumObjectOutput: StadiumObject = {
         {
             v0: 24,
             v1: 25,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
             v0: 26,
             v1: 27,
-            color: "acde97",
+            color: "ACDE97",
             cMask: [],
         },
         {
@@ -2871,51 +2871,51 @@ export const legacyStadiumObjectOutput: StadiumObject = {
         {
             v0: 228,
             v1: 229,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
             v0: 230,
             v1: 231,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
             v0: 228,
             v1: 232,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
             v0: 229,
             v1: 233,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
             v0: 230,
             v1: 234,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
             v0: 231,
             v1: 235,
-            color: "ffea00",
+            color: "FFEA00",
             cMask: [],
         },
         {
             v0: 236,
             v1: 237,
             vis: false,
-            color: "FF",
+            color: "0000FF",
             cMask: ["ball"],
         },
         {
             v0: 238,
             v1: 239,
             vis: false,
-            color: "d0312d",
+            color: "D0312D",
             cMask: ["ball"],
         },
         {
@@ -3342,14 +3342,14 @@ export const legacyStadiumObjectOutput: StadiumObject = {
             radius: 1,
             invMass: 1,
             pos: [9999, 9999],
-            color: "f5f5f5",
+            color: "F5F5F5",
             cGroup: [],
         },
         {
             radius: 1,
             invMass: 1,
             pos: [9999, 9999],
-            color: "f5f5f5",
+            color: "F5F5F5",
             cGroup: [],
         },
         {
@@ -3372,21 +3372,21 @@ export const legacyStadiumObjectOutput: StadiumObject = {
             radius: 1,
             invMass: 1,
             pos: [9999, 9999],
-            color: "f5f5f5",
+            color: "F5F5F5",
             cGroup: [],
         },
         {
             radius: 1,
             invMass: 1,
             pos: [9999, 9999],
-            color: "f5f5f5",
+            color: "F5F5F5",
             cGroup: [],
         },
         {
             radius: 1,
             invMass: 1,
             pos: [9999, 9999],
-            color: "f5f5f5",
+            color: "F5F5F5",
             cGroup: [],
         },
         {
@@ -3422,13 +3422,13 @@ export const legacyStadiumObjectOutput: StadiumObject = {
         {
             d0: 5,
             d1: 6,
-            color: "ff9912",
+            color: "FF9912",
             length: [0, 99999],
         },
         {
             d0: 7,
             d1: 8,
-            color: "3e67cf",
+            color: "3E67CF",
             length: [0, 99999],
         },
         {
@@ -3512,49 +3512,49 @@ export const legacyStadiumObjectOutput: StadiumObject = {
         {
             d0: 37,
             d1: 38,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
         {
             d0: 39,
             d1: 40,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
         {
             d0: 41,
             d1: 42,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
         {
             d0: 43,
             d1: 44,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
         {
             d0: 45,
             d1: 46,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
         {
             d0: 47,
             d1: 48,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
         {
             d0: 56,
             d1: 57,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
         {
             d0: 58,
             d1: 59,
-            color: "f5f5f5",
+            color: "F5F5F5",
             length: [0, 99999],
         },
     ],

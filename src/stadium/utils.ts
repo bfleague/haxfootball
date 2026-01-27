@@ -193,3 +193,16 @@ export const getIndexByName = (index: StadiumIndex, name: string): number => {
 
     return hits[0]!.index;
 };
+
+export const getDynamicLine = (
+    index: StadiumIndex,
+    name: string,
+): Pair<number> => {
+    const line = index.dynamicLines.names[name];
+
+    if (!line) {
+        throw new Error(`Missing dynamic line "${name}"`);
+    }
+
+    return line;
+};
