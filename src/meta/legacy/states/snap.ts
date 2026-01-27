@@ -36,7 +36,7 @@ import {
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 
-type SnapFrame = {
+type Frame = {
     state: GameState;
     quarterback: Crowding.CrowdingPlayer;
     defenders: Crowding.CrowdingPlayer[];
@@ -431,7 +431,7 @@ export function Snap({
         $hideCrowdingBoxes();
     });
 
-    function buildSnapFrame(state: GameState): SnapFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const quarterback = state.players.find((p) => p.id === quarterbackId);
         if (!quarterback) return null;
 
@@ -505,7 +505,7 @@ export function Snap({
         };
     }
 
-    function $handleDefensiveOffside(frame: SnapFrame) {
+    function $handleDefensiveOffside(frame: Frame) {
         if (frame.isBlitzAllowed || !frame.defenseCrossedLineOfScrimmage) {
             return;
         }
@@ -589,7 +589,7 @@ export function Snap({
     }
 
     function $getCrowdingResult(
-        frame: SnapFrame,
+        frame: Frame,
     ): Crowding.CrowdingEvaluation | null {
         if (frame.isBlitzAllowed) return null;
 
@@ -703,7 +703,7 @@ export function Snap({
         });
     }
 
-    function $handleDefensiveTouching(frame: SnapFrame) {
+    function $handleDefensiveTouching(frame: Frame) {
         const defensiveTouchers = findBallCatchers(
             frame.state.ball,
             frame.defenders,
@@ -795,7 +795,7 @@ export function Snap({
         });
     }
 
-    function $handleHandoff(frame: SnapFrame) {
+    function $handleHandoff(frame: Frame) {
         if (frame.quarterback.isKickingBall) return;
 
         const offensiveTouchers = findCatchers(
@@ -820,7 +820,7 @@ export function Snap({
         });
     }
 
-    function $handleIllegalTouchingBehindLine(frame: SnapFrame) {
+    function $handleIllegalTouchingBehindLine(frame: Frame) {
         if (!frame.ballBehindLineOfScrimmage) return;
 
         const illegalTouchers = findBallCatchers(
@@ -869,7 +869,7 @@ export function Snap({
         });
     }
 
-    function $handleBallOutOfBounds(frame: SnapFrame) {
+    function $handleBallOutOfBounds(frame: Frame) {
         if (frame.quarterback.isKickingBall) return;
         if (!isOutOfBounds(frame.state.ball)) return;
 
@@ -948,7 +948,7 @@ export function Snap({
         });
     }
 
-    function $handleBallBeyondLineOfScrimmage(frame: SnapFrame) {
+    function $handleBallBeyondLineOfScrimmage(frame: Frame) {
         if (frame.quarterback.isKickingBall) return;
         if (!frame.ballBeyondLineOfScrimmage) return;
 
@@ -971,7 +971,7 @@ export function Snap({
         });
     }
 
-    function $handleQuarterbackBeyondLineOfScrimmage(frame: SnapFrame) {
+    function $handleQuarterbackBeyondLineOfScrimmage(frame: Frame) {
         if (frame.quarterback.isKickingBall) return;
         if (!frame.quarterbackCrossedLineOfScrimmage) return;
 
@@ -994,7 +994,7 @@ export function Snap({
         });
     }
 
-    function $handleSnapKick(frame: SnapFrame) {
+    function $handleSnapKick(frame: Frame) {
         if (!frame.quarterback.isKickingBall) return;
 
         $effect(($) => {
@@ -1007,7 +1007,7 @@ export function Snap({
         });
     }
 
-    function $handleBlitz(frame: SnapFrame) {
+    function $handleBlitz(frame: Frame) {
         if (!frame.isBlitzAllowed || !frame.defenseCrossedLineOfScrimmage) {
             return;
         }
@@ -1026,7 +1026,7 @@ export function Snap({
     }
 
     function $refreshSnapState(
-        frame: SnapFrame,
+        frame: Frame,
         crowdingResult: Crowding.CrowdingEvaluation | null,
     ) {
         const shouldRefreshSnapState =
@@ -1049,7 +1049,7 @@ export function Snap({
     }
 
     function run(state: GameState) {
-        const frame = buildSnapFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $handleDefensiveOffside(frame);

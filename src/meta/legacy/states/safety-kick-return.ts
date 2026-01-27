@@ -19,7 +19,7 @@ import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
 type EndzoneState = "TOUCHBACK" | "SAFETY";
-type SafetyKickReturnFrame = {
+type Frame = {
     player: GameStatePlayer;
     defenders: GameStatePlayer[];
 };
@@ -120,9 +120,7 @@ export function SafetyKickReturn({
         }
     }
 
-    function buildSafetyKickReturnFrame(
-        state: GameState,
-    ): SafetyKickReturnFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
 
@@ -133,7 +131,7 @@ export function SafetyKickReturn({
         return { player, defenders };
     }
 
-    function $advanceEndzoneState(frame: SafetyKickReturnFrame) {
+    function $advanceEndzoneState(frame: Frame) {
         if (
             !isCompletelyInsideMainField(frame.player) ||
             endzoneState !== "TOUCHBACK"
@@ -151,7 +149,7 @@ export function SafetyKickReturn({
         });
     }
 
-    function $handleTouchdown(frame: SafetyKickReturnFrame) {
+    function $handleTouchdown(frame: Frame) {
         if (
             !isTouchdown({
                 player: frame.player,
@@ -186,7 +184,7 @@ export function SafetyKickReturn({
         });
     }
 
-    function $handleOutOfBounds(frame: SafetyKickReturnFrame) {
+    function $handleOutOfBounds(frame: Frame) {
         if (!isOutOfBounds(frame.player)) return;
 
         const fieldPos = getFieldPosition(frame.player.x);
@@ -246,7 +244,7 @@ export function SafetyKickReturn({
         }
     }
 
-    function $handleTackle(frame: SafetyKickReturnFrame) {
+    function $handleTackle(frame: Frame) {
         const catchers = findCatchers(frame.player, frame.defenders);
 
         if (catchers.length === 0) return;
@@ -352,7 +350,7 @@ export function SafetyKickReturn({
     }
 
     function run(state: GameState) {
-        const frame = buildSafetyKickReturnFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $advanceEndzoneState(frame);

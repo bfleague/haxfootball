@@ -30,7 +30,7 @@ import { t } from "@lingui/core/macro";
 const MAX_PATH_DURATION = ticks({ seconds: 2 });
 
 type EndzoneState = "TOUCHBACK" | "SAFETY";
-type InterceptionFrame = {
+type Frame = {
     state: GameState;
     player: GameStatePlayer;
     defenders: GameStatePlayer[];
@@ -73,9 +73,7 @@ export function Interception({
         $setBallActive();
     });
 
-    function buildInterceptionFrame(
-        state: GameState,
-    ): InterceptionFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
 
@@ -94,7 +92,7 @@ export function Interception({
         }
     }
 
-    function $advanceEndzoneState(frame: InterceptionFrame) {
+    function $advanceEndzoneState(frame: Frame) {
         if (
             !isCompletelyInsideMainField(frame.player) ||
             endzoneState !== "TOUCHBACK"
@@ -114,7 +112,7 @@ export function Interception({
         });
     }
 
-    function $handleTouchdown(frame: InterceptionFrame) {
+    function $handleTouchdown(frame: Frame) {
         if (
             !isTouchdown({
                 player: frame.player,
@@ -147,7 +145,7 @@ export function Interception({
         });
     }
 
-    function $handleOutOfBounds(frame: InterceptionFrame) {
+    function $handleOutOfBounds(frame: Frame) {
         if (!isOutOfBounds(frame.player)) return;
 
         const fieldPos = getFieldPosition(frame.player.x);
@@ -207,7 +205,7 @@ export function Interception({
         }
     }
 
-    function $handleTackle(frame: InterceptionFrame) {
+    function $handleTackle(frame: Frame) {
         const catchers = findCatchers(frame.player, frame.defenders);
 
         if (catchers.length === 0) return;
@@ -315,7 +313,7 @@ export function Interception({
     function run(state: GameState) {
         $maybeHideInterceptionPath(state);
 
-        const frame = buildInterceptionFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $advanceEndzoneState(frame);

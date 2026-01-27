@@ -25,7 +25,7 @@ import {
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
-type RunFrame = {
+type Frame = {
     player: GameStatePlayer;
     defenders: GameStatePlayer[];
 };
@@ -57,7 +57,7 @@ export function Run({
         $setBallActive();
     });
 
-    function buildRunFrame(state: GameState): RunFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
 
@@ -68,7 +68,7 @@ export function Run({
         return { player, defenders };
     }
 
-    function $handleTouchdown(frame: RunFrame) {
+    function $handleTouchdown(frame: Frame) {
         if (
             !isTouchdown({
                 player: frame.player,
@@ -103,7 +103,7 @@ export function Run({
         });
     }
 
-    function $handleOutOfBounds(frame: RunFrame) {
+    function $handleOutOfBounds(frame: Frame) {
         if (!isOutOfBounds(frame.player)) return;
 
         const fieldPos = getFieldPosition(frame.player.x);
@@ -210,7 +210,7 @@ export function Run({
         }
     }
 
-    function $handleTackle(frame: RunFrame) {
+    function $handleTackle(frame: Frame) {
         const catchers = findCatchers(frame.player, frame.defenders);
         if (catchers.length === 0) return;
 
@@ -312,7 +312,7 @@ export function Run({
     }
 
     function run(state: GameState) {
-        const frame = buildRunFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $handleTouchdown(frame);

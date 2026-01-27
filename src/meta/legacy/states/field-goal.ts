@@ -59,7 +59,7 @@ type Formation = {
     kicker: GameStatePlayer | null;
 };
 
-type FieldGoalFrame = {
+type Frame = {
     state: GameState;
     kicker: GameStatePlayer;
     defenders: GameStatePlayer[];
@@ -239,7 +239,7 @@ export function FieldGoal({
         return outDistance < goalDistance;
     };
 
-    function buildFieldGoalFrame(state: GameState): FieldGoalFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const kicker = state.players.find((player) => player.id === kickerId);
         if (!kicker) return null;
 
@@ -283,7 +283,7 @@ export function FieldGoal({
         };
     }
 
-    function $handleKick(frame: FieldGoalFrame) {
+    function $handleKick(frame: Frame) {
         if (!frame.kicker.isKickingBall) return;
 
         $lockBall();
@@ -310,7 +310,7 @@ export function FieldGoal({
         });
     }
 
-    function $handleIllegalTouching(frame: FieldGoalFrame) {
+    function $handleIllegalTouching(frame: Frame) {
         if (frame.offensiveBallTouchers.length === 0) return;
 
         const offenderNames = formatNames(frame.offensiveBallTouchers);
@@ -330,7 +330,7 @@ export function FieldGoal({
         });
     }
 
-    function $handleDefensiveTouching(frame: FieldGoalFrame) {
+    function $handleDefensiveTouching(frame: Frame) {
         if (frame.defensiveBallTouchers.length === 0) return;
 
         const offenderNames = formatNames(frame.defensiveBallTouchers);
@@ -350,7 +350,7 @@ export function FieldGoal({
         });
     }
 
-    function $handleDefensiveContact(frame: FieldGoalFrame) {
+    function $handleDefensiveContact(frame: Frame) {
         if (frame.defensiveKickerTouchers.length === 0) return;
 
         const offenderNames = formatNames(frame.defensiveKickerTouchers);
@@ -370,7 +370,7 @@ export function FieldGoal({
         });
     }
 
-    function $handleFakeFieldGoal(frame: FieldGoalFrame) {
+    function $handleFakeFieldGoal(frame: Frame) {
         if (!frame.kickerCrossedLine) return;
 
         if (frame.canFake) {
@@ -404,7 +404,7 @@ export function FieldGoal({
         }
     }
 
-    function $handleBallCrossedLine(frame: FieldGoalFrame) {
+    function $handleBallCrossedLine(frame: Frame) {
         if (frame.kicker.isKickingBall || !frame.ballCrossedLine) return;
 
         $effect(($) => {
@@ -423,7 +423,7 @@ export function FieldGoal({
     }
 
     function run(state: GameState) {
-        const frame = buildFieldGoalFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $handleKick(frame);

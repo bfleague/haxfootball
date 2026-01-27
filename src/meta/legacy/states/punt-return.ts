@@ -19,7 +19,7 @@ import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
 type EndzoneState = "TOUCHBACK" | "SAFETY";
-type PuntReturnFrame = {
+type Frame = {
     player: GameStatePlayer;
     defenders: GameStatePlayer[];
 };
@@ -118,7 +118,7 @@ export function PuntReturn({
         }
     }
 
-    function buildPuntReturnFrame(state: GameState): PuntReturnFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
 
@@ -129,7 +129,7 @@ export function PuntReturn({
         return { player, defenders };
     }
 
-    function $advanceEndzoneState(frame: PuntReturnFrame) {
+    function $advanceEndzoneState(frame: Frame) {
         if (
             !isCompletelyInsideMainField(frame.player) ||
             endzoneState !== "TOUCHBACK"
@@ -147,7 +147,7 @@ export function PuntReturn({
         });
     }
 
-    function $handleTouchdown(frame: PuntReturnFrame) {
+    function $handleTouchdown(frame: Frame) {
         if (
             !isTouchdown({
                 player: frame.player,
@@ -182,7 +182,7 @@ export function PuntReturn({
         });
     }
 
-    function $handleOutOfBounds(frame: PuntReturnFrame) {
+    function $handleOutOfBounds(frame: Frame) {
         if (!isOutOfBounds(frame.player)) return;
 
         const fieldPos = getFieldPosition(frame.player.x);
@@ -242,7 +242,7 @@ export function PuntReturn({
         }
     }
 
-    function $handleTackle(frame: PuntReturnFrame) {
+    function $handleTackle(frame: Frame) {
         const catchers = findCatchers(frame.player, frame.defenders);
 
         if (catchers.length === 0) return;
@@ -348,7 +348,7 @@ export function PuntReturn({
     }
 
     function run(state: GameState) {
-        const frame = buildPuntReturnFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $advanceEndzoneState(frame);

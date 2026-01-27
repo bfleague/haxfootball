@@ -28,7 +28,7 @@ import { $global } from "@meta/legacy/hooks/global";
 
 const FUMBLE_CATCHER_DISTANCE = 1.0;
 
-type LiveBallFrame = {
+type Frame = {
     state: GameState;
     player: GameStatePlayer;
     defenders: GameStatePlayer[];
@@ -128,7 +128,7 @@ export function LiveBall({
         });
     }
 
-    function buildLiveBallFrame(state: GameState): LiveBallFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
 
@@ -139,7 +139,7 @@ export function LiveBall({
         return { state, player, defenders };
     }
 
-    function $handleTouchdown(frame: LiveBallFrame) {
+    function $handleTouchdown(frame: Frame) {
         if (
             !isTouchdown({
                 player: frame.player,
@@ -174,7 +174,7 @@ export function LiveBall({
         });
     }
 
-    function $handleOutOfBounds(frame: LiveBallFrame) {
+    function $handleOutOfBounds(frame: Frame) {
         if (!isOutOfBounds(frame.player)) return;
 
         const fieldPos = getFieldPosition(frame.player.x);
@@ -285,7 +285,7 @@ export function LiveBall({
         }
     }
 
-    function $handleTackle(frame: LiveBallFrame) {
+    function $handleTackle(frame: Frame) {
         const catchers = findCatchers(frame.player, frame.defenders);
         if (catchers.length === 0) return;
 
@@ -391,7 +391,7 @@ export function LiveBall({
             $handleFumble(state);
         }
 
-        const frame = buildLiveBallFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $handleTouchdown(frame);

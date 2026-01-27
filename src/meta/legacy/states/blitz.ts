@@ -32,7 +32,7 @@ import {
 
 const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
 
-type BlitzFrame = {
+type Frame = {
     state: GameState;
     quarterback: GameStatePlayer;
     defenders: GameStatePlayer[];
@@ -74,7 +74,7 @@ export function Blitz({
         $.setAvatar(quarterbackId, AVATARS.BALL);
     });
 
-    function buildBlitzFrame(state: GameState): BlitzFrame | null {
+    function buildFrame(state: GameState): Frame | null {
         const quarterback = state.players.find((p) => p.id === quarterbackId);
         if (!quarterback) return null;
 
@@ -96,7 +96,7 @@ export function Blitz({
         };
     }
 
-    function $handleQuarterbackKick(frame: BlitzFrame) {
+    function $handleQuarterbackKick(frame: Frame) {
         if (ballIsDead || !frame.quarterback.isKickingBall) return;
 
         $next({
@@ -105,7 +105,7 @@ export function Blitz({
         });
     }
 
-    function $handleOffensiveIllegalTouching(frame: BlitzFrame) {
+    function $handleOffensiveIllegalTouching(frame: Frame) {
         const offensiveTouchers = findBallCatchers(
             frame.state.ball,
             frame.state.players.filter(
@@ -156,7 +156,7 @@ export function Blitz({
         });
     }
 
-    function $handleDefensiveTouching(frame: BlitzFrame) {
+    function $handleDefensiveTouching(frame: Frame) {
         if (ballIsDead) return;
 
         const defensiveTouchers = findBallCatchers(
@@ -177,7 +177,7 @@ export function Blitz({
         });
     }
 
-    function $handleQuarterbackCrossedLine(frame: BlitzFrame) {
+    function $handleQuarterbackCrossedLine(frame: Frame) {
         if (!frame.quarterbackCrossedLineOfScrimmage) return;
 
         $effect(($) => {
@@ -195,7 +195,7 @@ export function Blitz({
         });
     }
 
-    function $handleQuarterbackOutOfBounds(frame: BlitzFrame) {
+    function $handleQuarterbackOutOfBounds(frame: Frame) {
         if (!isOutOfBounds(frame.quarterback)) return;
 
         const fieldPos = getFieldPosition(frame.quarterback.x);
@@ -295,7 +295,7 @@ export function Blitz({
         }
     }
 
-    function $handleQuarterbackSacked(frame: BlitzFrame) {
+    function $handleQuarterbackSacked(frame: Frame) {
         const catchers = findCatchers(frame.quarterback, frame.defenders);
         if (catchers.length === 0) return;
 
@@ -392,7 +392,7 @@ export function Blitz({
     }
 
     function run(state: GameState) {
-        const frame = buildBlitzFrame(state);
+        const frame = buildFrame(state);
         if (!frame) return;
 
         $handleQuarterbackKick(frame);
