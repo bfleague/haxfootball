@@ -10,7 +10,7 @@ import type {
     StadiumSchema,
     VertexProps,
 } from "@stadium/stadium-generator";
-import { line, vLine } from "@stadium/utils";
+import { getDynamicLine, getIndexByName, line, vLine } from "@stadium/utils";
 
 type RectBounds = {
     leftX: number;
@@ -152,6 +152,8 @@ export type StadiumMapMeasures = {
 
 export type StadiumBuildResult = StadiumBuild & {
     mapMeasures: StadiumMapMeasures;
+    getIndex: (name: string) => number;
+    getLineIndex: (name: string) => Pair<number>;
 };
 
 export type BuildStadiumOptions = {
@@ -206,11 +208,13 @@ const getFieldYards = (
 ): number => {
     const span = goalLines.rightX - goalLines.leftX;
     const yards = span / yardLength;
+
     if (!Number.isInteger(yards)) {
         throw new Error(
             `Goal line span (${span}) is not divisible by yard length (${yardLength}).`,
         );
     }
+
     return yards;
 };
 
@@ -222,6 +226,7 @@ const buildYardLines = (
 ): LineSpec[] => {
     const fieldYards = getFieldYards(goalLines, yard.length);
     const { intervalYards, redZoneYards } = yard.lines;
+
     if (!Number.isInteger(fieldYards / intervalYards)) {
         throw new Error(
             `Field yards (${fieldYards}) must be divisible by yard line interval (${intervalYards}).`,
@@ -229,6 +234,7 @@ const buildYardLines = (
     }
 
     const lines: LineSpec[] = [];
+
     for (let y = 0; y <= fieldYards; y += intervalYards) {
         const x = goalLines.leftX + y * yard.length;
         const isGoalLine = y === 0 || y === fieldYards;
@@ -293,6 +299,7 @@ const buildHashMarks = (
 
     for (let segment = 0; segment < segmentCount; segment += 1) {
         const segmentStart = segment * intervalYards;
+
         for (let mark = 1; mark <= marksPerSegment; mark += 1) {
             const yardFromLeft = segmentStart + mark * subdivisionYards;
             const x = goalLines.leftX + yardFromLeft * yard.length;
@@ -340,6 +347,7 @@ const buildTickMarks = (
     const bottomEndY = innerField.topY;
     const bottomStartY = innerField.topY + ticks.height;
     const tickXs: number[] = [];
+
     for (let y = 0; y <= fieldYards - intervalYards; y += intervalYards) {
         const yardFromLeft = y + ticks.offsetYards;
         tickXs.push(goalLines.leftX + yardFromLeft * yard.length);
@@ -349,6 +357,7 @@ const buildTickMarks = (
     const bottomGreen = new Set(
         ticks.greenBottomYards ?? ticks.greenYards ?? [],
     );
+
     return tickXs.flatMap((x, index) => {
         const tickYards = index * intervalYards + ticks.offsetYards;
         const topColor = topGreen.has(tickYards)
@@ -556,11 +565,13 @@ export const buildStadium = (
         measures.endZones,
         measures.goal,
     );
+
     const bg = {
         type: "grass" as const,
         width: fieldBounds.inner.rightX,
         height: fieldBounds.inner.bottomY,
     };
+
     const featureLines = [
         ...(features?.collisionSidelines
             ? buildCollisionSidelines(features.collisionSidelines)
@@ -570,10 +581,12 @@ export const buildStadium = (
             ? buildBallBoundaries(features.ballBoundaries)
             : []),
     ];
+
     const featureDiscs = [
         ...(features?.goalPosts ? buildGoalPostDiscs(features.goalPosts) : []),
         ...(features?.discs ?? []),
     ];
+
     const lines = [
         ...buildYardLines(goalLines, fieldBounds.inner, measures.yard, colors),
         ...buildHashMarks(
@@ -597,6 +610,7 @@ export const buildStadium = (
         buildFieldBounds(fieldBounds.inner, colors.yard.default),
         ...(schema?.rects ?? []),
     ];
+
     const planes = [...(features?.planes ?? []), ...(schema?.planes ?? [])];
     const discs = [...featureDiscs, ...(schema?.discs ?? [])];
 
@@ -623,8 +637,23 @@ export const buildStadium = (
         goalLines,
     );
 
+    const STADIUM_DISC_INDEX_OFFSET = 1;
+
+    const stadiumResult = defineStadium(builtSchema);
+
+    const getIndex = (name: string): number =>
+        getIndexByName(stadiumResult.index, name) + STADIUM_DISC_INDEX_OFFSET;
+
+    const getLineIndex = (name: string): Pair<number> => {
+        const [d0, d1] = getDynamicLine(stadiumResult.index, name);
+
+        return [d0 + STADIUM_DISC_INDEX_OFFSET, d1 + STADIUM_DISC_INDEX_OFFSET];
+    };
+
     return {
-        ...defineStadium(builtSchema),
+        ...stadiumResult,
         mapMeasures,
+        getIndex,
+        getLineIndex,
     };
 };

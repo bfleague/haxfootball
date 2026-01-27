@@ -2,9 +2,7 @@ import { repeat } from "@common/general";
 import { pos } from "@common/math";
 import { mask } from "@common/physics";
 import { buildStadium } from "@stadium-builder/stadium-builder";
-import type { Pair } from "@common/types";
 import type { CollisionFlag } from "@haxball/stadium";
-import { getDynamicLine, getIndexByName } from "@stadium/utils";
 
 export const BALL_RADIUS = 7.75;
 export const BALL_COLOR = "631515";
@@ -22,6 +20,8 @@ export const {
     stadium: legacyStadium,
     index: legacyStadiumIndex,
     mapMeasures: legacyMapMeasures,
+    getIndex: index,
+    getLineIndex: lineIndex,
 } = buildStadium({
     measures: {
         name: "Legacy",
@@ -281,14 +281,3 @@ export const {
         ],
     },
 });
-
-const STADIUM_DISC_INDEX_OFFSET = 1;
-
-export const index = (name: string): number =>
-    getIndexByName(legacyStadiumIndex, name) + STADIUM_DISC_INDEX_OFFSET;
-
-export const lineIndex = (name: string): Pair<number> => {
-    const [d0, d1] = getDynamicLine(legacyStadiumIndex, name);
-
-    return [d0 + STADIUM_DISC_INDEX_OFFSET, d1 + STADIUM_DISC_INDEX_OFFSET];
-};
