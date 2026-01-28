@@ -13,6 +13,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import { t } from "@lingui/core/macro";
 
 const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });
 
@@ -61,7 +62,7 @@ export function InterceptionAttempt({
 
             if (intersection.intersects) {
                 $effect(($) => {
-                    $.send(`Interception by ${blocker.name}!`);
+                    $.send(t`Interception by ${blocker.name}!`);
                 });
 
                 $next({

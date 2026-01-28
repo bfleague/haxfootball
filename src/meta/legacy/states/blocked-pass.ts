@@ -16,6 +16,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import { t } from "@lingui/core/macro";
 
 export function BlockedPass({
     blockerId,
@@ -58,13 +59,13 @@ export function BlockedPass({
             event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(`Pass blocked by ${blocker.name}, no gain!`);
+                    $.send(t`Pass blocked by ${blocker.name}, no gain!`);
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
                     $.send(
-                        `Pass blocked by ${blocker.name}, turnover on downs!`,
+                        t`Pass blocked by ${blocker.name}, turnover on downs!`,
                     );
                 });
             },
