@@ -1,7 +1,7 @@
 import { i18n } from "@lingui/core";
 import { plural, t } from "@lingui/core/macro";
 import { DownState } from "./down";
-import { FieldPosition } from "@common/game";
+import { FieldPosition } from "@common/game/game";
 import { Team } from "@runtime/models";
 import { RED_ZONE_FOUL_LIMIT } from "./penalty";
 

@@ -1,7 +1,7 @@
 import { $dispose, $effect, $next } from "@runtime/hooks";
 import { Team, type FieldTeam } from "@runtime/models";
-import { distributeOnLine, getMidpoint } from "@common/math";
-import { opposite } from "@common/game";
+import { distributeOnLine, getMidpoint } from "@common/math/geometry";
+import { opposite } from "@common/game/game";
 import {
     $trapTeamInMidField,
     $trapTeamInEndZone,

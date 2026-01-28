@@ -1,4 +1,4 @@
-import { opposite } from "@common/game";
+import { opposite } from "@common/game/game";
 import {
     calculateYardsGained,
     getFieldPosition,

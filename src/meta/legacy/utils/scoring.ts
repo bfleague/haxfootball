@@ -1,5 +1,5 @@
-import { PointLike } from "@common/math";
-import { opposite } from "@common/game";
+import { PointLike } from "@common/math/geometry";
+import { opposite } from "@common/game/game";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,

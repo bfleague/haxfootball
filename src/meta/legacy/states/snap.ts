@@ -1,12 +1,12 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
-import { getDistance, unique } from "@common/math";
-import { ticks } from "@common/time";
+import { getDistance } from "@common/math/geometry";
+import { ticks } from "@common/general/time";
 import {
     AVATARS,
     findBallCatchers,
     findCatchers,
     setPlayerAvatars,
-} from "@common/game";
+} from "@common/game/game";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     $hideCrowdingBoxes,
@@ -35,6 +35,7 @@ import {
 } from "@meta/legacy/utils/stadium";
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
+import { unique } from "@common/general/helpers";
 
 type Frame = {
     state: GameState;

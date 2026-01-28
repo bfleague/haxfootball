@@ -41,7 +41,7 @@
  * ```
  */
 
-import { Pair } from "@common/types";
+import { Pair } from "@common/general/types";
 
 /**
  * Color type for stadium objects.

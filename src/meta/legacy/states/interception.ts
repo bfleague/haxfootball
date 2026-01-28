@@ -5,9 +5,9 @@ import type {
 } from "@runtime/engine";
 import { FieldTeam } from "@runtime/models";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
-import { PointLike } from "@common/math";
-import { ticks } from "@common/time";
-import { AVATARS, findCatchers, opposite } from "@common/game";
+import { PointLike } from "@common/math/geometry";
+import { ticks } from "@common/general/time";
+import { AVATARS, findCatchers, opposite } from "@common/game/game";
 import {
     $hideInterceptionPath,
     $setBallActive,

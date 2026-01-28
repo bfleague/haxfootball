@@ -1,7 +1,7 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { $dispose, $effect, $next } from "@runtime/runtime";
-import { ticks } from "@common/time";
-import { AVATARS, findBallCatchers, findCatchers } from "@common/game";
+import { ticks } from "@common/general/time";
+import { AVATARS, findBallCatchers, findCatchers } from "@common/game/game";
 import {
     advanceDownState,
     DownState,

@@ -1,6 +1,6 @@
-import { mask } from "@common/physics";
-import { pairList, repeat } from "@common/general";
-import { pos } from "@common/math";
+import { mask } from "@common/game/physics";
+import { pairList, repeat } from "@common/general/helpers";
+import { pos } from "@common/math/geometry";
 import type { StadiumSchema } from "@stadium/stadium-generator";
 import type { StadiumObject } from "@haxball/stadium";
 import {

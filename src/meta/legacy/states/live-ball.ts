@@ -9,8 +9,8 @@ import {
 import { cn, formatNames } from "@meta/legacy/utils/message";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
-import { ticks } from "@common/time";
-import { AVATARS, findCatchers, opposite } from "@common/game";
+import { ticks } from "@common/general/time";
+import { AVATARS, findCatchers, opposite } from "@common/game/game";
 import {
     getFieldPosition,
     isInMainField,

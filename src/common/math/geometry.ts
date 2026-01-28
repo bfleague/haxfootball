@@ -1,4 +1,4 @@
-import type { Pair } from "@common/types";
+import type { Pair } from "@common/general/types";
 
 export type Point = { x: number; y: number };
 
@@ -74,16 +74,6 @@ export function findClosest<T extends PointLike>(
 
         return pointDistance < closestDistance ? point : closest;
     }, null);
-}
-
-export type Selector<T, R> = (item: T) => R;
-
-export function sortBy<T>(items: T[], selector: Selector<T, number>): T[] {
-    return [...items].sort((a, b) => selector(a) - selector(b));
-}
-
-export function unique<T>(items: T[]): T[] {
-    return items.filter((item, index, list) => list.indexOf(item) === index);
 }
 
 export function verticalLine(x: number, centerY: number, height: number): Line {

@@ -6,13 +6,13 @@ import {
     Line,
     PointLike,
     Ray,
-} from "@common/math";
+} from "@common/math/geometry";
 import {
     calculateFieldPosition,
     calculatePositionFromFieldPosition,
     FieldPosition,
-} from "@common/game";
-import type { Pair, Quad } from "@common/types";
+} from "@common/game/game";
+import type { Pair, Quad } from "@common/general/types";
 import {
     BALL_COLOR,
     BALL_RADIUS,
@@ -22,7 +22,7 @@ import {
     PlaneMaskName,
     PLANE_MASK_BY_NAME,
 } from "@meta/legacy/stadium";
-import { hexColorToNumber } from "@common/color";
+import { hexColorToNumber } from "@common/general/color";
 import { CollisionFlag } from "@haxball/stadium";
 
 const OUTER_CROWDING_SEGMENTS: Pair<number>[] = [

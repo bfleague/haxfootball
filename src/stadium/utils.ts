@@ -6,9 +6,9 @@ import type {
     StadiumIndex,
     VertexProps,
 } from "@stadium/stadium-generator";
-import { asArray, mergeDeep, repeat } from "@common/general";
-import type { DeepPartial, Pair } from "@common/types";
-import { range } from "@common/math";
+import { asArray, mergeDeep, repeat } from "@common/general/helpers";
+import type { DeepPartial, Pair } from "@common/general/types";
+import { range } from "@common/math/geometry";
 
 type LinePoint = { x: number; y: number; vertex?: VertexProps };
 

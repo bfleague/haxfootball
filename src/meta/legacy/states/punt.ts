@@ -1,7 +1,7 @@
 import type { GameState } from "@runtime/engine";
 import { Team, type FieldTeam } from "@runtime/models";
-import { distributeOnLine } from "@common/math";
-import { opposite } from "@common/game";
+import { distributeOnLine } from "@common/math/geometry";
+import { opposite } from "@common/game/game";
 import { t } from "@lingui/core/macro";
 import { $dispose, $effect } from "@runtime/hooks";
 import { $next } from "@runtime/runtime";

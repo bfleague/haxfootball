@@ -6,8 +6,8 @@ import {
     processDownEventIncrement,
     withLastBallYAtCenter,
 } from "@meta/legacy/utils/down";
-import { ticks } from "@common/time";
-import { AVATARS } from "@common/game";
+import { ticks } from "@common/general/time";
+import { AVATARS } from "@common/game/game";
 import {
     $setBallActive,
     $setBallInactive,

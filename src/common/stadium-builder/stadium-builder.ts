@@ -1,5 +1,5 @@
 import type { Disc } from "@haxball/stadium";
-import type { Pair } from "@common/types";
+import type { Pair } from "@common/general/types";
 import { defineStadium } from "@stadium/stadium-generator";
 import type {
     LineSpec,

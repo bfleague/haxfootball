@@ -6,7 +6,7 @@ import type {
     StadiumObject,
     Vertex,
 } from "@haxball/stadium";
-import type { Pair } from "@common/types";
+import type { Pair } from "@common/general/types";
 
 export type VertexProps = Omit<Vertex, "x" | "y">;
 export type SegmentProps = Omit<Segment, "v0" | "v1">;

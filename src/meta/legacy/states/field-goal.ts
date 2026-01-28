@@ -8,11 +8,10 @@ import {
     distributeOnLine,
     findClosest,
     getDistance,
-    sortBy,
     verticalLine,
-} from "@common/math";
-import { ticks } from "@common/time";
-import { findBallCatchers, findCatchers, opposite } from "@common/game";
+} from "@common/math/geometry";
+import { ticks } from "@common/general/time";
+import { findBallCatchers, findCatchers, opposite } from "@common/game/game";
 import { t } from "@lingui/core/macro";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
@@ -42,6 +41,7 @@ import {
     offsetXByYards,
     YARD_LENGTH,
 } from "@meta/legacy/utils/stadium";
+import { sortBy } from "@common/general/helpers";
 
 const FIELD_GOAL_LINE_HEIGHT = 200;
 const OFFENSE_LINE_OFFSET_YARDS = 20;

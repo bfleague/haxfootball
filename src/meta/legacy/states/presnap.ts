@@ -1,6 +1,6 @@
 import { Team, type FieldTeam } from "@runtime/models";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
-import { distributeOnLine, getDistance } from "@common/math";
+import { distributeOnLine, getDistance } from "@common/math/geometry";
 import { CommandHandleResult, CommandSpec } from "@runtime/commands";
 import {
     BALL_OFFSET_YARDS,

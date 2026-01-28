@@ -32,7 +32,6 @@ module.exports = {
                     "@dev": "./src/dev",
                     "@i18n": "./src/i18n",
                     "@stadium": "./src/stadium",
-                    "@stadium-builder": "./src/stadium-builder",
                 },
             },
         ],

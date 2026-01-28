@@ -1,5 +1,5 @@
 import { FieldTeam, Team } from "@runtime/models";
-import { getDistance, PointLike } from "./math";
+import { getDistance, PointLike } from "../math/geometry";
 
 export const AVATARS = {
     BALL: "🏈",

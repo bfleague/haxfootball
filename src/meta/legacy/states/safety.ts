@@ -1,7 +1,7 @@
 import { Team, type FieldTeam } from "@runtime/models";
 import type { GameState } from "@runtime/engine";
-import { distributeOnLine } from "@common/math";
-import { FieldPosition, opposite } from "@common/game";
+import { distributeOnLine } from "@common/math/geometry";
+import { FieldPosition, opposite } from "@common/game/game";
 import {
     $setBallKickForce,
     $setBallMoveable,
