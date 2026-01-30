@@ -5,7 +5,7 @@ import type {
     SegmentProps,
     StadiumIndex,
     VertexProps,
-} from "@stadium/stadium-generator";
+} from "@common/stadium-generator";
 import { asArray, mergeDeep, repeat } from "@common/general/helpers";
 import type { DeepPartial, Pair } from "@common/general/types";
 import { range } from "@common/math/geometry";

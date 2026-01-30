@@ -1,7 +1,7 @@
 import { mask } from "@common/game/physics";
 import { pairList, repeat } from "@common/general/helpers";
 import { pos } from "@common/math/geometry";
-import type { StadiumSchema } from "@stadium/stadium-generator";
+import type { StadiumSchema } from "@common/stadium-generator";
 import type { StadiumObject } from "@haxball/stadium";
 import {
     anchorsFromPairs,
@@ -9,7 +9,7 @@ import {
     line,
     pairedIndexes,
     vLine,
-} from "@stadium/utils";
+} from "@common/stadium-generator/utils";
 
 const YARD_LINE_BASE = {
     yStart: -266,

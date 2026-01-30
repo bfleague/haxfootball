@@ -1,6 +1,6 @@
 import type { Disc } from "@haxball/stadium";
 import type { Pair } from "@common/general/types";
-import { defineStadium } from "@stadium/stadium-generator";
+import { defineStadium } from "@common/stadium-generator";
 import type {
     LineSpec,
     PlaneSpec,
@@ -9,8 +9,13 @@ import type {
     StadiumBuild,
     StadiumSchema,
     VertexProps,
-} from "@stadium/stadium-generator";
-import { getDynamicLine, getIndexByName, line, vLine } from "@stadium/utils";
+} from "@common/stadium-generator";
+import {
+    getDynamicLine,
+    getIndexByName,
+    line,
+    vLine,
+} from "@common/stadium-generator/utils";
 
 type RectBounds = {
     leftX: number;

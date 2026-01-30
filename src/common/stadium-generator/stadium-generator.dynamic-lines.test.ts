@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defineStadium } from "@stadium/stadium-generator";
-import type { StadiumSchema } from "@stadium/stadium-generator";
+import { defineStadium } from "@common/stadium-generator/stadium-generator";
+import type { StadiumSchema } from "@common/stadium-generator/stadium-generator";
 import { legacyStadium, legacyStadiumIndex } from "@meta/legacy/stadium";
 import type { Joint, StadiumObject } from "@haxball/stadium";
 

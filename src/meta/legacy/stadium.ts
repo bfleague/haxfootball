@@ -1,7 +1,7 @@
 import { repeat } from "@common/general/helpers";
 import { pos } from "@common/math/geometry";
 import { mask } from "@common/game/physics";
-import { buildStadium } from "@common/stadium-builder/stadium-builder";
+import { buildStadium } from "@common/stadium-builder";
 import type { CollisionFlag } from "@haxball/stadium";
 
 export const BALL_RADIUS = 7.75;
