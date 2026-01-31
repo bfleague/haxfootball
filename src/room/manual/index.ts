@@ -4,7 +4,7 @@ import { createEngine, type Engine } from "@runtime/engine";
 import { registry, stadium } from "@meta/legacy/meta";
 import { defaultConfig, type Config } from "@meta/legacy/config";
 import { Team } from "@runtime/models";
-import { initializeGlobalState } from "@meta/legacy/global";
+import { legacyGlobalSchema } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
 
 export const config: RoomConfigObject = {
@@ -30,10 +30,9 @@ const matchModule = createModule()
         commands: ["punt", "fg", "version"],
     })
     .onGameStart((room) => {
-        initializeGlobalState();
-
         engine = createEngine(room, registry, {
             config: defaultConfig,
+            globalSchema: legacyGlobalSchema,
             onStats: (key) => {
                 console.log(`Stat recorded: ${key}`);
             },

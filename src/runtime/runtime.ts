@@ -1,5 +1,11 @@
 import { Room } from "@core/room";
 import type { GameState } from "./engine";
+import type {
+    GlobalSchema,
+    GlobalSchemaState,
+    GlobalStore,
+    GlobalStoreApi,
+} from "@runtime/global";
 
 type DiscProps = Parameters<Room["setDiscProperties"]>[1];
 type CFType = Room["collisionFlags"];
@@ -126,6 +132,7 @@ let RUNTIME: {
     stopRequested: boolean;
     beforeGameState: GameState | null;
     muteEffects: boolean;
+    globalStore: GlobalStoreApi<any> | null;
 } | null = null;
 
 /**
@@ -140,6 +147,7 @@ export function installRuntime(ctx: {
     disposals?: Array<() => void>;
     beforeGameState?: GameState | null;
     muteEffects?: boolean;
+    globalStore?: GlobalStoreApi<any> | null;
 }) {
     const onStat = ctx.onStat ? ctx.onStat : () => {};
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
@@ -159,6 +167,7 @@ export function installRuntime(ctx: {
         beforeGameState:
             ctx.beforeGameState === undefined ? null : ctx.beforeGameState,
         muteEffects: !!ctx.muteEffects,
+        globalStore: ctx.globalStore ?? null,
     };
 
     return function uninstall() {
@@ -213,8 +222,8 @@ export function $next(args: {
         args.disposal === "IMMEDIATE"
             ? "IMMEDIATE"
             : args.disposal === "AFTER_RESUME"
-            ? "AFTER_RESUME"
-            : "DELAYED";
+              ? "AFTER_RESUME"
+              : "DELAYED";
 
     const transition: Transition = {
         to: args.to,
@@ -239,6 +248,48 @@ export function $config<Cfg>(): Cfg {
     if (!RUNTIME) throw new Error("$config used outside of runtime");
 
     return RUNTIME.config as Cfg;
+}
+
+export function $global<Schema extends GlobalSchema<any, any>>(
+    fn: (state: GlobalStore<Schema>) => void,
+): void;
+export function $global<
+    Schema extends GlobalSchema<any, any>,
+>(): GlobalSchemaState<Schema>;
+export function $global<Schema extends GlobalSchema<any, any>>(
+    fn?: (state: GlobalStore<Schema>) => void,
+): GlobalSchemaState<Schema> | void {
+    if (!RUNTIME || !RUNTIME.globalStore) {
+        throw new Error("$global used without a global store");
+    }
+
+    const store = RUNTIME.globalStore as GlobalStoreApi<Schema>;
+
+    if (fn) {
+        $effect(() => {
+            fn(store.getState() as GlobalStore<Schema>);
+        });
+
+        return;
+    }
+
+    return store.getState() as GlobalSchemaState<Schema>;
+}
+
+export function createGlobalHook<Schema extends GlobalSchema<any, any>>() {
+    function useGlobal(fn: (state: GlobalStore<Schema>) => void): void;
+    function useGlobal(): GlobalSchemaState<Schema>;
+    function useGlobal(
+        fn?: (state: GlobalStore<Schema>) => void,
+    ): GlobalSchemaState<Schema> | void {
+        if (fn) {
+            return $global<Schema>(fn);
+        }
+
+        return $global<Schema>();
+    }
+
+    return useGlobal;
 }
 
 /**

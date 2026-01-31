@@ -9,6 +9,11 @@ import {
 import { Room } from "@core/room";
 import { Team, type FieldTeam, isFieldTeam } from "@runtime/models";
 import { CommandHandleResult, CommandSpec } from "@runtime/commands";
+import {
+    createGlobalStore,
+    type GlobalSchema,
+    type GlobalStoreApi,
+} from "@runtime/global";
 
 /**
  * Metas register state factories by string key.
@@ -30,6 +35,7 @@ export type StateRegistry = Record<string, StateFactory<any>>;
 
 export interface EngineOptions<Cfg> {
     config: Cfg;
+    globalSchema?: GlobalSchema<any, any>;
     onStats?: (key: string) => void;
 }
 
@@ -175,11 +181,16 @@ export function createEngine<Cfg>(
     let isResumeTick = false;
     let afterResumeDisposers: Array<() => void> = [];
     let afterResumeTransition: Transition | null = null;
+    const globalSchema = opts.globalSchema;
+    let globalStore: GlobalStoreApi<any> | null = null;
 
     // Always have a concrete stats handler; defaults to no-op.
     const onStats: (key: string) => void = opts.onStats
         ? opts.onStats
         : () => {};
+    const resetGlobalStore = () => {
+        globalStore = globalSchema ? createGlobalStore(globalSchema) : null;
+    };
 
     function runOutsideTick<T>(
         fn: () => T,
@@ -197,6 +208,7 @@ export function createEngine<Cfg>(
             onStat: onStats,
             tickNumber,
             mutations: sharedTickMutations ?? undefined,
+            globalStore,
             ...(optsRun?.disposals ? { disposals: optsRun.disposals } : {}),
             beforeGameState:
                 optsRun && "beforeGameState" in optsRun
@@ -431,6 +443,7 @@ export function createEngine<Cfg>(
         isPaused = false;
         isResumeTick = false;
         afterResumeTransition = null;
+        resetGlobalStore();
 
         const created = createState(name, params, factory);
 
@@ -536,6 +549,7 @@ export function createEngine<Cfg>(
                 onStat: onStats,
                 tickNumber: currentTickNumber,
                 mutations: sharedTickMutations ?? undefined,
+                globalStore,
                 disposals: current.disposals,
                 beforeGameState: lastGameState,
             });

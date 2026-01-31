@@ -1,45 +1,22 @@
 import { FieldTeam, Team } from "@runtime/models";
-import { createStore } from "zustand/vanilla";
+import { defineGlobalSchema } from "@runtime/global";
 
-export type GlobalState = {
+const initialState = {
     scores: {
-        [Team.RED]: number;
-        [Team.BLUE]: number;
-    };
+        [Team.RED]: 0,
+        [Team.BLUE]: 0,
+    },
 };
 
-export type GlobalStateActions = {
-    incrementScore: (team: FieldTeam, points: number) => void;
-};
-
-export type GlobalStore = GlobalState & GlobalStateActions;
-
-function createGlobalStore() {
-    return createStore<GlobalStore>((set) => ({
-        scores: {
-            [Team.RED]: 0,
-            [Team.BLUE]: 0,
-        },
-        incrementScore: (team: FieldTeam, points: number) =>
-            set((state) => ({
-                scores: {
-                    ...state.scores,
-                    [team]: state.scores[team] + points,
-                },
-            })),
-    }));
-}
-
-let globalState: ReturnType<typeof createGlobalStore> | null = null;
-
-export function initializeGlobalState() {
-    globalState = createGlobalStore();
-}
-
-export function getGlobalState() {
-    if (!globalState) {
-        throw new Error("Global state used before initialization");
-    }
-
-    return globalState.getState();
-}
+export const legacyGlobalSchema = defineGlobalSchema({
+    state: initialState,
+    actions: {
+        incrementScore: (state, team: FieldTeam, points: number) => ({
+            ...state,
+            scores: {
+                ...state.scores,
+                [team]: state.scores[team] + points,
+            },
+        }),
+    },
+});

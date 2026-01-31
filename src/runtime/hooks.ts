@@ -1,1 +1,1 @@
-export { $effect, $next, $dispose, $config } from "@runtime/runtime";
+export { $effect, $next, $dispose, $config, $global } from "@runtime/runtime";
