@@ -1,10 +1,12 @@
 import { GameState } from "@runtime/engine";
+import { FieldTeam } from "@runtime/models";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import { DownState } from "@meta/legacy/utils/down";
 import { ticks } from "@common/general/time";
 import { opposite } from "@common/game/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
-import { getBallPath, intersectsGoalPosts } from "@meta/legacy/utils/stadium";
+import { getGoalLine } from "@meta/legacy/utils/stadium";
+import { cross } from "@common/math/geometry";
 import {
     $setBallActive,
     $setBallInactive,
@@ -16,6 +18,47 @@ import {
 import { t } from "@lingui/core/macro";
 
 const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });
+
+type Point = { x: number; y: number };
+type SegmentHit = { intersects: true; point: Point; distance: number };
+type SegmentNoHit = { intersects: false };
+type SegmentIntersection = SegmentHit | SegmentNoHit;
+
+const intersectSegmentWithGoalLine = (
+    start: Point,
+    end: Point,
+    team: FieldTeam,
+): SegmentIntersection => {
+    const line = getGoalLine(team);
+    const r = { x: end.x - start.x, y: end.y - start.y };
+    const s = {
+        x: line.end.x - line.start.x,
+        y: line.end.y - line.start.y,
+    };
+    const rxs = cross(r, s);
+
+    if (Math.abs(rxs) < 1e-10) {
+        return { intersects: false };
+    }
+
+    const qp = { x: line.start.x - start.x, y: line.start.y - start.y };
+    const t = cross(qp, s) / rxs;
+    const u = cross(qp, r) / rxs;
+
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+        const point = { x: start.x + t * r.x, y: start.y + t * r.y };
+        const dx = point.x - start.x;
+        const dy = point.y - start.y;
+
+        return {
+            intersects: true,
+            point,
+            distance: Math.hypot(dx, dy),
+        };
+    }
+
+    return { intersects: false };
+};
 
 export function InterceptionAttempt({
     kickTime,
@@ -50,17 +93,29 @@ export function InterceptionAttempt({
         if (!blocker) return;
 
         if (state.tickNumber - kickTime >= TIME_TO_CHECK_INTERCEPTION) {
-            const ball = state.ball;
-            const ballPath = getBallPath(
-                ball.x,
-                ball.y,
-                ball.xspeed,
-                ball.yspeed,
-            );
-            const offensiveGoal = opposite(downState.offensiveTeam);
-            const intersection = intersectsGoalPosts(ballPath, offensiveGoal);
+            const start = { x: ballState.x, y: ballState.y };
+            const end = { x: state.ball.x, y: state.ball.y };
+            const goalTeams = [
+                downState.offensiveTeam,
+                opposite(downState.offensiveTeam),
+            ];
 
-            if (intersection.intersects) {
+            const intersections = goalTeams
+                .map((team) => {
+                    const result = intersectSegmentWithGoalLine(
+                        start,
+                        end,
+                        team,
+                    );
+                    return result.intersects ? result : null;
+                })
+                .filter((entry): entry is SegmentHit => entry !== null);
+
+            const [closest] = intersections.sort(
+                (a, b) => a.distance - b.distance,
+            );
+
+            if (closest) {
                 $effect(($) => {
                     $.send(t`Interception by ${blocker.name}!`);
                 });
@@ -69,7 +124,7 @@ export function InterceptionAttempt({
                     to: "INTERCEPTION",
                     params: {
                         playerId: playerId,
-                        intersectionPoint: intersection.point,
+                        intersectionPoint: closest.point,
                         ballState,
                         playerTeam: blocker.team,
                     },
