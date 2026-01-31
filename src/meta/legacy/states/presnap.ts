@@ -7,6 +7,7 @@ import {
     ballWithRadius,
     calculateDirectionalGain,
     calculateSnapBallPosition,
+    isInRedZone,
 } from "@meta/legacy/utils/stadium";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
@@ -265,6 +266,17 @@ export function Presnap({ downState }: { downState: DownState }) {
                     $effect(($) => {
                         $.send(
                             t`You are too far from the ball to punt it!`,
+                            player.id,
+                        );
+                    });
+
+                    return { handled: true };
+                }
+
+                if (isInRedZone(offensiveTeam, downState.fieldPos)) {
+                    $effect(($) => {
+                        $.send(
+                            t`You cannot punt from the opponent's red zone.`,
                             player.id,
                         );
                     });
