@@ -728,9 +728,17 @@ export function getRayIntersectionWithOuterField(ray: Ray): PointLike | null {
     return closest.point;
 }
 
+export type GoalPostIntersection = {
+    intersects: true;
+    line: Line;
+    point: PointLike;
+};
+
+export type GoalPostNoIntersection = { intersects: false };
+
 export type GoalPostIntersectionResult =
-    | { intersects: true; line: Line; point: PointLike }
-    | { intersects: false };
+    | GoalPostIntersection
+    | GoalPostNoIntersection;
 
 export function intersectsGoalPosts(
     ray: Ray,

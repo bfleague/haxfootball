@@ -63,6 +63,31 @@ export function createMutationBuffer(room: Room) {
     const queueDiscProps = mergeProps<DiscPropsPatch>(discProps);
     const queuePlayerDiscProps = mergeProps<DiscPropsPatch>(playerDiscProps);
 
+    const trimPatch = <T extends Record<string, any>>(patch: T): T | null => {
+        const trimmed: Record<string, any> = {};
+        let hasKeys = false;
+
+        Object.entries(patch).forEach(([key, value]) => {
+            if (value === null || value === undefined) return;
+            trimmed[key] = value;
+            hasKeys = true;
+        });
+
+        return hasKeys ? (trimmed as T) : null;
+    };
+
+    const isNoopPatch = (
+        current: DiscPropertiesObject | null,
+        patch: DiscPropsPatch,
+    ): boolean => {
+        if (!current) return false;
+
+        return Object.entries(patch).every(([key, value]) => {
+            const currentValue = (current as Record<string, unknown>)[key];
+            return currentValue === value;
+        });
+    };
+
     return {
         queueDisc: (discIndex: number, props: DiscProps) =>
             queueDiscProps(discIndex, props),
@@ -78,12 +103,20 @@ export function createMutationBuffer(room: Room) {
             admins.set(toPlayerId(player), admin);
         },
         flush: () => {
-            discProps.forEach((props, discIndex) =>
-                room.setDiscProperties(discIndex, props as DiscProps),
-            );
-            playerDiscProps.forEach((props, playerId) =>
-                room.setPlayerDiscProperties(playerId, props as DiscProps),
-            );
+            discProps.forEach((props, discIndex) => {
+                const trimmed = trimPatch(props);
+                if (!trimmed) return;
+                const current = room.getDiscProperties(discIndex);
+                if (isNoopPatch(current, trimmed)) return;
+                room.setDiscProperties(discIndex, trimmed as DiscProps);
+            });
+            playerDiscProps.forEach((props, playerId) => {
+                const trimmed = trimPatch(props);
+                if (!trimmed) return;
+                const current = room.getPlayerDiscProperties(playerId);
+                if (isNoopPatch(current, trimmed)) return;
+                room.setPlayerDiscProperties(playerId, trimmed as DiscProps);
+            });
             avatars.forEach((avatar, playerId) =>
                 room.setAvatar(playerId, avatar),
             );

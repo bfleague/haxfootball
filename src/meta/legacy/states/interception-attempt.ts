@@ -4,7 +4,13 @@ import { DownState } from "@meta/legacy/utils/down";
 import { ticks } from "@common/general/time";
 import { opposite } from "@common/game/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
-import { getBallPath, intersectsGoalPosts } from "@meta/legacy/utils/stadium";
+import { getDistance, PointLike } from "@common/math/geometry";
+import {
+    type GoalPostIntersection,
+    type GoalPostIntersectionResult,
+    getBallPath,
+    intersectsGoalPosts,
+} from "@meta/legacy/utils/stadium";
 import {
     $setBallActive,
     $setBallInactive,
@@ -16,6 +22,15 @@ import {
 import { t } from "@lingui/core/macro";
 
 const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });
+
+type GoalPostIntersectionCandidate = {
+    point: PointLike;
+    distance: number;
+};
+
+const isGoalPostIntersection = (
+    result: GoalPostIntersectionResult,
+): result is GoalPostIntersection => result.intersects;
 
 export function InterceptionAttempt({
     kickTime,
@@ -57,10 +72,24 @@ export function InterceptionAttempt({
                 ball.xspeed,
                 ball.yspeed,
             );
-            const offensiveGoal = opposite(downState.offensiveTeam);
-            const intersection = intersectsGoalPosts(ballPath, offensiveGoal);
 
-            if (intersection.intersects) {
+            const goals = [
+                downState.offensiveTeam,
+                opposite(downState.offensiveTeam),
+            ] as const;
+
+            const intersections = goals
+                .map((goal) => intersectsGoalPosts(ballPath, goal))
+                .filter(isGoalPostIntersection)
+                .map<GoalPostIntersectionCandidate>((result) => ({
+                    point: result.point,
+                    distance: getDistance(result.point, ballPath.origin),
+                }))
+                .sort((a, b) => a.distance - b.distance);
+
+            const intersection = intersections[0];
+
+            if (intersection) {
                 $effect(($) => {
                     $.send(t`Interception by ${blocker.name}!`);
                 });

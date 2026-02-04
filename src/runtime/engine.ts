@@ -199,6 +199,7 @@ export function createEngine<Cfg>(
             disposals?: Array<() => void>;
             beforeGameState?: GameState | null;
             muteEffects?: boolean;
+            mutations?: MutationBuffer;
         },
     ): T {
         room.invalidateCaches();
@@ -207,7 +208,7 @@ export function createEngine<Cfg>(
             config: opts.config,
             onStat: onStats,
             tickNumber,
-            mutations: sharedTickMutations ?? undefined,
+            mutations: optsRun?.mutations ?? sharedTickMutations ?? undefined,
             globalStore,
             ...(optsRun?.disposals ? { disposals: optsRun.disposals } : {}),
             beforeGameState:
@@ -267,7 +268,7 @@ export function createEngine<Cfg>(
         name: string,
         params?: any,
         factory?: StateFactory<any>,
-        options?: { muteEffects?: boolean },
+        options?: { muteEffects?: boolean; mutations?: MutationBuffer },
     ) {
         const resolved = factory ?? ensureFactory(name);
 
@@ -279,6 +280,7 @@ export function createEngine<Cfg>(
             ...(options?.muteEffects !== undefined
                 ? { muteEffects: options.muteEffects }
                 : {}),
+            ...(options?.mutations ? { mutations: options.mutations } : {}),
         });
 
         return { api, disposals };
@@ -300,7 +302,10 @@ export function createEngine<Cfg>(
         return disposeFns;
     }
 
-    function runDisposers(disposeFns: Array<() => void>) {
+    function runDisposers(
+        disposeFns: Array<() => void>,
+        mutations?: MutationBuffer,
+    ) {
         if (disposeFns.length === 0) return;
 
         const runtimeDisposals: Array<() => void> = [];
@@ -315,6 +320,7 @@ export function createEngine<Cfg>(
             {
                 disposals: runtimeDisposals,
                 beforeGameState: lastGameState,
+                ...(mutations ? { mutations } : {}),
             },
         );
     }
@@ -336,9 +342,10 @@ export function createEngine<Cfg>(
             api: StateApi;
             disposals: Array<() => void>;
         } | null,
+        mutations?: MutationBuffer,
     ) {
         const disposeFns = collectDisposers(target);
-        runDisposers(disposeFns);
+        runDisposers(disposeFns, mutations);
     }
 
     function deferDisposeState(
@@ -370,19 +377,30 @@ export function createEngine<Cfg>(
         }
 
         const factory = ensureFactory(next.to);
+        const transitionMutations =
+            current && next.disposal !== "AFTER_RESUME"
+                ? createMutationBuffer(room)
+                : null;
+
         if (next.disposal === "AFTER_RESUME") {
             deferDisposeState(current);
         } else {
-            disposeState(current);
+            disposeState(current, transitionMutations ?? undefined);
         }
 
-        const created = createState(next.to, next.params, factory);
+        const created = createState(next.to, next.params, factory, {
+            ...(transitionMutations ? { mutations: transitionMutations } : {}),
+        });
 
         current = {
             name: next.to,
             api: created.api,
             disposals: created.disposals,
         };
+
+        if (transitionMutations) {
+            transitionMutations.flush();
+        }
     }
 
     function scheduleTransition(transition: Transition) {
