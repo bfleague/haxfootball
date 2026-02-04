@@ -9,8 +9,6 @@ export interface Line {
     end: Point;
 }
 
-export const cross = (a: Point, b: Point): number => a.x * b.y - a.y * b.x;
-
 export const pos = (x: number, y: number): Pair<number> => [x, y];
 export const range = (min: number, max: number): Pair<number> => [min, max];
 
