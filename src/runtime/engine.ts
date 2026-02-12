@@ -112,11 +112,7 @@ function createGameStatePlayerSnapshot(
     if (!isFieldTeam(player.team)) return null;
 
     const disc = room.getPlayerDiscProperties(player.id);
-    const hasDiscPos =
-        !!disc && typeof disc.x === "number" && typeof disc.y === "number";
-    const hasPos = !!player.position;
-    const px = hasDiscPos ? disc.x : hasPos ? player.position.x : 0;
-    const py = hasDiscPos ? disc.y : hasPos ? player.position.y : 0;
+    const { x: px, y: py } = resolvePlayerPosition(player, disc);
     const radius = disc && typeof disc.radius === "number" ? disc.radius : 0;
     const team: FieldTeam = player.team === Team.RED ? Team.RED : Team.BLUE;
 
@@ -129,6 +125,25 @@ function createGameStatePlayerSnapshot(
         radius,
         isKickingBall: kickerIds.has(player.id),
     };
+}
+
+function resolvePlayerPosition(
+    player: PlayerObject,
+    disc: DiscPropertiesObject | null,
+): { x: number; y: number } {
+    if (disc && typeof disc.x === "number" && typeof disc.y === "number") {
+        return { x: disc.x, y: disc.y };
+    }
+
+    if (
+        !player.position ||
+        typeof player.position.x !== "number" ||
+        typeof player.position.y !== "number"
+    ) {
+        return { x: player.position.x, y: player.position.y };
+    }
+
+    throw new Error(`Missing position for player ${player.id}`);
 }
 
 function buildGameState(
