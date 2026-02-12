@@ -174,9 +174,9 @@ export function PuntReturn({
         });
 
         $next({
-            to: "KICKOFF",
+            to: "EXTRA_POINT",
             params: {
-                forTeam: receivingTeam,
+                offensiveTeam: receivingTeam,
             },
             wait: ticks({ seconds: 3 }),
         });

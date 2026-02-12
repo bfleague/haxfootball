@@ -87,12 +87,6 @@ export interface Engine<Cfg = unknown> {
     readonly _configBrand?: Cfg;
 }
 
-function getPlayerRadius(room: Room, playerId: number): number {
-    const disc = room.getPlayerDiscProperties(playerId);
-
-    return disc && typeof disc.radius === "number" ? disc.radius : 0;
-}
-
 function getBallSnapshot(room: Room): GameStateBall {
     const ballPos = room.getBallPosition();
     const disc = room.getDiscProperties(0);
@@ -117,9 +111,13 @@ function createGameStatePlayerSnapshot(
 ): GameStatePlayer | null {
     if (!isFieldTeam(player.team)) return null;
 
+    const disc = room.getPlayerDiscProperties(player.id);
+    const hasDiscPos =
+        !!disc && typeof disc.x === "number" && typeof disc.y === "number";
     const hasPos = !!player.position;
-    const px = hasPos ? player.position.x : 0;
-    const py = hasPos ? player.position.y : 0;
+    const px = hasDiscPos ? disc.x : hasPos ? player.position.x : 0;
+    const py = hasDiscPos ? disc.y : hasPos ? player.position.y : 0;
+    const radius = disc && typeof disc.radius === "number" ? disc.radius : 0;
     const team: FieldTeam = player.team === Team.RED ? Team.RED : Team.BLUE;
 
     return {
@@ -128,7 +126,7 @@ function createGameStatePlayerSnapshot(
         team,
         x: px,
         y: py,
-        radius: getPlayerRadius(room, player.id),
+        radius,
         isKickingBall: kickerIds.has(player.id),
     };
 }

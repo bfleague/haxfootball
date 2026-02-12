@@ -10,8 +10,10 @@ import { FieldTeam } from "@runtime/models";
 
 export const SCORES = {
     SAFETY: 2,
-    TOUCHDOWN: 7, // Includes PAT
+    TOUCHDOWN: 6,
     FIELD_GOAL: 3,
+    EXTRA_POINT: 1,
+    TWO_POINT: 2,
 };
 
 export function isTouchdown({

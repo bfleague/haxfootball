@@ -137,9 +137,9 @@ export function Interception({
         });
 
         $next({
-            to: "KICKOFF",
+            to: "EXTRA_POINT",
             params: {
-                forTeam: playerTeam,
+                offensiveTeam: playerTeam,
             },
             wait: ticks({ seconds: 3 }),
         });

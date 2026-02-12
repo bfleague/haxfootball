@@ -260,27 +260,28 @@ export function isOutOfBounds(position: Position): boolean {
     );
 }
 
-function getEndZone(side: FieldTeam) {
+type ZoneBox = {
+    topLeft: Position;
+    bottomRight: Position;
+};
+
+function getEndZone(side: FieldTeam): ZoneBox {
     return side === Team.RED
         ? MapMeasures.END_ZONE_RED
         : MapMeasures.END_ZONE_BLUE;
 }
 
-function getRedZone(side: FieldTeam) {
+function getRedZone(side: FieldTeam): ZoneBox {
     return side === Team.RED
         ? MapMeasures.RED_ZONE_RED
         : MapMeasures.RED_ZONE_BLUE;
 }
 
-export function intersectsEndZone(
-    position: PointLike,
-    endZoneSide: FieldTeam,
-): boolean {
-    const endZone = getEndZone(endZoneSide);
-    const minX = Math.min(endZone.topLeft.x, endZone.bottomRight.x);
-    const maxX = Math.max(endZone.topLeft.x, endZone.bottomRight.x);
-    const minY = Math.min(endZone.topLeft.y, endZone.bottomRight.y);
-    const maxY = Math.max(endZone.topLeft.y, endZone.bottomRight.y);
+const intersectsZoneBox = (position: PointLike, zone: ZoneBox): boolean => {
+    const minX = Math.min(zone.topLeft.x, zone.bottomRight.x);
+    const maxX = Math.max(zone.topLeft.x, zone.bottomRight.x);
+    const minY = Math.min(zone.topLeft.y, zone.bottomRight.y);
+    const maxY = Math.max(zone.topLeft.y, zone.bottomRight.y);
     const radius = Math.max(0, position.radius ?? 0);
 
     const closestX = Math.min(Math.max(position.x, minX), maxX);
@@ -289,6 +290,25 @@ export function intersectsEndZone(
     const dy = position.y - closestY;
 
     return dx * dx + dy * dy <= radius * radius;
+};
+
+export function intersectsEndZone(
+    position: PointLike,
+    endZoneSide: FieldTeam,
+): boolean {
+    return intersectsZoneBox(position, getEndZone(endZoneSide));
+}
+
+export function isInExtraPointZone(
+    position: PointLike,
+    offensiveTeam: FieldTeam,
+): boolean {
+    const opponent = offensiveTeam === Team.RED ? Team.BLUE : Team.RED;
+
+    return (
+        intersectsZoneBox(position, getEndZone(opponent)) ||
+        intersectsZoneBox(position, getRedZone(opponent))
+    );
 }
 
 export function isInRedZone(

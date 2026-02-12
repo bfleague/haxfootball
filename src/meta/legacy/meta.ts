@@ -21,6 +21,16 @@ import { Blitz } from "./states/blitz";
 import { FieldGoal } from "./states/field-goal";
 import { FakeFieldGoal } from "./states/fake-field-goal";
 import { FieldGoalInFlight } from "./states/field-goal-in-flight";
+import { ExtraPoint } from "./states/extra-point";
+import { ExtraPointKick } from "./states/extra-point-kick";
+import { ExtraPointBlockedPass } from "./states/extra-point-blocked-pass";
+import { ExtraPointPassDeflection } from "./states/extra-point-pass-deflection";
+import { ExtraPointBlitz } from "./states/extra-point-blitz";
+import { ExtraPointSnap } from "./states/extra-point-snap";
+import { ExtraPointSnapInFlight } from "./states/extra-point-snap-in-flight";
+import { ExtraPointRun } from "./states/extra-point-run";
+import { ExtraPointQuarterbackRun } from "./states/extra-point-quarterback-run";
+import { ExtraPointInterceptionAttempt } from "./states/extra-point-interception-attempt";
 
 export { legacyStadium as stadium } from "@meta/legacy/stadium";
 
@@ -48,4 +58,14 @@ export const registry = {
     FIELD_GOAL: FieldGoal,
     FAKE_FIELD_GOAL: FakeFieldGoal,
     FIELD_GOAL_IN_FLIGHT: FieldGoalInFlight,
+    EXTRA_POINT: ExtraPoint,
+    EXTRA_POINT_KICK: ExtraPointKick,
+    EXTRA_POINT_BLOCKED_PASS: ExtraPointBlockedPass,
+    EXTRA_POINT_PASS_DEFLECTION: ExtraPointPassDeflection,
+    EXTRA_POINT_BLITZ: ExtraPointBlitz,
+    EXTRA_POINT_SNAP: ExtraPointSnap,
+    EXTRA_POINT_SNAP_IN_FLIGHT: ExtraPointSnapInFlight,
+    EXTRA_POINT_RUN: ExtraPointRun,
+    EXTRA_POINT_QUARTERBACK_RUN: ExtraPointQuarterbackRun,
+    EXTRA_POINT_INTERCEPTION_ATTEMPT: ExtraPointInterceptionAttempt,
 };

@@ -166,9 +166,9 @@ export function LiveBall({
         });
 
         $next({
-            to: "KICKOFF",
+            to: "EXTRA_POINT",
             params: {
-                forTeam: offensiveTeam,
+                offensiveTeam,
             },
             wait: ticks({ seconds: 3 }),
         });
