@@ -228,65 +228,86 @@ export function ExtraPoint({
         });
     }
 
-    function run(state: GameState) {
+    type Frame = {
+        state: GameState;
+        elapsedTicks: number;
+        kicker: GameStatePlayer | undefined;
+    };
+
+    function buildFrame(state: GameState): Frame {
         const elapsedTicks = state.tickNumber - startTick;
-
-        if (elapsedTicks >= EXTRA_POINT_DECISION_WINDOW) {
-            $effect(($) => {
-                $.send(t`Extra point attempt expired.`);
-            });
-
-            $next({
-                to: "KICKOFF",
-                params: {
-                    forTeam: offensiveTeam,
-                },
-                wait: ticks({ seconds: 2 }),
-            });
-        }
-
         const kicker = state.players.find(
             (player) => player.team === offensiveTeam && player.isKickingBall,
         );
 
-        if (kicker) {
-            $next({
-                to: "EXTRA_POINT_KICK",
-                params: {
+        return { state, elapsedTicks, kicker };
+    }
+
+    function $handleAttemptExpired(frame: Frame) {
+        if (frame.elapsedTicks < EXTRA_POINT_DECISION_WINDOW) return;
+
+        $effect(($) => {
+            $.send(t`Extra point attempt expired.`);
+        });
+
+        $next({
+            to: "KICKOFF",
+            params: {
+                forTeam: offensiveTeam,
+            },
+            wait: ticks({ seconds: 2 }),
+        });
+    }
+
+    function $handleKick(frame: Frame) {
+        if (!frame.kicker) return;
+
+        $next({
+            to: "EXTRA_POINT_KICK",
+            params: {
+                offensiveTeam,
+            },
+        });
+    }
+
+    function $handleEarlyOffenseCrossedLine(frame: Frame) {
+        if (twoPointLocked || frame.elapsedTicks >= LOADING_DURATION) return;
+
+        const offensivePlayersBeyondLine = frame.state.players.filter(
+            (player) =>
+                player.team === offensiveTeam &&
+                calculateDirectionalGain(
                     offensiveTeam,
-                },
-            });
-        }
+                    player.x - lineOfScrimmageX,
+                ) > 0,
+        );
 
-        if (!twoPointLocked && elapsedTicks < LOADING_DURATION) {
-            const offensivePlayersBeyondLine = state.players.filter(
-                (player) =>
-                    player.team === offensiveTeam &&
-                    calculateDirectionalGain(
-                        offensiveTeam,
-                        player.x - lineOfScrimmageX,
-                    ) > 0,
+        if (offensivePlayersBeyondLine.length === 0) return;
+
+        $effect(($) => {
+            $.send(
+                t`Offense crossed the line of scrimmage; two-point conversion no longer available.`,
             );
+        });
 
-            if (offensivePlayersBeyondLine.length) {
-                $effect(($) => {
-                    $.send(
-                        t`Offense crossed the line of scrimmage; two-point conversion no longer available.`,
-                    );
-                });
+        $next({
+            to: "EXTRA_POINT",
+            params: {
+                offensiveTeam,
+                fieldPos,
+                defensiveFouls,
+                twoPointLocked: true,
+                startedAt: startTick,
+            },
+        });
+    }
 
-                $next({
-                    to: "EXTRA_POINT",
-                    params: {
-                        offensiveTeam,
-                        fieldPos,
-                        defensiveFouls,
-                        twoPointLocked: true,
-                        startedAt: startTick,
-                    },
-                });
-            }
-        }
+    function run(state: GameState) {
+        const frame = buildFrame(state);
+
+        $handleAttemptExpired(frame);
+        $handleKick(frame);
+        $handleEarlyOffenseCrossedLine(frame);
     }
 
     return { run, chat };
