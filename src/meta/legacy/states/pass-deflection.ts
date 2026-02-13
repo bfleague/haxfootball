@@ -49,6 +49,7 @@ export function PassDeflection({
                     playerId: blockerId,
                     kickTime: state.tickNumber,
                     downState,
+                    kickBallState: state.ball,
                 },
             });
         }

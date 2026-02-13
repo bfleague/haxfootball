@@ -1,16 +1,9 @@
-import { GameState } from "@runtime/engine";
+import { GameState, GameStateBall, GameStatePlayer } from "@runtime/engine";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import { DownState } from "@meta/legacy/utils/down";
 import { ticks } from "@common/general/time";
 import { opposite } from "@common/game/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
-import { getDistance, PointLike } from "@common/math/geometry";
-import {
-    type GoalPostIntersection,
-    type GoalPostIntersectionResult,
-    getBallPath,
-    intersectsGoalPosts,
-} from "@meta/legacy/utils/stadium";
 import {
     $setBallActive,
     $setBallInactive,
@@ -19,27 +12,25 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import {
+    getProjectedInterceptionPoint,
+    getTravelInterceptionPoint,
+} from "@meta/legacy/utils/interception";
 import { t } from "@lingui/core/macro";
+import { PointLike } from "@common/math/geometry";
 
-const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });
-
-type GoalPostIntersectionCandidate = {
-    point: PointLike;
-    distance: number;
-};
-
-const isGoalPostIntersection = (
-    result: GoalPostIntersectionResult,
-): result is GoalPostIntersection => result.intersects;
+const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 250 });
 
 export function InterceptionAttempt({
     kickTime,
     playerId,
     downState,
+    kickBallState,
 }: {
     kickTime: number;
     playerId: number;
     downState: DownState;
+    kickBallState: GameStateBall;
 }) {
     $lockBall();
 
@@ -49,6 +40,8 @@ export function InterceptionAttempt({
     $setFirstDownLine(offensiveTeam, fieldPos, downAndDistance.distance);
     $setBallInactive();
 
+    const goals = [offensiveTeam, opposite(offensiveTeam)] as const;
+
     $dispose(() => {
         $unlockBall();
         $unsetLineOfScrimmage();
@@ -56,63 +49,67 @@ export function InterceptionAttempt({
         $unsetFirstDownLine();
     });
 
-    const { ball: ballState } = $before();
-
     // TODO: Check if player leaves
+
+    function $advanceToInterception(args: {
+        blocker: GameStatePlayer;
+        intersectionPoint: PointLike;
+    }) {
+        $effect(($) => {
+            $.send(t`Interception by ${args.blocker.name}!`);
+        });
+
+        $next({
+            to: "INTERCEPTION",
+            params: {
+                playerId,
+                intersectionPoint: args.intersectionPoint,
+                ballState: kickBallState,
+                playerTeam: args.blocker.team,
+            },
+        });
+    }
 
     function run(state: GameState) {
         const blocker = state.players.find((p) => p.id === playerId);
         if (!blocker) return;
 
-        if (state.tickNumber - kickTime >= TIME_TO_CHECK_INTERCEPTION) {
-            const ball = state.ball;
-            const ballPath = getBallPath(
-                ball.x,
-                ball.y,
-                ball.xspeed,
-                ball.yspeed,
-            );
+        const intersectionFromTravel = getTravelInterceptionPoint({
+            previousBall: $before().ball,
+            currentBall: state.ball,
+            goals,
+        });
 
-            const goals = [
-                downState.offensiveTeam,
-                opposite(downState.offensiveTeam),
-            ] as const;
-
-            const intersections = goals
-                .map((goal) => intersectsGoalPosts(ballPath, goal))
-                .filter(isGoalPostIntersection)
-                .map<GoalPostIntersectionCandidate>((result) => ({
-                    point: result.point,
-                    distance: getDistance(result.point, ballPath.origin),
-                }))
-                .sort((a, b) => a.distance - b.distance);
-
-            const intersection = intersections[0];
-
-            if (intersection) {
-                $effect(($) => {
-                    $.send(t`Interception by ${blocker.name}!`);
-                });
-
-                $next({
-                    to: "INTERCEPTION",
-                    params: {
-                        playerId: playerId,
-                        intersectionPoint: intersection.point,
-                        ballState,
-                        playerTeam: blocker.team,
-                    },
-                });
-            } else {
-                $next({
-                    to: "BLOCKED_PASS",
-                    params: {
-                        blockerId: playerId,
-                        downState,
-                    },
-                });
-            }
+        if (intersectionFromTravel) {
+            $advanceToInterception({
+                blocker,
+                intersectionPoint: intersectionFromTravel,
+            });
         }
+
+        if (state.tickNumber - kickTime < TIME_TO_CHECK_INTERCEPTION) {
+            return;
+        }
+
+        const projectedIntersection = getProjectedInterceptionPoint({
+            ball: state.ball,
+            goals,
+        });
+
+        if (projectedIntersection) {
+            $advanceToInterception({
+                blocker,
+                intersectionPoint: projectedIntersection,
+            });
+        }
+
+        $next({
+            to: "BLOCKED_PASS",
+            params: {
+                blockerId: playerId,
+                downState,
+            },
+        });
     }
 
     return { run };

@@ -48,6 +48,7 @@ export function ExtraPointPassDeflection({
                     kickTime: state.tickNumber,
                     offensiveTeam,
                     fieldPos,
+                    kickBallState: state.ball,
                 },
             });
         }
