@@ -8,12 +8,12 @@ import {
     getFirstDownLine,
     getInterceptionPath,
     hideCrowdingBoxes,
-    SPECIAL_HIDDEN_POSITION,
     BALL_DISC_ID,
     BALL_ACTIVE_COLOR,
     BALL_INACTIVE_COLOR,
     isInMainField,
 } from "@meta/legacy/utils/stadium";
+import { SPECIAL_HIDDEN_DISC_POSITION } from "@common/stadium-builder/consts";
 
 export function $setLineOfScrimmage(fieldPos: FieldPosition) {
     $effect(($) => {
@@ -33,7 +33,7 @@ export function $unsetLineOfScrimmage() {
         const lineOfScrimmage = getLineOfScrimmage();
 
         lineOfScrimmage.forEach(({ id }) => {
-            $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
+            $.setDiscProperties(id, SPECIAL_HIDDEN_DISC_POSITION);
         });
     });
 }
@@ -57,7 +57,7 @@ export function $setFirstDownLine(
 
         if (shouldHide) {
             getFirstDownLine().forEach(({ id }) => {
-                $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
+                $.setDiscProperties(id, SPECIAL_HIDDEN_DISC_POSITION);
             });
 
             return;
@@ -77,7 +77,7 @@ export function $unsetFirstDownLine() {
         const firstDownLine = getFirstDownLine();
 
         firstDownLine.forEach(({ id }) => {
-            $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
+            $.setDiscProperties(id, SPECIAL_HIDDEN_DISC_POSITION);
         });
     });
 }
@@ -96,7 +96,7 @@ export function $showInterceptionPath(line: Line) {
 export function $hideInterceptionPath() {
     $effect(($) => {
         getInterceptionPath().forEach(({ id }) => {
-            $.setDiscProperties(id, SPECIAL_HIDDEN_POSITION);
+            $.setDiscProperties(id, SPECIAL_HIDDEN_DISC_POSITION);
         });
     });
 }

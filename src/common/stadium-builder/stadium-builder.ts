@@ -51,7 +51,7 @@ type GoalPostMeasures = {
     bottomY: number;
     segment: SegmentProps;
     vertex?: VertexProps;
-    diagonals?: Array<{ from: Pair<number>; to: Pair<number> }>;
+    posts?: Array<{ from: Pair<number>; to: Pair<number> }>;
     disc?: Omit<Disc, "pos">;
 };
 
@@ -433,7 +433,7 @@ const buildGoalPosts = (config: GoalPostMeasures): LineSpec[] => {
             segment: config.segment,
             ...(config.vertex ? { vertex: config.vertex } : {}),
         }),
-        ...(config.diagonals ?? []).map((segment) =>
+        ...(config.posts ?? []).map((segment) =>
             line({
                 from: toPoint(segment.from),
                 to: toPoint(segment.to),

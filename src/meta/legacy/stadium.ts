@@ -1,11 +1,48 @@
-import { repeat } from "@common/general/helpers";
-import { pos } from "@common/math/geometry";
+import { mapNestedRecordValues, repeat } from "@common/general/helpers";
 import { mask } from "@common/game/physics";
 import { buildStadium } from "@common/stadium-builder";
 import type { CollisionFlag } from "@haxball/stadium";
+import { SPECIAL_HIDDEN_POSITION } from "@common/stadium-builder/consts";
+
+const COLOR_SCHEMA_RAW = {
+    BALL: {
+        DEFAULT: "#631515",
+    },
+    YARD: {
+        DEFAULT: "#FFFFFF",
+        GOAL: "#FFEA00",
+        RED_ZONE: "#D22B2B",
+        MIDFIELD: "#ACDE97",
+    },
+    FIELD: {
+        HASH: "#D1E1C6",
+        TICK: "#FFFFFF",
+        TICK_GREEN: "#C7E6BD",
+    },
+    GOAL_POSTS: {
+        SEGMENT: "#FFEA00",
+        DISC: "#FFFF00",
+    },
+    BOUNDARIES: {
+        LEFT: "#0000FF",
+        RIGHT: "#D0312D",
+    },
+    LINES: {
+        FIRST_DOWN: "#FF9912",
+        LINE_OF_SCRIMMAGE: "#3E67CF",
+        INTERCEPTION_PATH: "#FFAA00",
+        CROWDING_OUTER: "#FF0000",
+        CROWDING_INNER: "#F5F5F5",
+    },
+} as const;
+
+export const COLOR_SCHEMA = mapNestedRecordValues(
+    COLOR_SCHEMA_RAW,
+    (color: string) => color.slice(1),
+);
 
 export const BALL_RADIUS = 7.75;
-export const BALL_COLOR = "631515";
+export const BALL_COLOR = COLOR_SCHEMA.BALL.DEFAULT;
 
 export const PLANE_MASK_BY_NAME = {
     redEndZoneTrap: "c0",
@@ -51,14 +88,14 @@ export const {
     },
     colors: {
         yard: {
-            default: "FFFFFF",
-            goal: "FFEA00",
-            redZone: "D0312D",
-            midfield: "ACDE97",
+            default: COLOR_SCHEMA.YARD.DEFAULT,
+            goal: COLOR_SCHEMA.YARD.GOAL,
+            redZone: COLOR_SCHEMA.YARD.RED_ZONE,
+            midfield: COLOR_SCHEMA.YARD.MIDFIELD,
         },
-        hash: "D7E3CF",
-        tick: "FFFFFF",
-        tickGreen: "C7E6BD",
+        hash: COLOR_SCHEMA.FIELD.HASH,
+        tick: COLOR_SCHEMA.FIELD.TICK,
+        tickGreen: COLOR_SCHEMA.FIELD.TICK_GREEN,
     },
     features: {
         collisionSidelines: {
@@ -68,7 +105,7 @@ export const {
             bottomY: 375,
             segment: {
                 vis: false,
-                color: "FFEA00",
+                color: COLOR_SCHEMA.GOAL_POSTS.SEGMENT,
                 bCoef: 0.1,
                 cMask: mask("red", "blue"),
                 cGroup: [],
@@ -80,18 +117,21 @@ export const {
             rightX: 930,
             topY: -60,
             bottomY: 60,
-            segment: { color: "FFEA00", cMask: [] },
+            segment: {
+                color: COLOR_SCHEMA.GOAL_POSTS.SEGMENT,
+                cMask: [],
+            },
             vertex: { cMask: [] },
-            diagonals: [
-                { from: [-930, -60], to: [-980, -130] },
-                { from: [-930, 60], to: [-990, -10] },
-                { from: [930, -60], to: [980, -130] },
-                { from: [930, 60], to: [990, -10] },
+            posts: [
+                // { from: [-930, -60], to: [-980, -130] },
+                // { from: [-930, 60], to: [-990, -10] },
+                // { from: [930, -60], to: [980, -130] },
+                // { from: [930, 60], to: [990, -10] },
             ],
             disc: {
                 radius: 4,
                 invMass: 0,
-                color: "FFFF00",
+                color: COLOR_SCHEMA.GOAL_POSTS.DISC,
             },
         },
         ballBoundaries: {
@@ -99,10 +139,14 @@ export const {
             rightX: 1005,
             topY: 360,
             bottomY: -360,
-            leftSegment: { vis: false, color: "0000FF", cMask: mask("ball") },
+            leftSegment: {
+                vis: false,
+                color: COLOR_SCHEMA.BOUNDARIES.LEFT,
+                cMask: mask("ball"),
+            },
             rightSegment: {
                 vis: false,
-                color: "D0312D",
+                color: COLOR_SCHEMA.BOUNDARIES.RIGHT,
                 cMask: mask("ball"),
             },
         },
@@ -152,6 +196,7 @@ export const {
             invMass: 1e26,
             kickStrength: 7,
         },
+        cameraFollow: "player",
         ballPhysics: {
             radius: BALL_RADIUS,
             bCoef: 0.5,
@@ -166,35 +211,37 @@ export const {
         dynamicLines: [
             {
                 name: "orange0",
-                joint: { color: "FF9912" },
+                joint: { color: COLOR_SCHEMA.LINES.FIRST_DOWN },
             },
             {
                 name: "blue0",
-                joint: { color: "3E67CF" },
+                joint: {
+                    color: COLOR_SCHEMA.LINES.LINE_OF_SCRIMMAGE,
+                },
             },
             {
                 name: "ball0",
                 disc: {
                     radius: 7.125,
                     invMass: 0,
-                    pos: pos(2000, 2000),
-                    color: "FFAA00",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.INTERCEPTION_PATH,
                     cGroup: [],
                     cMask: [],
                 },
-                joint: { color: "FFAA00" },
+                joint: { color: COLOR_SCHEMA.LINES.INTERCEPTION_PATH },
             },
             ...repeat(12, (index) => ({
                 name: `red${index}`,
-                joint: { color: "FF0000" },
+                joint: { color: COLOR_SCHEMA.LINES.CROWDING_OUTER },
             })),
             ...repeat(6, (index) => ({
                 name: `white${index}`,
-                joint: { color: "F5F5F5" },
+                joint: { color: COLOR_SCHEMA.LINES.CROWDING_INNER },
             })),
             ...repeat(2, (index) => ({
                 name: `tail${index}`,
-                joint: { color: "F5F5F5" },
+                joint: { color: COLOR_SCHEMA.LINES.CROWDING_INNER },
             })),
         ],
         anchors: [
@@ -203,8 +250,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "FF0000",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_OUTER,
                     cGroup: [],
                 },
             },
@@ -213,8 +260,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "FF0000",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_OUTER,
                     cGroup: [],
                 },
             },
@@ -223,8 +270,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "FF0000",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_OUTER,
                     cGroup: [],
                 },
             },
@@ -233,8 +280,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "FF0000",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_OUTER,
                     cGroup: [],
                 },
             },
@@ -243,8 +290,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "F5F5F5",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_INNER,
                     cGroup: [],
                 },
             },
@@ -253,8 +300,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "F5F5F5",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_INNER,
                     cGroup: [],
                 },
             },
@@ -263,8 +310,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "F5F5F5",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_INNER,
                     cGroup: [],
                 },
             },
@@ -273,8 +320,8 @@ export const {
                 disc: {
                     radius: 1,
                     invMass: 1,
-                    pos: pos(9999, 9999),
-                    color: "F5F5F5",
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: COLOR_SCHEMA.LINES.CROWDING_INNER,
                     cGroup: [],
                 },
             },

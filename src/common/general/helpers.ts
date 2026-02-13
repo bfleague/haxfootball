@@ -25,6 +25,36 @@ export const isPlainObject = (
 ): value is Record<string, unknown> =>
     Boolean(value) && typeof value === "object" && !Array.isArray(value);
 
+export type NestedRecord<TLeaf> =
+    | TLeaf
+    | { [key: string]: NestedRecord<TLeaf> };
+
+type MapNestedRecord<TNode, TLeaf, TOut> = TNode extends TLeaf
+    ? TOut
+    : TNode extends Record<string, unknown>
+      ? { [K in keyof TNode]: MapNestedRecord<TNode[K], TLeaf, TOut> }
+      : never;
+
+export function mapNestedRecordValues<
+    TLeaf,
+    TNode extends NestedRecord<TLeaf>,
+    TOut,
+>(
+    node: TNode,
+    mapLeaf: (value: TLeaf) => TOut,
+): MapNestedRecord<TNode, TLeaf, TOut> {
+    if (isPlainObject(node)) {
+        return Object.fromEntries(
+            Object.entries(node).map(([key, value]) => [
+                key,
+                mapNestedRecordValues(value as NestedRecord<TLeaf>, mapLeaf),
+            ]),
+        ) as MapNestedRecord<TNode, TLeaf, TOut>;
+    }
+
+    return mapLeaf(node as TLeaf) as MapNestedRecord<TNode, TLeaf, TOut>;
+}
+
 export const mergeDeep = <T extends Record<string, unknown>>(
     base: T,
     next: Partial<T>,

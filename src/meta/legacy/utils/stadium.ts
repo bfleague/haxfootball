@@ -24,6 +24,7 @@ import {
 } from "@meta/legacy/stadium";
 import { hexColorToNumber } from "@common/general/color";
 import { CollisionFlag } from "@haxball/stadium";
+import { SPECIAL_HIDDEN_POSITION } from "@common/stadium-builder/consts";
 
 const OUTER_CROWDING_SEGMENTS: Pair<number>[] = [
     lineIndex("red0"),
@@ -89,10 +90,6 @@ const HASH_LOWER_CENTER_Y =
 
 export const BALL_OFFSET_YARDS = 2;
 export const YARD_LENGTH = MapMeasures.YARD;
-export const SPECIAL_HIDDEN_POSITION = {
-    x: 2000,
-    y: 2000,
-};
 
 export const TOUCHBACK_YARD_LINE = 25;
 export const KICKOFF_OUT_OF_BOUNDS_YARD_LINE = 40;
@@ -472,7 +469,7 @@ function crowdingDashSize(
 
 function hiddenCrowdingRectangle(): CrowdingRectangle {
     return {
-        start: [SPECIAL_HIDDEN_POSITION.x, SPECIAL_HIDDEN_POSITION.y],
+        start: SPECIAL_HIDDEN_POSITION,
         direction: 1,
         extension: [MapMeasures.YARD, MapMeasures.YARD],
     };
