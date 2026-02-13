@@ -56,7 +56,7 @@ export function ExtraPointInterceptionAttempt({
         intersectionPoint: PointLike;
     }) {
         $effect(($) => {
-            $.send(t`Interception by ${args.blocker.name}!`);
+            $.send(t`🛡️ INTERCEPTION by ${args.blocker.name}!`);
         });
 
         $next({

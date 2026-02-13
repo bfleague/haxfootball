@@ -112,7 +112,7 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
         if (hasPlayersPastBall) {
             $effect(($) => {
                 $.send(
-                    t`You cannot kick while a teammate is beyond the ball line.`,
+                    t`⚠️ You cannot kick while a teammate is past the ball line.`,
                     kicker.id,
                 );
             });

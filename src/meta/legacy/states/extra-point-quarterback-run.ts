@@ -94,9 +94,9 @@ export function ExtraPointQuarterbackRun({
 
         $effect(($) => {
             if (ballTeam === originalOffensiveTeam) {
-                $.send(t`Two-point conversion is good!`);
+                $.send(t`✅ Two-point try is good!`);
             } else {
-                $.send(t`Defensive return for two points!`);
+                $.send(t`🏈 Defense takes it back • TWO POINTS!`);
             }
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -122,7 +122,7 @@ export function ExtraPointQuarterbackRun({
         if (isInExtraPointZone(frame.player, originalOffensiveTeam)) return;
 
         $effect(($) => {
-            $.send(t`Two-point conversion failed.`);
+            $.send(t`❌ Two-point try failed.`);
             $.setAvatar(playerId, AVATARS.CANCEL);
         });
 
@@ -139,7 +139,7 @@ export function ExtraPointQuarterbackRun({
         if (!isOutOfBounds(frame.player)) return;
 
         $effect(($) => {
-            $.send(t`Two-point conversion failed.`);
+            $.send(t`❌ Two-point try failed.`);
             $.setAvatar(playerId, AVATARS.CANCEL);
         });
 
@@ -157,7 +157,7 @@ export function ExtraPointQuarterbackRun({
         if (catchers.length === 0) return;
 
         $effect(($) => {
-            $.send(t`Two-point conversion failed.`);
+            $.send(t`❌ Two-point try failed.`);
             $.setAvatar(playerId, AVATARS.CANCEL);
 
             catchers.forEach((player) => {

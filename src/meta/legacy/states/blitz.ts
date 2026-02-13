@@ -131,7 +131,7 @@ export function Blitz({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Illegal touching by ${offenderNames}, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Loss of down.`,
+                            t`❌ Illegal touch by ${offenderNames} • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • loss of down.`,
                         ),
                     );
                 });
@@ -141,7 +141,7 @@ export function Blitz({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Illegal touching by ${offenderNames}, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Turnover on downs.`,
+                            t`❌ Illegal touch by ${offenderNames} • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • turnover on downs.`,
                         ),
                     );
                 });
@@ -182,7 +182,7 @@ export function Blitz({
 
         $effect(($) => {
             $.send(
-                t`Quarterback has crossed the line of scrimmage, starting quarterback run.`,
+                t`🏃 QB crossed the LOS • quarterback run is live.`,
             );
         });
 
@@ -214,7 +214,7 @@ export function Blitz({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`First down!`));
+                        $.send(cn(nextDownState, t`• FIRST DOWN!`));
                     });
                 },
                 onNextDown: {
@@ -223,7 +223,7 @@ export function Blitz({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`Next down after a gain of ${yardsGained} yards!`,
+                                    t`• ${yardsGained}-yard gain • next down.`,
                                 ),
                             );
                         });
@@ -231,7 +231,7 @@ export function Blitz({
                     onNoGain() {
                         $effect(($) => {
                             $.send(
-                                cn(nextDownState, t`Next down with no gain!`),
+                                cn(nextDownState, t`• No gain • next down.`),
                             );
                         });
                     },
@@ -240,7 +240,7 @@ export function Blitz({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`Next down after a loss of ${yardsLost} yards!`,
+                                    t`• ${yardsLost}-yard loss • next down.`,
                                 ),
                             );
                         });
@@ -248,7 +248,7 @@ export function Blitz({
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`Turnover on downs!`));
+                        $.send(cn(nextDownState, t`• TURNOVER ON DOWNS!`));
                     });
                 },
             });
@@ -273,7 +273,7 @@ export function Blitz({
         } else {
             $effect(($) => {
                 $.send(
-                    t`${frame.quarterback.name} went out of bounds in the end zone for a safety!`,
+                    t`🚪 QB ${frame.quarterback.name} went out in the end zone • SAFETY!`,
                 );
 
                 $.setAvatar(quarterbackId, AVATARS.CLOWN);
@@ -315,7 +315,7 @@ export function Blitz({
                     $.send(
                         cn(
                             nextDownState,
-                            t`${frame.quarterback.name} sacked by ${catcherNames} for a first down!`,
+                            t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames} • FIRST DOWN!`,
                         ),
                     );
                 });
@@ -326,7 +326,7 @@ export function Blitz({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`${frame.quarterback.name} sacked by ${catcherNames} for a gain of ${yardsGained} yards, next down!`,
+                                t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames} • ${yardsGained} yard gain • next down.`,
                             ),
                         );
                     });
@@ -336,7 +336,7 @@ export function Blitz({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`${frame.quarterback.name} sacked by ${catcherNames} with no gain, next down!`,
+                                t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames} • no gain • next down.`,
                             ),
                         );
                     });
@@ -346,7 +346,7 @@ export function Blitz({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`${frame.quarterback.name} sacked by ${catcherNames} for a loss of ${yardsLost} yards, next down!`,
+                                t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames} • ${yardsLost} yard loss • next down.`,
                             ),
                         );
                     });
@@ -357,7 +357,7 @@ export function Blitz({
                     $.send(
                         cn(
                             nextDownState,
-                            t`${frame.quarterback.name} sacked by ${catcherNames}, turnover on downs!`,
+                            t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames} • TURNOVER ON DOWNS!`,
                         ),
                     );
                 });

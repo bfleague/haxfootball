@@ -27,7 +27,7 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
             $effect(($) => {
                 $.send(
-                    t`Kickoff went out of bounds, ball placed at ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE} yard line.`,
+                    t`❌ Kickoff out of bounds • ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
                 );
                 $.stat("KICKOFF_OUT_OF_BOUNDS");
             });
@@ -53,7 +53,7 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`Kickoff return attempt by ${catcher.name}!`);
+                $.send(t`🏈 Kickoff return by ${catcher.name}!`);
                 $.stat("KICKOFF_RETURNED");
             });
 

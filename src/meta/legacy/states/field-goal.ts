@@ -290,7 +290,7 @@ export function FieldGoal({
 
         if (isEarlyOutOfBounds(frame.state.ball)) {
             $effect(($) => {
-                $.send(t`Field goal went out of bounds.`);
+                $.send(t`❌ Field goal went out of bounds.`);
             });
 
             $next({
@@ -317,7 +317,7 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`Illegal touching by ${offenderNames} before the kick. Field goal failed.`,
+                t`❌ Illegal touch by ${offenderNames} before the kick • field goal is dead.`,
             );
         });
 
@@ -337,7 +337,7 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`Defensive touching by ${offenderNames} before the kick. Field goal failed.`,
+                t`❌ Defensive touch by ${offenderNames} before the kick • field goal is dead.`,
             );
         });
 
@@ -357,7 +357,7 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`Defensive contact by ${offenderNames} on ${frame.kicker.name} before the kick. Field goal failed.`,
+                t`❌ Defensive contact by ${offenderNames} on ${frame.kicker.name} before the kick • field goal is dead.`,
             );
         });
 
@@ -375,7 +375,7 @@ export function FieldGoal({
 
         if (frame.canFake) {
             $effect(($) => {
-                $.send(t`${frame.kicker.name} fakes the field goal!`);
+                $.send(t`🎭 ${frame.kicker.name} sells the fake field goal!`);
             });
 
             $next({
@@ -390,7 +390,7 @@ export function FieldGoal({
         if (!frame.canFake) {
             $effect(($) => {
                 $.send(
-                    t`${frame.kicker.name} crossed the line too early. Field goal failed.`,
+                    t`❌ ${frame.kicker.name} crossed the LOS early • field goal is dead.`,
                 );
             });
 
@@ -409,7 +409,7 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`Ball crossed the line of scrimmage before the kick. Field goal failed.`,
+                t`❌ Ball crossed the LOS before the kick • field goal is dead.`,
             );
         });
 

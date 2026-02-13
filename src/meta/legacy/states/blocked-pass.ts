@@ -59,13 +59,13 @@ export function BlockedPass({
             event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(t`Pass blocked by ${blocker.name}, no gain!`);
+                    $.send(t`🚧 Pass batted by ${blocker.name} • no gain.`);
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
                     $.send(
-                        t`Pass blocked by ${blocker.name}, turnover on downs!`,
+                        t`🚧 Pass batted by ${blocker.name} • TURNOVER ON DOWNS!`,
                     );
                 });
             },

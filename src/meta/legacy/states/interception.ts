@@ -125,7 +125,7 @@ export function Interception({
         $global((state) => state.incrementScore(playerTeam, SCORES.TOUCHDOWN));
 
         $effect(($) => {
-            $.send(t`Pick six by ${frame.player.name}!`);
+            $.send(t`🔥 PICK-SIX by ${frame.player.name}!`);
             $.stat("INTERCEPTION_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -153,7 +153,7 @@ export function Interception({
         if (isCompletelyInsideMainField(frame.player)) {
             $effect(($) => {
                 $.send(
-                    t`${frame.player.name} went out of bounds during interception return!`,
+                    t`🚪 ${frame.player.name} stepped out on the interception return.`,
                 );
 
                 $.stat("INTERCEPTION_OUT_OF_BOUNDS");
@@ -181,7 +181,7 @@ export function Interception({
         } else {
             $effect(($) => {
                 $.send(
-                    t`${frame.player.name} went out of bounds in the end zone for a safety!`,
+                    t`🚪 ${frame.player.name} went out in the end zone • SAFETY!`,
                 );
 
                 $.stat("INTERCEPTION_SAFETY");
@@ -215,7 +215,7 @@ export function Interception({
                 case "TOUCHBACK":
                     $effect(($) => {
                         $.send(
-                            t`${frame.player.name} tackled in the end zone for a touchback!`,
+                            t`🛑 ${frame.player.name} is down in the end zone • touchback.`,
                         );
 
                         $.stat("INTERCEPTION_TOUCHBACK_TACKLED");
@@ -242,7 +242,7 @@ export function Interception({
                 case "SAFETY":
                     $effect(($) => {
                         $.send(
-                            t`${frame.player.name} tackled in the end zone for a safety!`,
+                            t`🛑 ${frame.player.name} is down in the end zone • SAFETY!`,
                         );
 
                         $.stat("INTERCEPTION_SAFETY_TACKLED");
@@ -276,7 +276,7 @@ export function Interception({
             const fieldPos = getFieldPosition(frame.player.x);
 
             $effect(($) => {
-                $.send(t`${frame.player.name} tackled by ${catcherNames}!`);
+                $.send(t`💥 ${frame.player.name} brought down by ${catcherNames}!`);
                 $.stat("INTERCEPTION_TACKLED");
 
                 catchers.forEach((p) => {

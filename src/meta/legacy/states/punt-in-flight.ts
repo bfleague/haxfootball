@@ -33,7 +33,7 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
             if (isTouchback) {
                 $effect(($) => {
                     $.send(
-                        t`Punt went out of bounds in the end zone for a touchback.`,
+                        t`• Punt out in the end zone • touchback.`,
                     );
                     $.stat("PUNT_OUT_OF_BOUNDS_TOUCHBACK");
                 });
@@ -54,7 +54,7 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
             $effect(($) => {
                 $.send(
-                    t`Punt went out of bounds, ball placed at ${fieldPos.yards} yard line.`,
+                    t`• Punt out of bounds • ball spotted at the ${fieldPos.yards}-yard line.`,
                 );
                 $.stat("PUNT_OUT_OF_BOUNDS");
             });
@@ -77,7 +77,7 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`Punt return attempt by ${catcher.name}!`);
+                $.send(t`🏈 Punt return by ${catcher.name}!`);
                 $.stat("PUNT_RETURNED");
             });
 
@@ -95,7 +95,7 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         if (kickingTeamCatcher) {
             $effect(($) => {
                 $.send(
-                    t`Punt caught by kicking team player ${kickingTeamCatcher.name}!`,
+                    t`❌ Illegal touch • punt caught first by the kicking team (${kickingTeamCatcher.name}).`,
                 );
                 $.stat("PUNT_CAUGHT_BY_KICKING_TEAM");
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);

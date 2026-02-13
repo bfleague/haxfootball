@@ -50,7 +50,7 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
                 );
 
                 $effect(($) => {
-                    $.send(t`Field goal is good!`);
+                    $.send(t`✅ Field goal is good!`);
                 });
 
                 $next({
@@ -63,7 +63,7 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
             }
 
             $effect(($) => {
-                $.send(t`Field goal attempt is no good.`);
+                $.send(t`❌ Field goal is no good.`);
             });
 
             $next({
@@ -77,7 +77,7 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
 
         if (isOutOfBounds(state.ball)) {
             $effect(($) => {
-                $.send(t`Field goal went out of bounds.`);
+                $.send(t`❌ Field goal went out of bounds.`);
             });
 
             $next({
@@ -96,7 +96,7 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
 
         if (isStopped) {
             $effect(($) => {
-                $.send(t`Field goal attempt is no good.`);
+                $.send(t`❌ Field goal is no good.`);
             });
 
             $next({

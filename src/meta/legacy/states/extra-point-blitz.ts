@@ -130,7 +130,7 @@ export function ExtraPointBlitz({
         if (offensiveTouchers.length === 0) return;
 
         $effect(($) => {
-            $.send(t`Offensive foul, two-point conversion failed.`);
+            $.send(t`❌ Offensive foul • two-point try failed.`);
         });
 
         $failTwoPointAttempt();
@@ -164,7 +164,7 @@ export function ExtraPointBlitz({
         if (!frame.isQuarterbackEligibleToRun) return;
 
         $effect(($) => {
-            $.send(t`${frame.quarterback.name} starts a quarterback run!`);
+            $.send(t`🏃 QB ${frame.quarterback.name} keeps it and runs!`);
         });
 
         $next({
@@ -182,7 +182,7 @@ export function ExtraPointBlitz({
         if (isInExtraPointZone(frame.quarterback, offensiveTeam)) return;
 
         $effect(($) => {
-            $.send(t`Two-point conversion failed.`);
+            $.send(t`❌ Two-point try failed.`);
             $.setAvatar(quarterbackId, AVATARS.CANCEL);
         });
 
@@ -199,7 +199,7 @@ export function ExtraPointBlitz({
         if (!isOutOfBounds(frame.quarterback)) return;
 
         $effect(($) => {
-            $.send(t`Two-point conversion failed.`);
+            $.send(t`❌ Two-point try failed.`);
             $.setAvatar(quarterbackId, AVATARS.CANCEL);
         });
 
@@ -217,7 +217,7 @@ export function ExtraPointBlitz({
         if (catchers.length === 0) return;
 
         $effect(($) => {
-            $.send(t`Two-point conversion failed.`);
+            $.send(t`❌ Two-point try failed.`);
             $.setAvatar(quarterbackId, AVATARS.CANCEL);
 
             catchers.forEach((player) => {

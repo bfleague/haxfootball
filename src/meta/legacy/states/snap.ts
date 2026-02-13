@@ -184,7 +184,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive offside, ${DEFENSIVE_OFFSIDE_PENALTY_YARDS} yard penalty.`,
+                            t`❌ Defensive offside • ${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty.`,
                         ),
                     );
                 });
@@ -200,7 +200,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive offside, ${DEFENSIVE_OFFSIDE_PENALTY_YARDS} yard penalty and automatic first down.`,
+                            t`❌ Defensive offside • ${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty • automatic first down.`,
                         ),
                     );
                 });
@@ -222,7 +222,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive offside, ${DEFENSIVE_OFFSIDE_PENALTY_YARDS} yard penalty and automatic touchdown.`,
+                            t`❌ Defensive offside • ${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty • automatic touchdown.`,
                         ),
                     );
 
@@ -298,7 +298,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive crowding foul by ${crowdingOffenderNames}, ${Crowding.CROWDING_PENALTY_YARDS} yard penalty.`,
+                            t`❌ Defensive crowding by ${crowdingOffenderNames} • ${Crowding.CROWDING_PENALTY_YARDS}-yard penalty.`,
                         ),
                     );
                 });
@@ -315,7 +315,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive crowding foul (${crowdingOffenderNames}), ${Crowding.CROWDING_PENALTY_YARDS} yard penalty. Automatic first down.`,
+                            t`❌ Defensive crowding (${crowdingOffenderNames}) • ${Crowding.CROWDING_PENALTY_YARDS}-yard penalty • automatic first down.`,
                         ),
                     );
                 });
@@ -333,7 +333,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive crowding foul (${crowdingOffenderNames}), ${Crowding.CROWDING_PENALTY_YARDS} yard penalty. Automatic touchdown.`,
+                            t`❌ Defensive crowding (${crowdingOffenderNames}) • ${Crowding.CROWDING_PENALTY_YARDS}-yard penalty • automatic touchdown.`,
                         ),
                     );
 
@@ -391,7 +391,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive illegal touching by ${offenderNames}, ${DEFENSIVE_TOUCHING_PENALTY_YARDS} yard penalty.`,
+                            t`❌ Defensive illegal touch by ${offenderNames} • ${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty.`,
                         ),
                     );
                 });
@@ -407,7 +407,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive illegal touching by ${offenderNames}, ${DEFENSIVE_TOUCHING_PENALTY_YARDS} yard penalty and automatic first down.`,
+                            t`❌ Defensive illegal touch by ${offenderNames} • ${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty • automatic first down.`,
                         ),
                     );
                 });
@@ -426,7 +426,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Defensive illegal touching by ${offenderNames}, ${DEFENSIVE_TOUCHING_PENALTY_YARDS} yard penalty. Automatic touchdown.`,
+                            t`❌ Defensive illegal touch by ${offenderNames} • ${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty • automatic touchdown.`,
                         ),
                     );
                     setPlayerAvatars(
@@ -470,7 +470,7 @@ export function Snap({
         const runner = offensiveTouchers[0];
 
         $effect(($) => {
-            $.send(t`${runner.name} takes the handoff and starts a run!`);
+            $.send(t`🏃 ${runner.name} takes the handoff and starts a run!`);
         });
 
         $next({
@@ -506,7 +506,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Illegal touching by ${offenderNames}, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Loss of down.`,
+                            t`❌ Illegal touch by ${offenderNames} • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • loss of down.`,
                         ),
                     );
                 });
@@ -516,7 +516,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Illegal touching by ${offenderNames}, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Turnover on downs.`,
+                            t`❌ Illegal touch by ${offenderNames} • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • turnover on downs.`,
                         ),
                     );
                 });
@@ -547,7 +547,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Ball moved out of bounds, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Loss of down.`,
+                            t`❌ Ball out of bounds • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • loss of down.`,
                         ),
                     );
                 });
@@ -557,7 +557,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Ball moved out of bounds, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Turnover on downs.`,
+                            t`❌ Ball out of bounds • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • turnover on downs.`,
                         ),
                     );
                 });
@@ -585,7 +585,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Illegal advance beyond the line of scrimmage, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Loss of down.`,
+                            t`❌ Illegal advance beyond the LOS • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • loss of down.`,
                         ),
                     );
                 });
@@ -595,7 +595,7 @@ export function Snap({
                     $.send(
                         cn(
                             penaltyResult.downState,
-                            t`Illegal advance beyond the line of scrimmage, ${OFFENSIVE_FOUL_PENALTY_YARDS} yard penalty. Turnover on downs.`,
+                            t`❌ Illegal advance beyond the LOS • ${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty • turnover on downs.`,
                         ),
                     );
                 });
@@ -620,7 +620,7 @@ export function Snap({
 
         $effect(($) => {
             $.send(
-                t`Ball has crossed the line of scrimmage, starting quarterback run.`,
+                t`🏃 Ball crossed the LOS • QB run is live.`,
             );
         });
 
@@ -643,7 +643,7 @@ export function Snap({
 
         $effect(($) => {
             $.send(
-                t`Quarterback has crossed the line of scrimmage, starting quarterback run.`,
+                t`🏃 QB crossed the LOS • quarterback run is live.`,
             );
         });
 
@@ -675,7 +675,7 @@ export function Snap({
         }
 
         $effect(($) => {
-            $.send(t`Defense is attempting a blitz!`);
+            $.send(t`🚨 Defense is bringing the blitz!`);
         });
 
         $next({

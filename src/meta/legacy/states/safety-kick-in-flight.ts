@@ -32,7 +32,7 @@ export function SafetyKickInFlight({
 
             $effect(($) => {
                 $.send(
-                    t`Safety kick went out of bounds, ball placed at ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE} yard line.`,
+                    t`❌ Safety kick out of bounds • ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
                 );
                 $.stat("SAFETY_KICK_OUT_OF_BOUNDS");
             });
@@ -58,7 +58,7 @@ export function SafetyKickInFlight({
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`Safety kick return attempt by ${catcher.name}!`);
+                $.send(t`🏈 Safety-kick return by ${catcher.name}!`);
                 $.stat("SAFETY_KICK_RETURNED");
             });
 
@@ -76,7 +76,7 @@ export function SafetyKickInFlight({
         if (kickingTeamCatcher) {
             $effect(($) => {
                 $.send(
-                    t`Safety kick caught by kicking team player ${kickingTeamCatcher.name}!`,
+                    t`❌ Illegal touch • safety kick caught first by the kicking team (${kickingTeamCatcher.name}).`,
                 );
                 $.stat("SAFETY_KICK_CAUGHT_BY_KICKING_TEAM");
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);

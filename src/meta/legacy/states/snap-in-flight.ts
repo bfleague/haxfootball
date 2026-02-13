@@ -44,18 +44,18 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
             $effect(($) => {
                 switch (event.type) {
                     case "FIRST_DOWN":
-                        $.send(t`Ball went out of bounds, first down!`);
+                        $.send(t`• Ball out of bounds • FIRST DOWN!`);
                         $.stat("SNAP_IN_FLIGHT_OUT_OF_BOUNDS_FIRST_DOWN");
 
                         break;
                     case "NEXT_DOWN":
-                        $.send(t`Ball went out of bounds, no gain!`);
+                        $.send(t`• Ball out of bounds • no gain.`);
                         $.stat("SNAP_IN_FLIGHT_OUT_OF_BOUNDS_NEXT_DOWN");
 
                         break;
                     case "TURNOVER_ON_DOWNS":
                         $.send(
-                            t`Turnover on downs as ball went out of bounds!`,
+                            t`• TURNOVER ON DOWNS • ball out of bounds.`,
                         );
                         $.stat(
                             "SNAP_IN_FLIGHT_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS",
@@ -81,7 +81,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
 
         if (offensiveCatcher) {
             $effect(($) => {
-                $.send(t`Pass caught by ${offensiveCatcher.name}!`);
+                $.send(t`🏈 Pass complete to ${offensiveCatcher.name}!`);
                 $.stat("PASS_CATCHED");
             });
 

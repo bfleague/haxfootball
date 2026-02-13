@@ -54,7 +54,7 @@ export function SafetyKickReturn({
 
                 $effect(($) => {
                     $.send(
-                        t`${player.name} left the room during safety kick return!`,
+                        t`🚪 ${player.name} left during the safety-kick return!`,
                     );
 
                     $.stat("SAFETY_KICK_RETURN_LEFT_ROOM");
@@ -76,7 +76,7 @@ export function SafetyKickReturn({
                     case "TOUCHBACK":
                         $effect(($) => {
                             $.send(
-                                t`${player.name} left the room in the end zone for a touchback!`,
+                                t`🚪 ${player.name} left from the end zone • touchback.`,
                             );
 
                             $.stat("SAFETY_KICK_RETURN_TOUCHBACK_LEFT_ROOM");
@@ -95,7 +95,7 @@ export function SafetyKickReturn({
                     case "SAFETY":
                         $effect(($) => {
                             $.send(
-                                t`${player.name} left the room in the end zone for a safety!`,
+                                t`🚪 ${player.name} left from the end zone • SAFETY!`,
                             );
 
                             $.stat("SAFETY_KICK_RETURN_SAFETY_LEFT_ROOM");
@@ -164,7 +164,7 @@ export function SafetyKickReturn({
         );
 
         $effect(($) => {
-            $.send(t`Safety kick return touchdown by ${frame.player.name}!`);
+            $.send(t`🔥 Safety-kick return touchdown by ${frame.player.name}!`);
             $.stat("SAFETY_KICK_RETURN_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -192,7 +192,7 @@ export function SafetyKickReturn({
         if (isCompletelyInsideMainField(frame.player)) {
             $effect(($) => {
                 $.send(
-                    t`${frame.player.name} went out of bounds during safety kick return!`,
+                    t`🚪 ${frame.player.name} stepped out on the safety-kick return.`,
                 );
 
                 $.stat("SAFETY_KICK_RETURN_OUT_OF_BOUNDS");
@@ -220,7 +220,7 @@ export function SafetyKickReturn({
         } else {
             $effect(($) => {
                 $.send(
-                    t`${frame.player.name} went out of bounds in the end zone for a safety!`,
+                    t`🚪 ${frame.player.name} went out in the end zone • SAFETY!`,
                 );
 
                 $.stat("SAFETY_KICK_RETURN_SAFETY");
@@ -254,7 +254,7 @@ export function SafetyKickReturn({
                 case "TOUCHBACK":
                     $effect(($) => {
                         $.send(
-                            t`${frame.player.name} tackled in the end zone for a touchback!`,
+                            t`🛑 ${frame.player.name} is down in the end zone • touchback.`,
                         );
 
                         $.stat("SAFETY_KICK_RETURN_TOUCHBACK_TACKLED");
@@ -281,7 +281,7 @@ export function SafetyKickReturn({
                 case "SAFETY":
                     $effect(($) => {
                         $.send(
-                            t`${frame.player.name} tackled in the end zone for a safety!`,
+                            t`🛑 ${frame.player.name} is down in the end zone • SAFETY!`,
                         );
 
                         $.stat("SAFETY_KICK_RETURN_SAFETY_TACKLED");
@@ -315,7 +315,7 @@ export function SafetyKickReturn({
             const fieldPos = getFieldPosition(frame.player.x);
 
             $effect(($) => {
-                $.send(t`${frame.player.name} tackled by ${catcherNames}!`);
+                $.send(t`💥 ${frame.player.name} brought down by ${catcherNames}!`);
                 $.stat("SAFETY_KICK_RETURN_TACKLED");
 
                 catchers.forEach((p) => {

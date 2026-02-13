@@ -53,7 +53,7 @@ export function PuntReturn({
                 const fieldPos = getFieldPosition(player.x);
 
                 $effect(($) => {
-                    $.send(t`${player.name} left the room during punt return!`);
+                    $.send(t`🚪 ${player.name} left during the punt return!`);
 
                     $.stat("PUNT_RETURN_LEFT_ROOM");
                 });
@@ -74,7 +74,7 @@ export function PuntReturn({
                     case "TOUCHBACK":
                         $effect(($) => {
                             $.send(
-                                t`${player.name} left the room in the end zone for a touchback!`,
+                                t`🚪 ${player.name} left from the end zone • touchback.`,
                             );
 
                             $.stat("PUNT_RETURN_TOUCHBACK_LEFT_ROOM");
@@ -93,7 +93,7 @@ export function PuntReturn({
                     case "SAFETY":
                         $effect(($) => {
                             $.send(
-                                t`${player.name} left the room in the end zone for a safety!`,
+                                t`🚪 ${player.name} left from the end zone • SAFETY!`,
                             );
 
                             $.stat("PUNT_RETURN_SAFETY_LEFT_ROOM");
@@ -162,7 +162,7 @@ export function PuntReturn({
         );
 
         $effect(($) => {
-            $.send(t`Punt return touchdown by ${frame.player.name}!`);
+            $.send(t`🔥 Punt return touchdown by ${frame.player.name}!`);
             $.stat("PUNT_RETURN_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -190,7 +190,7 @@ export function PuntReturn({
         if (isCompletelyInsideMainField(frame.player)) {
             $effect(($) => {
                 $.send(
-                    t`${frame.player.name} went out of bounds during punt return!`,
+                    t`🚪 ${frame.player.name} stepped out on the punt return.`,
                 );
 
                 $.stat("PUNT_RETURN_OUT_OF_BOUNDS");
@@ -218,7 +218,7 @@ export function PuntReturn({
         } else {
             $effect(($) => {
                 $.send(
-                    t`${frame.player.name} went out of bounds in the end zone for a safety!`,
+                    t`🚪 ${frame.player.name} went out in the end zone • SAFETY!`,
                 );
 
                 $.stat("PUNT_RETURN_SAFETY");
@@ -252,7 +252,7 @@ export function PuntReturn({
                 case "TOUCHBACK":
                     $effect(($) => {
                         $.send(
-                            t`${frame.player.name} tackled in the end zone for a touchback!`,
+                            t`🛑 ${frame.player.name} is down in the end zone • touchback.`,
                         );
 
                         $.stat("PUNT_RETURN_TOUCHBACK_TACKLED");
@@ -279,7 +279,7 @@ export function PuntReturn({
                 case "SAFETY":
                     $effect(($) => {
                         $.send(
-                            t`${frame.player.name} tackled in the end zone for a safety!`,
+                            t`🛑 ${frame.player.name} is down in the end zone • SAFETY!`,
                         );
 
                         $.stat("PUNT_RETURN_SAFETY_TACKLED");
@@ -313,7 +313,7 @@ export function PuntReturn({
             const fieldPos = getFieldPosition(frame.player.x);
 
             $effect(($) => {
-                $.send(t`${frame.player.name} tackled by ${catcherNames}!`);
+                $.send(t`💥 ${frame.player.name} brought down by ${catcherNames}!`);
                 $.stat("PUNT_RETURN_TACKLED");
 
                 catchers.forEach((p) => {

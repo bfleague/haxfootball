@@ -171,7 +171,7 @@ export function ExtraPoint({
         if (twoPointLocked) {
             $effect(($) => {
                 $.send(
-                    t`Two-point conversion is no longer available; try the kick.`,
+                    t`⚠️ Two-point try is no longer available • kick the PAT.`,
                     player.id,
                 );
             });
@@ -185,7 +185,7 @@ export function ExtraPoint({
         if (offensivePlayersBeyondLine.length > 0) {
             $effect(($) => {
                 $.send(
-                    t`Offense crossed the line of scrimmage; two-point conversion no longer available.`,
+                    t`❌ Offense crossed the LOS • two-point try is no longer available.`,
                     player.id,
                 );
             });
@@ -207,14 +207,14 @@ export function ExtraPoint({
             HIKING_DISTANCE_LIMIT
         ) {
             $effect(($) => {
-                $.send(t`You are too far from the ball to hike it!`, player.id);
+                $.send(t`⚠️ You are too far from the ball to snap it.`, player.id);
             });
 
             return;
         }
 
         $effect(($) => {
-            $.send(t`${player.name} starts a two-point conversion attempt!`);
+            $.send(t`*️⃣ ${player.name} starts the two-point try!`);
         });
 
         $next({
@@ -247,7 +247,7 @@ export function ExtraPoint({
         if (frame.elapsedTicks < EXTRA_POINT_DECISION_WINDOW) return;
 
         $effect(($) => {
-            $.send(t`Extra point attempt expired.`);
+            $.send(t`⏱️ PAT window expired.`);
         });
 
         $next({
@@ -286,7 +286,7 @@ export function ExtraPoint({
 
         $effect(($) => {
             $.send(
-                t`Offense crossed the line of scrimmage; two-point conversion no longer available.`,
+                t`❌ Offense crossed the LOS • two-point try is no longer available.`,
             );
         });
 

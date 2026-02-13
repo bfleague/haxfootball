@@ -37,7 +37,7 @@ export function ExtraPointBlockedPass({
 
         $effect(($) => {
             $.setAvatar(blockerId, AVATARS.CONSTRUCTION);
-            $.send(t`Pass blocked by ${blocker.name}, two-point conversion failed.`);
+            $.send(t`🚧 Pass batted by ${blocker.name} • two-point try failed.`);
         });
 
         $dispose(() => {

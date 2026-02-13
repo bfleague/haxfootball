@@ -32,7 +32,7 @@ export function ExtraPointSnapInFlight({
     function run(state: GameState) {
         if (isOutOfBounds(state.ball)) {
             $effect(($) => {
-                $.send(t`Two-point conversion failed.`);
+                $.send(t`❌ Two-point try failed.`);
             });
 
             $next({
@@ -51,7 +51,7 @@ export function ExtraPointSnapInFlight({
 
         if (offensiveCatcher) {
             $effect(($) => {
-                $.send(t`Two-point attempt caught by ${offensiveCatcher.name}!`);
+                $.send(t`🏈 Two-point pass complete to ${offensiveCatcher.name}!`);
             });
 
             $next({
@@ -85,7 +85,7 @@ export function ExtraPointSnapInFlight({
 
         if (!isInExtraPointZone(state.ball, offensiveTeam)) {
             $effect(($) => {
-                $.send(t`Two-point conversion failed.`);
+                $.send(t`❌ Two-point try failed.`);
             });
 
             $next({

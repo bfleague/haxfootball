@@ -39,7 +39,7 @@ export function ExtraPointKick({
     function run(state: GameState) {
         if (isOutOfBounds(state.ball)) {
             $effect(($) => {
-                $.send(t`Extra point went out of bounds.`);
+                $.send(t`❌ PAT went out of bounds.`);
             });
 
             $next({
@@ -62,7 +62,7 @@ export function ExtraPointKick({
                 );
 
                 $effect(($) => {
-                    $.send(t`Extra point is good!`);
+                    $.send(t`✅ PAT is good!`);
                 });
 
                 $next({
@@ -75,7 +75,7 @@ export function ExtraPointKick({
             }
 
             $effect(($) => {
-                $.send(t`Extra point attempt is no good.`);
+                $.send(t`❌ PAT is no good.`);
             });
 
             $next({
@@ -94,7 +94,7 @@ export function ExtraPointKick({
 
         if (isStopped) {
             $effect(($) => {
-                $.send(t`Extra point attempt is no good.`);
+                $.send(t`❌ PAT is no good.`);
             });
 
             $next({

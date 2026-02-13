@@ -171,7 +171,7 @@ export function Presnap({ downState }: { downState: DownState }) {
             ) {
                 $effect(($) => {
                     $.send(
-                        t`You are too far from the ball to hike it!`,
+                        t`⚠️ You are too far from the ball to snap it.`,
                         player.id,
                     );
                 });
@@ -185,7 +185,7 @@ export function Presnap({ downState }: { downState: DownState }) {
             if (offensivePlayersPastLine.length > 0) {
                 $effect(($) => {
                     $.send(
-                        t`You cannot hike while a teammate is beyond the line of scrimmage.`,
+                        t`⚠️ You cannot snap while a teammate is past the LOS.`,
                         player.id,
                     );
                 });
@@ -194,7 +194,7 @@ export function Presnap({ downState }: { downState: DownState }) {
             }
 
             $effect(($) => {
-                $.send(t`${player.name} hikes the ball!`);
+                $.send(t`🌳 ${player.name} snaps it • ball is live!`);
             });
 
             $next({
@@ -216,7 +216,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 if (player.team !== offensiveTeam) {
                     $effect(($) => {
                         $.send(
-                            t`Only the offensive team can attempt a field goal.`,
+                            t`⚠️ Only the offense may call for a field goal.`,
                             player.id,
                         );
                     });
@@ -230,7 +230,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 ) {
                     $effect(($) => {
                         $.send(
-                            t`You are too far from the ball to attempt a field goal.`,
+                            t`⚠️ You are too far from the ball to attempt the field goal.`,
                             player.id,
                         );
                     });
@@ -239,7 +239,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 }
 
                 $effect(($) => {
-                    $.send(t`${player.name} lines up for a field goal!`);
+                    $.send(t`🥅 ${player.name} sets up for the field goal!`);
                 });
 
                 $next({
@@ -251,7 +251,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 if (player.team !== offensiveTeam) {
                     $effect(($) => {
                         $.send(
-                            t`Only the offensive team can punt the ball.`,
+                            t`⚠️ Only the offense may punt.`,
                             player.id,
                         );
                     });
@@ -265,7 +265,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 ) {
                     $effect(($) => {
                         $.send(
-                            t`You are too far from the ball to punt it!`,
+                            t`⚠️ You are too far from the ball to punt.`,
                             player.id,
                         );
                     });
@@ -276,7 +276,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 if (isInRedZone(offensiveTeam, downState.fieldPos)) {
                     $effect(($) => {
                         $.send(
-                            t`You cannot punt from the opponent's red zone.`,
+                            t`⚠️ You cannot punt from the opponent red zone.`,
                             player.id,
                         );
                     });
@@ -290,7 +290,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 if (offensivePlayersPastLine.length > 0) {
                     $effect(($) => {
                         $.send(
-                            t`You cannot punt while a teammate is beyond the line of scrimmage.`,
+                            t`⚠️ You cannot punt while a teammate is past the LOS.`,
                             player.id,
                         );
                     });
@@ -299,7 +299,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 }
 
                 $effect(($) => {
-                    $.send(t`${player.name} punts the ball!`);
+                    $.send(t`🦵 ${player.name} punts it away!`);
                 });
 
                 $next({

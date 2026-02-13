@@ -83,7 +83,7 @@ export function FakeFieldGoal({
         );
 
         $effect(($) => {
-            $.send(t`Touchdown ${frame.player.name}!`);
+            $.send(t`🔥 TOUCHDOWN by ${frame.player.name}!`);
             $.stat("LIVE_BALL_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -119,7 +119,7 @@ export function FakeFieldGoal({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`First down!`));
+                        $.send(cn(nextDownState, t`• FIRST DOWN!`));
                         $.stat("RUN_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
                     });
                 },
@@ -129,7 +129,7 @@ export function FakeFieldGoal({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`Next down after a gain of ${yardsGained} yards!`,
+                                    t`• ${yardsGained}-yard gain • next down.`,
                                 ),
                             );
                             $.stat("RUN_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE");
@@ -138,7 +138,7 @@ export function FakeFieldGoal({
                     onNoGain() {
                         $effect(($) => {
                             $.send(
-                                cn(nextDownState, t`Next down with no gain!`),
+                                cn(nextDownState, t`• No gain • next down.`),
                             );
                             $.stat(
                                 "RUN_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
@@ -150,7 +150,7 @@ export function FakeFieldGoal({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`Next down after a loss of ${yardsLost} yards!`,
+                                    t`• ${yardsLost}-yard loss • next down.`,
                                 ),
                             );
                             $.stat(
@@ -161,7 +161,7 @@ export function FakeFieldGoal({
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`Turnover on downs!`));
+                        $.send(cn(nextDownState, t`• TURNOVER ON DOWNS!`));
                         $.stat("RUN_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE");
                     });
                 },
@@ -187,7 +187,7 @@ export function FakeFieldGoal({
         } else {
             $effect(($) => {
                 $.send(
-                    t`${frame.player.name} went out of bounds in the end zone for a safety!`,
+                    t`🚪 ${frame.player.name} went out in the end zone • SAFETY!`,
                 );
 
                 $.stat("LIVE_BALL_OUT_OF_BOUNDS_SAFETY");
@@ -230,7 +230,7 @@ export function FakeFieldGoal({
                     $.send(
                         cn(
                             nextDownState,
-                            t`${frame.player.name} tackled by ${catcherNames} for a first down!`,
+                            t`💥 ${frame.player.name} brought down by ${catcherNames} • FIRST DOWN!`,
                         ),
                     );
                     $.stat("RUN_TACKLE_FIRST_DOWN_YARD_LINE");
@@ -242,7 +242,7 @@ export function FakeFieldGoal({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`${frame.player.name} tackled by ${catcherNames} for a gain of ${yardsGained} yards, next down!`,
+                                t`💥 ${frame.player.name} brought down by ${catcherNames} • ${yardsGained} yard gain • next down.`,
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_YARD_LINE");
@@ -253,7 +253,7 @@ export function FakeFieldGoal({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`${frame.player.name} tackled by ${catcherNames} with no gain, next down!`,
+                                t`💥 ${frame.player.name} brought down by ${catcherNames} • no gain • next down.`,
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE");
@@ -264,7 +264,7 @@ export function FakeFieldGoal({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`${frame.player.name} tackled by ${catcherNames} for a loss of ${yardsLost} yards, next down!`,
+                                t`💥 ${frame.player.name} brought down by ${catcherNames} • ${yardsLost} yard loss • next down.`,
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
@@ -276,7 +276,7 @@ export function FakeFieldGoal({
                     $.send(
                         cn(
                             nextDownState,
-                            t`${frame.player.name} tackled by ${catcherNames}, turnover on downs!`,
+                            t`💥 ${frame.player.name} brought down by ${catcherNames} • TURNOVER ON DOWNS!`,
                         ),
                     );
                     $.stat("RUN_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");
