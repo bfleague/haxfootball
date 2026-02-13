@@ -3,6 +3,7 @@ import { $dispose, $effect, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import { AVATARS, type FieldPosition } from "@common/game/game";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import { type FieldTeam } from "@runtime/models";
 import {
     $setBallActive,
@@ -37,7 +38,12 @@ export function ExtraPointBlockedPass({
 
         $effect(($) => {
             $.setAvatar(blockerId, AVATARS.CONSTRUCTION);
-            $.send(t`🚧 Pass batted by ${blocker.name} • two-point try failed.`);
+            $.send(
+                cn(
+                    t`🚧 Pass batted by ${blocker.name}`,
+                    t`two-point try failed.`,
+                ),
+            );
         });
 
         $dispose(() => {

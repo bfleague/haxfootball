@@ -4,6 +4,7 @@ import { ticks } from "@common/general/time";
 import { AVATARS, findBallCatcher, opposite } from "@common/game/game";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import {
     getFieldPosition,
     isOutOfBounds,
@@ -32,7 +33,10 @@ export function SafetyKickInFlight({
 
             $effect(($) => {
                 $.send(
-                    t`❌ Safety kick out of bounds • ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
+                    cn(
+                        t`❌ Safety kick out of bounds`,
+                        t`ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
+                    ),
                 );
                 $.stat("SAFETY_KICK_OUT_OF_BOUNDS");
             });
@@ -76,7 +80,10 @@ export function SafetyKickInFlight({
         if (kickingTeamCatcher) {
             $effect(($) => {
                 $.send(
-                    t`❌ Illegal touch • safety kick caught first by the kicking team (${kickingTeamCatcher.name}).`,
+                    cn(
+                        t`❌ Illegal touch`,
+                        t`safety kick caught first by the kicking team (${kickingTeamCatcher.name}).`,
+                    ),
                 );
                 $.stat("SAFETY_KICK_CAUGHT_BY_KICKING_TEAM");
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);

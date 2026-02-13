@@ -4,6 +4,7 @@ import { ticks } from "@common/general/time";
 import { AVATARS, findBallCatchers, findCatchers } from "@common/game/game";
 import { type FieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import { type FieldPosition } from "@common/game/game";
 import {
     calculateDirectionalGain,
@@ -130,7 +131,7 @@ export function ExtraPointBlitz({
         if (offensiveTouchers.length === 0) return;
 
         $effect(($) => {
-            $.send(t`❌ Offensive foul • two-point try failed.`);
+            $.send(cn(t`❌ Offensive foul`, t`two-point try failed.`));
         });
 
         $failTwoPointAttempt();

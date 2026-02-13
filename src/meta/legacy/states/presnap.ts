@@ -17,6 +17,7 @@ import {
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import {
     $setFirstDownLine,
     $setLineOfScrimmage,
@@ -194,7 +195,7 @@ export function Presnap({ downState }: { downState: DownState }) {
             }
 
             $effect(($) => {
-                $.send(t`🌳 ${player.name} snaps it • ball is live!`);
+                $.send(cn(t`🌳 ${player.name} snaps it`, t`ball is live!`));
             });
 
             $next({
@@ -250,10 +251,7 @@ export function Presnap({ downState }: { downState: DownState }) {
             case "punt": {
                 if (player.team !== offensiveTeam) {
                     $effect(($) => {
-                        $.send(
-                            t`⚠️ Only the offense may punt.`,
-                            player.id,
-                        );
+                        $.send(t`⚠️ Only the offense may punt.`, player.id);
                     });
 
                     return { handled: true };

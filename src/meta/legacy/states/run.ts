@@ -119,7 +119,7 @@ export function Run({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`• FIRST DOWN!`));
+                        $.send(cn(nextDownState, t`FIRST DOWN!`));
                         $.stat("RUN_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
                     });
                 },
@@ -129,7 +129,10 @@ export function Run({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`• ${yardsGained}-yard gain • next down.`,
+                                    cn(
+                                        t`📈 ${yardsGained}-yard gain`,
+                                        t`next down.`,
+                                    ),
                                 ),
                             );
                             $.stat("RUN_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE");
@@ -138,7 +141,10 @@ export function Run({
                     onNoGain() {
                         $effect(($) => {
                             $.send(
-                                cn(nextDownState, t`• No gain • next down.`),
+                                cn(
+                                    nextDownState,
+                                    cn(t`➖ No gain`, t`next down.`),
+                                ),
                             );
                             $.stat(
                                 "RUN_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
@@ -150,7 +156,10 @@ export function Run({
                             $.send(
                                 cn(
                                     nextDownState,
-                                    t`• ${yardsLost}-yard loss • next down.`,
+                                    cn(
+                                        t`📉 ${yardsLost}-yard loss`,
+                                        t`next down.`,
+                                    ),
                                 ),
                             );
                             $.stat(
@@ -161,7 +170,7 @@ export function Run({
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`• TURNOVER ON DOWNS!`));
+                        $.send(cn(nextDownState, t`TURNOVER ON DOWNS!`));
                         $.stat("RUN_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE");
                     });
                 },
@@ -187,7 +196,10 @@ export function Run({
         } else {
             $effect(($) => {
                 $.send(
-                    t`🚪 ${frame.player.name} went out in the end zone • SAFETY!`,
+                    cn(
+                        t`🚪 ${frame.player.name} went out in the end zone`,
+                        t`SAFETY!`,
+                    ),
                 );
 
                 $.stat("LIVE_BALL_OUT_OF_BOUNDS_SAFETY");
@@ -230,7 +242,10 @@ export function Run({
                     $.send(
                         cn(
                             nextDownState,
-                            t`💥 ${frame.player.name} brought down by ${catcherNames} • FIRST DOWN!`,
+                            cn(
+                                t`💥 ${frame.player.name} brought down by ${catcherNames}`,
+                                t`FIRST DOWN!`,
+                            ),
                         ),
                     );
                     $.stat("RUN_TACKLE_FIRST_DOWN_YARD_LINE");
@@ -242,7 +257,11 @@ export function Run({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`💥 ${frame.player.name} brought down by ${catcherNames} • ${yardsGained} yard gain • next down.`,
+                                cn(
+                                    t`💥 ${frame.player.name} brought down by ${catcherNames}`,
+                                    t`${yardsGained} yard gain`,
+                                    t`next down.`,
+                                ),
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_YARD_LINE");
@@ -253,7 +272,11 @@ export function Run({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`💥 ${frame.player.name} brought down by ${catcherNames} • no gain • next down.`,
+                                cn(
+                                    t`💥 ${frame.player.name} brought down by ${catcherNames}`,
+                                    t`no gain`,
+                                    t`next down.`,
+                                ),
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE");
@@ -264,7 +287,11 @@ export function Run({
                         $.send(
                             cn(
                                 nextDownState,
-                                t`💥 ${frame.player.name} brought down by ${catcherNames} • ${yardsLost} yard loss • next down.`,
+                                cn(
+                                    t`💥 ${frame.player.name} brought down by ${catcherNames}`,
+                                    t`${yardsLost} yard loss`,
+                                    t`next down.`,
+                                ),
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
@@ -276,7 +303,10 @@ export function Run({
                     $.send(
                         cn(
                             nextDownState,
-                            t`💥 ${frame.player.name} brought down by ${catcherNames} • TURNOVER ON DOWNS!`,
+                            cn(
+                                t`💥 ${frame.player.name} brought down by ${catcherNames}`,
+                                t`TURNOVER ON DOWNS!`,
+                            ),
                         ),
                     );
                     $.stat("RUN_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");

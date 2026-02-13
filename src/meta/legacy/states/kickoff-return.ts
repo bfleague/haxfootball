@@ -14,7 +14,7 @@ import {
 } from "@meta/legacy/utils/stadium";
 import { getInitialDownState } from "@meta/legacy/utils/down";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
-import { formatNames } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/utils/message";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 
@@ -76,7 +76,10 @@ export function KickoffReturn({
                     case "TOUCHBACK":
                         $effect(($) => {
                             $.send(
-                                t`🚪 ${player.name} left from the end zone • touchback.`,
+                                cn(
+                                    t`🚪 ${player.name} left from the end zone`,
+                                    t`touchback.`,
+                                ),
                             );
 
                             $.stat("KICKOFF_RETURN_TOUCHBACK_LEFT_ROOM");
@@ -95,7 +98,10 @@ export function KickoffReturn({
                     case "SAFETY":
                         $effect(($) => {
                             $.send(
-                                t`🚪 ${player.name} left from the end zone • SAFETY!`,
+                                cn(
+                                    t`🚪 ${player.name} left from the end zone`,
+                                    t`SAFETY!`,
+                                ),
                             );
 
                             $.stat("KICKOFF_RETURN_SAFETY_LEFT_ROOM");
@@ -220,7 +226,10 @@ export function KickoffReturn({
         } else {
             $effect(($) => {
                 $.send(
-                    t`🚪 ${frame.player.name} went out in the end zone • SAFETY!`,
+                    cn(
+                        t`🚪 ${frame.player.name} went out in the end zone`,
+                        t`SAFETY!`,
+                    ),
                 );
 
                 $.stat("KICKOFF_RETURN_SAFETY");
@@ -254,7 +263,10 @@ export function KickoffReturn({
                 case "TOUCHBACK":
                     $effect(($) => {
                         $.send(
-                            t`🛑 ${frame.player.name} is down in the end zone • touchback.`,
+                            cn(
+                                t`🛑 ${frame.player.name} is down in the end zone`,
+                                t`touchback.`,
+                            ),
                         );
 
                         $.stat("KICKOFF_RETURN_TOUCHBACK_TACKLED");
@@ -281,7 +293,10 @@ export function KickoffReturn({
                 case "SAFETY":
                     $effect(($) => {
                         $.send(
-                            t`🛑 ${frame.player.name} is down in the end zone • SAFETY!`,
+                            cn(
+                                t`🛑 ${frame.player.name} is down in the end zone`,
+                                t`SAFETY!`,
+                            ),
                         );
 
                         $.stat("KICKOFF_RETURN_SAFETY_TACKLED");
@@ -315,7 +330,9 @@ export function KickoffReturn({
             const fieldPos = getFieldPosition(frame.player.x);
 
             $effect(($) => {
-                $.send(t`💥 ${frame.player.name} brought down by ${catcherNames}!`);
+                $.send(
+                    t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
+                );
                 $.stat("KICKOFF_RETURN_TACKLED");
 
                 catchers.forEach((p) => {

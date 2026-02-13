@@ -8,12 +8,10 @@ import {
     type FieldPosition,
 } from "@common/game/game";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import { type FieldTeam } from "@runtime/models";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
-import {
-    isInExtraPointZone,
-    isOutOfBounds,
-} from "@meta/legacy/utils/stadium";
+import { isInExtraPointZone, isOutOfBounds } from "@meta/legacy/utils/stadium";
 import {
     $setBallActive,
     $setBallInactive,
@@ -88,15 +86,13 @@ export function ExtraPointQuarterbackRun({
             return;
         }
 
-        $global((state) =>
-            state.incrementScore(ballTeam, SCORES.TWO_POINT),
-        );
+        $global((state) => state.incrementScore(ballTeam, SCORES.TWO_POINT));
 
         $effect(($) => {
             if (ballTeam === originalOffensiveTeam) {
                 $.send(t`✅ Two-point try is good!`);
             } else {
-                $.send(t`🏈 Defense takes it back • TWO POINTS!`);
+                $.send(cn(t`🏈 Defense takes it back`, t`TWO POINTS!`));
             }
             $.setAvatar(playerId, AVATARS.FIRE);
         });

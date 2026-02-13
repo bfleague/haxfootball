@@ -27,7 +27,7 @@ import {
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import { DownState, getInitialDownState } from "@meta/legacy/utils/down";
-import { formatNames } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/utils/message";
 import {
     BALL_OFFSET_YARDS,
     calculateDirectionalGain,
@@ -317,7 +317,10 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`❌ Illegal touch by ${offenderNames} before the kick • field goal is dead.`,
+                cn(
+                    t`❌ Illegal touch by ${offenderNames} before the kick`,
+                    t`field goal is dead.`,
+                ),
             );
         });
 
@@ -337,7 +340,10 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`❌ Defensive touch by ${offenderNames} before the kick • field goal is dead.`,
+                cn(
+                    t`❌ Defensive touch by ${offenderNames} before the kick`,
+                    t`field goal is dead.`,
+                ),
             );
         });
 
@@ -357,7 +363,10 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`❌ Defensive contact by ${offenderNames} on ${frame.kicker.name} before the kick • field goal is dead.`,
+                cn(
+                    t`❌ Defensive contact by ${offenderNames} on ${frame.kicker.name} before the kick`,
+                    t`field goal is dead.`,
+                ),
             );
         });
 
@@ -390,7 +399,10 @@ export function FieldGoal({
         if (!frame.canFake) {
             $effect(($) => {
                 $.send(
-                    t`❌ ${frame.kicker.name} crossed the LOS early • field goal is dead.`,
+                    cn(
+                        t`❌ ${frame.kicker.name} crossed the LOS early`,
+                        t`field goal is dead.`,
+                    ),
                 );
             });
 
@@ -409,7 +421,10 @@ export function FieldGoal({
 
         $effect(($) => {
             $.send(
-                t`❌ Ball crossed the LOS before the kick • field goal is dead.`,
+                cn(
+                    t`❌ Ball crossed the LOS before the kick`,
+                    t`field goal is dead.`,
+                ),
             );
         });
 

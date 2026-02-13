@@ -9,6 +9,7 @@ import {
     type FieldPosition,
 } from "@common/game/game";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import { type FieldTeam } from "@runtime/models";
 import {
     DISTANCE_TO_FIRST_DOWN,
@@ -250,7 +251,11 @@ export function ExtraPointSnap({
             onSameDown(yardsGained) {
                 $effect(($) => {
                     $.send(
-                        t`❌ Defensive offside • ${yardsGained}-yard penalty • replay the try.`,
+                        cn(
+                            t`❌ Defensive offside`,
+                            t`${yardsGained}-yard penalty`,
+                            t`replay the try.`,
+                        ),
                     );
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
@@ -258,7 +263,11 @@ export function ExtraPointSnap({
             onFirstDown(yardsGained) {
                 $effect(($) => {
                     $.send(
-                        t`❌ Defensive offside • ${yardsGained}-yard penalty • replay the try.`,
+                        cn(
+                            t`❌ Defensive offside`,
+                            t`${yardsGained}-yard penalty`,
+                            t`replay the try.`,
+                        ),
                     );
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
@@ -266,7 +275,7 @@ export function ExtraPointSnap({
             onTouchdown() {
                 $effect(($) => {
                     $.send(
-                        t`❌ Defensive offside • two-point try awarded.`,
+                        cn(t`❌ Defensive offside`, t`two-point try awarded.`),
                     );
                 });
                 $awardTwoPointConversion();
@@ -294,7 +303,11 @@ export function ExtraPointSnap({
             onSameDown(yardsGained) {
                 $effect(($) => {
                     $.send(
-                        t`❌ Defensive illegal touch • ${yardsGained}-yard penalty • replay the try.`,
+                        cn(
+                            t`❌ Defensive illegal touch`,
+                            t`${yardsGained}-yard penalty`,
+                            t`replay the try.`,
+                        ),
                     );
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
@@ -302,7 +315,11 @@ export function ExtraPointSnap({
             onFirstDown(yardsGained) {
                 $effect(($) => {
                     $.send(
-                        t`❌ Defensive illegal touch • ${yardsGained}-yard penalty • replay the try.`,
+                        cn(
+                            t`❌ Defensive illegal touch`,
+                            t`${yardsGained}-yard penalty`,
+                            t`replay the try.`,
+                        ),
                     );
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
@@ -310,7 +327,10 @@ export function ExtraPointSnap({
             onTouchdown() {
                 $effect(($) => {
                     $.send(
-                        t`❌ Defensive illegal touch • two-point try awarded.`,
+                        cn(
+                            t`❌ Defensive illegal touch`,
+                            t`two-point try awarded.`,
+                        ),
                     );
                 });
                 $awardTwoPointConversion();
@@ -366,7 +386,11 @@ export function ExtraPointSnap({
                     $.pauseGame(true);
                     $.pauseGame(false);
                     $.send(
-                        t`❌ Defensive crowding by ${crowdingOffenderNames} • ${yardsGained}-yard penalty • replay the try.`,
+                        cn(
+                            t`❌ Defensive crowding by ${crowdingOffenderNames}`,
+                            t`${yardsGained}-yard penalty`,
+                            t`replay the try.`,
+                        ),
                     );
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls, {
@@ -378,7 +402,11 @@ export function ExtraPointSnap({
                     $.pauseGame(true);
                     $.pauseGame(false);
                     $.send(
-                        t`❌ Defensive crowding (${crowdingOffenderNames}) • ${yardsGained}-yard penalty • replay the try.`,
+                        cn(
+                            t`❌ Defensive crowding (${crowdingOffenderNames})`,
+                            t`${yardsGained}-yard penalty`,
+                            t`replay the try.`,
+                        ),
                     );
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls, {
@@ -388,7 +416,10 @@ export function ExtraPointSnap({
             onTouchdown() {
                 $effect(($) => {
                     $.send(
-                        t`❌ Defensive crowding (${crowdingOffenderNames}) • two-point try awarded.`,
+                        cn(
+                            t`❌ Defensive crowding (${crowdingOffenderNames})`,
+                            t`two-point try awarded.`,
+                        ),
                     );
                     setPlayerAvatars(
                         crowdingOffenderIds,
@@ -477,7 +508,7 @@ export function ExtraPointSnap({
         if (offensiveTouchers.length === 0) return;
 
         $effect(($) => {
-            $.send(t`❌ Offensive foul • two-point try failed.`);
+            $.send(cn(t`❌ Offensive foul`, t`two-point try failed.`));
         });
 
         $failTwoPointAttempt();

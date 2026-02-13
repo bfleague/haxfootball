@@ -23,7 +23,7 @@ import {
 } from "@meta/legacy/utils/stadium";
 import { getInitialDownState } from "@meta/legacy/utils/down";
 import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
-import { formatNames } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/utils/message";
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 
@@ -181,7 +181,10 @@ export function Interception({
         } else {
             $effect(($) => {
                 $.send(
-                    t`🚪 ${frame.player.name} went out in the end zone • SAFETY!`,
+                    cn(
+                        t`🚪 ${frame.player.name} went out in the end zone`,
+                        t`SAFETY!`,
+                    ),
                 );
 
                 $.stat("INTERCEPTION_SAFETY");
@@ -215,7 +218,10 @@ export function Interception({
                 case "TOUCHBACK":
                     $effect(($) => {
                         $.send(
-                            t`🛑 ${frame.player.name} is down in the end zone • touchback.`,
+                            cn(
+                                t`🛑 ${frame.player.name} is down in the end zone`,
+                                t`touchback.`,
+                            ),
                         );
 
                         $.stat("INTERCEPTION_TOUCHBACK_TACKLED");
@@ -242,7 +248,10 @@ export function Interception({
                 case "SAFETY":
                     $effect(($) => {
                         $.send(
-                            t`🛑 ${frame.player.name} is down in the end zone • SAFETY!`,
+                            cn(
+                                t`🛑 ${frame.player.name} is down in the end zone`,
+                                t`SAFETY!`,
+                            ),
                         );
 
                         $.stat("INTERCEPTION_SAFETY_TACKLED");
@@ -276,7 +285,9 @@ export function Interception({
             const fieldPos = getFieldPosition(frame.player.x);
 
             $effect(($) => {
-                $.send(t`💥 ${frame.player.name} brought down by ${catcherNames}!`);
+                $.send(
+                    t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
+                );
                 $.stat("INTERCEPTION_TACKLED");
 
                 catchers.forEach((p) => {

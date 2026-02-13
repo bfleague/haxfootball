@@ -5,6 +5,7 @@ import { opposite, type FieldPosition } from "@common/game/game";
 import { distributeOnLine, getDistance } from "@common/math/geometry";
 import { Team, type FieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
@@ -171,7 +172,10 @@ export function ExtraPoint({
         if (twoPointLocked) {
             $effect(($) => {
                 $.send(
-                    t`⚠️ Two-point try is no longer available • kick the PAT.`,
+                    cn(
+                        t`⚠️ Two-point try is no longer available`,
+                        t`kick the PAT.`,
+                    ),
                     player.id,
                 );
             });
@@ -185,7 +189,10 @@ export function ExtraPoint({
         if (offensivePlayersBeyondLine.length > 0) {
             $effect(($) => {
                 $.send(
-                    t`❌ Offense crossed the LOS • two-point try is no longer available.`,
+                    cn(
+                        t`❌ Offense crossed the LOS`,
+                        t`two-point try is no longer available.`,
+                    ),
                     player.id,
                 );
             });
@@ -207,7 +214,10 @@ export function ExtraPoint({
             HIKING_DISTANCE_LIMIT
         ) {
             $effect(($) => {
-                $.send(t`⚠️ You are too far from the ball to snap it.`, player.id);
+                $.send(
+                    t`⚠️ You are too far from the ball to snap it.`,
+                    player.id,
+                );
             });
 
             return;
@@ -286,7 +296,10 @@ export function ExtraPoint({
 
         $effect(($) => {
             $.send(
-                t`❌ Offense crossed the LOS • two-point try is no longer available.`,
+                cn(
+                    t`❌ Offense crossed the LOS`,
+                    t`two-point try is no longer available.`,
+                ),
             );
         });
 

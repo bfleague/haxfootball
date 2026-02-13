@@ -4,6 +4,7 @@ import { ticks } from "@common/general/time";
 import { AVATARS, findBallCatcher, opposite } from "@common/game/game";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
+import { cn } from "@meta/legacy/utils/message";
 import {
     getFieldPosition,
     intersectsEndZone,
@@ -32,9 +33,7 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
             if (isTouchback) {
                 $effect(($) => {
-                    $.send(
-                        t`• Punt out in the end zone • touchback.`,
-                    );
+                    $.send(cn(t`Punt out in the end zone`, t`touchback.`));
                     $.stat("PUNT_OUT_OF_BOUNDS_TOUCHBACK");
                 });
 
@@ -54,7 +53,10 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
             $effect(($) => {
                 $.send(
-                    t`• Punt out of bounds • ball spotted at the ${fieldPos.yards}-yard line.`,
+                    cn(
+                        t`🚪 Punt out of bounds`,
+                        t`ball spotted at the ${fieldPos.yards}-yard line.`,
+                    ),
                 );
                 $.stat("PUNT_OUT_OF_BOUNDS");
             });
@@ -95,7 +97,10 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         if (kickingTeamCatcher) {
             $effect(($) => {
                 $.send(
-                    t`❌ Illegal touch • punt caught first by the kicking team (${kickingTeamCatcher.name}).`,
+                    cn(
+                        t`❌ Illegal touch`,
+                        t`punt caught first by the kicking team (${kickingTeamCatcher.name}).`,
+                    ),
                 );
                 $.stat("PUNT_CAUGHT_BY_KICKING_TEAM");
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);
