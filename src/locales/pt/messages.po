@@ -557,7 +557,7 @@ msgstr "❌ extra point saiu de campo."
 
 #: src/meta/legacy/states/extra-point-snap.ts:217
 msgid "❌ Pushing foul by {pusherNames}"
-msgstr ""
+msgstr "❌ Pushing de {pusherNames}"
 
 #: src/meta/legacy/states/safety-kick-in-flight.ts:37
 msgid "❌ Safety kick out of bounds"
@@ -1187,7 +1187,7 @@ msgstr "Punt saiu na end zone"
 #: src/meta/legacy/states/snap.ts:226
 #: src/meta/legacy/states/snap.ts:239
 msgid "Pushing foul by {offenderNames}"
-msgstr ""
+msgstr "Pushing de {offenderNames}"
 
 #. placeholder {0}: frame.quarterback.name
 #: src/meta/legacy/states/blitz.ts:335

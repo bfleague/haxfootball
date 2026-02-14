@@ -11,7 +11,7 @@ const COLOR_SCHEMA_RAW = {
     YARD: {
         DEFAULT: "#FFFFFF",
         GOAL: "#FFEA00",
-        RED_ZONE: "#D22B2B",
+        RED_ZONE: "#BC5345",
         MIDFIELD: "#ACDE97",
     },
     FIELD: {
@@ -38,7 +38,7 @@ const COLOR_SCHEMA_RAW = {
 
 export const COLOR_SCHEMA = mapNestedRecordValues(
     COLOR_SCHEMA_RAW,
-    (color: string) => color.slice(1),
+    (color: string) => color.slice(1, 7),
 );
 
 export const BALL_RADIUS = 7.85;
