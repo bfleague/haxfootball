@@ -9,6 +9,8 @@ import {
     isInInnerCrowdingArea,
 } from "@meta/legacy/utils/stadium";
 import { unique } from "@common/general/helpers";
+import { FieldTeam } from "@runtime/models";
+import { FieldPosition } from "@common/game/game";
 
 const CROWDING_OUTER_FOUL_TICKS = ticks({ seconds: 3 });
 const CROWDING_INNER_WEIGHT = 5;
@@ -27,8 +29,6 @@ export type CrowdingData = {
     inner: CrowdingEntry[];
     startedAt?: number;
 };
-
-export type CrowdingPlayer = GameStatePlayer;
 
 type CrowdingFoulContribution = {
     playerId: number;
@@ -146,12 +146,12 @@ const buildCrowdingFoulContributions = (
         .filter((entry) => entry.weightedTicks > 0);
 };
 
-const getCrowdingDefenderBlockDistance = (player: CrowdingPlayer) =>
+const getCrowdingDefenderBlockDistance = (player: GameStatePlayer) =>
     player.radius > 0 ? player.radius : DEFAULT_CROWDING_BLOCK_DISTANCE;
 
 const isCrowdingDefenderBlocked = (
-    defensivePlayer: CrowdingPlayer,
-    offensivePlayers: CrowdingPlayer[],
+    defensivePlayer: GameStatePlayer,
+    offensivePlayers: GameStatePlayer[],
 ) =>
     offensivePlayers.some(
         (offensivePlayer) =>
@@ -160,10 +160,10 @@ const isCrowdingDefenderBlocked = (
     );
 
 const getDefenderCrowdingState = (
-    player: CrowdingPlayer,
-    offensivePlayers: CrowdingPlayer[],
-    offensiveTeam: DownState["offensiveTeam"],
-    fieldPos: DownState["fieldPos"],
+    player: GameStatePlayer,
+    offensivePlayers: GameStatePlayer[],
+    offensiveTeam: FieldTeam,
+    fieldPos: FieldPosition,
 ): DefenderCrowdingState => {
     const isBlocked = isCrowdingDefenderBlocked(player, offensivePlayers);
     const inInner =

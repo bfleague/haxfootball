@@ -1,4 +1,4 @@
-import type { GameState } from "@runtime/engine";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { ticks } from "@common/general/time";
 import {
     AVATARS,
@@ -37,10 +37,10 @@ import * as Crowding from "@meta/legacy/utils/crowding";
 
 type Frame = {
     state: GameState;
-    quarterback: Crowding.CrowdingPlayer;
-    defenders: Crowding.CrowdingPlayer[];
-    offensivePlayers: Crowding.CrowdingPlayer[];
-    offsideDefender: Crowding.CrowdingPlayer | undefined;
+    quarterback: GameStatePlayer;
+    defenders: GameStatePlayer[];
+    offensivePlayers: GameStatePlayer[];
+    offsideDefender: GameStatePlayer | undefined;
     defenseCrossedLineOfScrimmage: boolean;
     quarterbackCrossedLineOfScrimmage: boolean;
     ballBeyondLineOfScrimmage: boolean;
@@ -165,6 +165,12 @@ export function Snap({
             isBlitzAllowed,
             nextBallMoveTick,
         };
+    }
+
+    function $registerSnapProfile(players: GameStatePlayer[]) {
+        players.forEach((player) => {
+            $global((state) => state.updateSnapProfile(player.id, player));
+        });
     }
 
     function $handleDefensiveOffside(frame: Frame) {
@@ -752,6 +758,7 @@ export function Snap({
         const frame = buildFrame(state);
         if (!frame) return;
 
+        $registerSnapProfile(frame.state.players);
         $handleDefensiveOffside(frame);
 
         const crowdingResult = $getCrowdingResult(frame);
