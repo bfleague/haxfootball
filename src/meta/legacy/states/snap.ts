@@ -37,9 +37,16 @@ import { t } from "@lingui/core/macro";
 import { unique } from "@common/general/helpers";
 import * as Crowding from "@meta/legacy/utils/crowding";
 import assert from "assert";
+import {
+    DEFAULT_PUSHING_CONTACT_DISTANCE,
+    DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
+    detectPushingFoul,
+} from "@meta/legacy/utils/pushing";
 
 type Frame = {
     state: GameState;
+    previousState: GameState;
+    lineOfScrimmageX: number;
     quarterback: GameStatePlayer;
     defenders: GameStatePlayer[];
     offensivePlayers: GameStatePlayer[];
@@ -97,6 +104,7 @@ export function Snap({
     });
 
     function buildFrame(state: GameState): Frame | null {
+        const previousState = $before();
         const quarterback = state.players.find((p) => p.id === quarterbackId);
         if (!quarterback) return null;
 
@@ -157,6 +165,8 @@ export function Snap({
 
         return {
             state,
+            previousState,
+            lineOfScrimmageX,
             quarterback,
             defenders,
             offensivePlayers,
@@ -168,6 +178,80 @@ export function Snap({
             isBlitzAllowed,
             nextBallMoveTick,
         };
+    }
+
+    function $handlePushingFoul(frame: Frame) {
+        const pushing = detectPushingFoul({
+            currentState: frame.state,
+            previousState: frame.previousState,
+            offensiveTeam,
+            quarterbackId,
+            lineOfScrimmageX: frame.lineOfScrimmageX,
+            isBlitzAllowed: frame.isBlitzAllowed,
+            pushingContactDistance: DEFAULT_PUSHING_CONTACT_DISTANCE,
+            minBackfieldStep: DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
+        });
+
+        if (!pushing) return;
+
+        const penaltyResult = applyOffensivePenalty(
+            downState,
+            -OFFENSIVE_FOUL_PENALTY_YARDS,
+        );
+        const offenderNames = formatNames(pushing.pushers);
+        const pusherIds = pushing.pushers.map((player) => player.id);
+
+        $setBallInactive();
+
+        $effect(($) => {
+            setPlayerAvatars(pusherIds, $.setAvatar, AVATARS.CLOWN);
+        });
+
+        $dispose(() => {
+            $effect(($) => {
+                setPlayerAvatars(pusherIds, $.setAvatar, null);
+            });
+
+            $setBallActive();
+        });
+
+        processOffensivePenalty({
+            event: penaltyResult.event,
+            onNextDown() {
+                $effect(($) => {
+                    $.send(
+                        cn(
+                            "❌",
+                            penaltyResult.downState,
+                            t`Pushing foul by ${offenderNames}`,
+                            t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
+                            t`loss of down.`,
+                        ),
+                    );
+                });
+            },
+            onTurnoverOnDowns() {
+                $effect(($) => {
+                    $.send(
+                        cn(
+                            "❌",
+                            penaltyResult.downState,
+                            t`Pushing foul by ${offenderNames}`,
+                            t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
+                            t`turnover on downs.`,
+                        ),
+                    );
+                });
+            },
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: penaltyResult.downState,
+            },
+            wait: ticks({ seconds: 1 }),
+        });
     }
 
     function $registerSnapProfile(players: GameStatePlayer[]) {
@@ -816,6 +900,7 @@ export function Snap({
         if (!frame) return;
 
         $registerSnapProfile(frame.state.players);
+        $handlePushingFoul(frame);
         $handleDefensiveOffside(frame);
 
         const crowdingResult = $getCrowdingResult(frame);

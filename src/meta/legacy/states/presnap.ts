@@ -173,7 +173,7 @@ export function Presnap({ downState }: { downState: DownState }) {
             }
 
             $effect(($) => {
-                $.send(cn(t`🌳 ${player.name} snaps it`, t`ball is live!`));
+                $.send(cn(t`🏈 ${player.name} snaps it`, t`ball is live!`));
             });
 
             $global((state) => state.clearSnapProfile());

@@ -9,7 +9,7 @@ import {
     type FieldPosition,
 } from "@common/game/game";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/utils/message";
 import { type FieldTeam } from "@runtime/models";
 import {
     DISTANCE_TO_FIRST_DOWN,
@@ -38,6 +38,11 @@ import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import { $global } from "@meta/legacy/hooks/global";
 import * as Crowding from "@meta/legacy/utils/crowding";
 import { unique } from "@common/general/helpers";
+import {
+    DEFAULT_PUSHING_CONTACT_DISTANCE,
+    DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
+    detectPushingFoul,
+} from "@meta/legacy/utils/pushing";
 
 const DEFENSIVE_FOUL_PENALTY_YARDS = 5;
 const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });
@@ -47,6 +52,8 @@ const BLITZ_EARLY_MOVE_THRESHOLD_PX = 2;
 
 type Frame = {
     state: GameState;
+    previousState: GameState;
+    lineOfScrimmageX: number;
     quarterback: GameStatePlayer;
     defenders: GameStatePlayer[];
     offensivePlayers: GameStatePlayer[];
@@ -114,6 +121,7 @@ export function ExtraPointSnap({
     };
 
     function buildFrame(state: GameState): Frame | null {
+        const previousState = $before();
         const quarterback = state.players.find((p) => p.id === quarterbackId);
         if (!quarterback) return null;
 
@@ -172,6 +180,8 @@ export function ExtraPointSnap({
 
         return {
             state,
+            previousState,
+            lineOfScrimmageX,
             quarterback,
             defenders,
             offensivePlayers,
@@ -182,6 +192,43 @@ export function ExtraPointSnap({
             isBlitzAllowed,
             nextBallMoveTick,
         };
+    }
+
+    function $handlePushingFoul(frame: Frame) {
+        const pushingFoul = detectPushingFoul({
+            currentState: frame.state,
+            previousState: frame.previousState,
+            offensiveTeam,
+            quarterbackId,
+            lineOfScrimmageX: frame.lineOfScrimmageX,
+            isBlitzAllowed: frame.isBlitzAllowed,
+            pushingContactDistance: DEFAULT_PUSHING_CONTACT_DISTANCE,
+            minBackfieldStep: DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
+        });
+
+        if (!pushingFoul) return;
+
+        const pusherNames = formatNames(pushingFoul.pushers);
+        const pusherIds = pushingFoul.pushers.map((player) => player.id);
+
+        $effect(($) => {
+            $.send(
+                cn(
+                    t`❌ Pushing foul by ${pusherNames}`,
+                    t`two-point try failed.`,
+                ),
+            );
+
+            setPlayerAvatars(pusherIds, $.setAvatar, AVATARS.CLOWN);
+        });
+
+        $dispose(() => {
+            $effect(($) => {
+                setPlayerAvatars(pusherIds, $.setAvatar, null);
+            });
+        });
+
+        $failTwoPointAttempt();
     }
 
     function $failTwoPointAttempt() {
@@ -581,6 +628,7 @@ export function ExtraPointSnap({
         const frame = buildFrame(state);
         if (!frame) return;
 
+        $handlePushingFoul(frame);
         $handleDefensiveOffside(frame);
         const crowdingResult = $getCrowdingResult(frame);
         $handleCrowdingFoul(crowdingResult);
