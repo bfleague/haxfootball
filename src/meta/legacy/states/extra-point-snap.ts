@@ -387,7 +387,7 @@ export function ExtraPointSnap({
                     $.pauseGame(false);
                     $.send(
                         cn(
-                            t`❌ Defensive crowding by ${crowdingOffenderNames}`,
+                            t`❌ Crowd abuse by ${crowdingOffenderNames}`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
@@ -403,7 +403,7 @@ export function ExtraPointSnap({
                     $.pauseGame(false);
                     $.send(
                         cn(
-                            t`❌ Defensive crowding (${crowdingOffenderNames})`,
+                            t`❌ Crowd abuse (${crowdingOffenderNames})`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
@@ -417,7 +417,7 @@ export function ExtraPointSnap({
                 $effect(($) => {
                     $.send(
                         cn(
-                            t`❌ Defensive crowding (${crowdingOffenderNames})`,
+                            t`❌ Crowd abuse (${crowdingOffenderNames})`,
                             t`two-point try awarded.`,
                         ),
                     );

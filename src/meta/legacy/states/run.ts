@@ -119,7 +119,7 @@ export function Run({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`FIRST DOWN!`));
+                        $.send(cn("🏁", nextDownState, t`FIRST DOWN!`));
                         $.stat("RUN_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
                     });
                 },
@@ -128,11 +128,10 @@ export function Run({
                         $effect(($) => {
                             $.send(
                                 cn(
+                                    "📈",
                                     nextDownState,
-                                    cn(
-                                        t`📈 ${yardsGained}-yard gain`,
-                                        t`next down.`,
-                                    ),
+                                    t`${yardsGained}-yard gain`,
+                                    t`next down.`,
                                 ),
                             );
                             $.stat("RUN_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE");
@@ -142,8 +141,10 @@ export function Run({
                         $effect(($) => {
                             $.send(
                                 cn(
+                                    "➖",
                                     nextDownState,
-                                    cn(t`➖ No gain`, t`next down.`),
+                                    t`No gain`,
+                                    t`next down.`,
                                 ),
                             );
                             $.stat(
@@ -155,11 +156,10 @@ export function Run({
                         $effect(($) => {
                             $.send(
                                 cn(
+                                    "📉",
                                     nextDownState,
-                                    cn(
-                                        t`📉 ${yardsLost}-yard loss`,
-                                        t`next down.`,
-                                    ),
+                                    t`${yardsLost}-yard loss`,
+                                    t`next down.`,
                                 ),
                             );
                             $.stat(
@@ -241,11 +241,10 @@ export function Run({
                 $effect(($) => {
                     $.send(
                         cn(
+                            "💥",
                             nextDownState,
-                            cn(
-                                t`💥 ${frame.player.name} brought down by ${catcherNames}`,
-                                t`FIRST DOWN!`,
-                            ),
+                            t`${frame.player.name} brought down by ${catcherNames}`,
+                            t`FIRST DOWN!`,
                         ),
                     );
                     $.stat("RUN_TACKLE_FIRST_DOWN_YARD_LINE");
@@ -256,12 +255,11 @@ export function Run({
                     $effect(($) => {
                         $.send(
                             cn(
+                                "💥",
                                 nextDownState,
-                                cn(
-                                    t`💥 ${frame.player.name} brought down by ${catcherNames}`,
-                                    t`${yardsGained} yard gain`,
-                                    t`next down.`,
-                                ),
+                                t`${frame.player.name} brought down by ${catcherNames}`,
+                                t`${yardsGained} yard gain`,
+                                t`next down.`,
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_YARD_LINE");
@@ -271,12 +269,11 @@ export function Run({
                     $effect(($) => {
                         $.send(
                             cn(
+                                "💥",
                                 nextDownState,
-                                cn(
-                                    t`💥 ${frame.player.name} brought down by ${catcherNames}`,
-                                    t`no gain`,
-                                    t`next down.`,
-                                ),
+                                t`${frame.player.name} brought down by ${catcherNames}`,
+                                t`no gain`,
+                                t`next down.`,
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE");
@@ -286,12 +283,11 @@ export function Run({
                     $effect(($) => {
                         $.send(
                             cn(
+                                "💥",
                                 nextDownState,
-                                cn(
-                                    t`💥 ${frame.player.name} brought down by ${catcherNames}`,
-                                    t`${yardsLost} yard loss`,
-                                    t`next down.`,
-                                ),
+                                t`${frame.player.name} brought down by ${catcherNames}`,
+                                t`${yardsLost} yard loss`,
+                                t`next down.`,
                             ),
                         );
                         $.stat("RUN_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
@@ -302,11 +298,10 @@ export function Run({
                 $effect(($) => {
                     $.send(
                         cn(
+                            "💥",
                             nextDownState,
-                            cn(
-                                t`💥 ${frame.player.name} brought down by ${catcherNames}`,
-                                t`TURNOVER ON DOWNS!`,
-                            ),
+                            t`${frame.player.name} brought down by ${catcherNames}`,
+                            t`TURNOVER ON DOWNS!`,
                         ),
                     );
                     $.stat("RUN_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");

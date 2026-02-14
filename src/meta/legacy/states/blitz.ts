@@ -130,12 +130,11 @@ export function Blitz({
                 $effect(($) => {
                     $.send(
                         cn(
+                            "❌",
                             penaltyResult.downState,
-                            cn(
-                                t`❌ Illegal touch by ${offenderNames}`,
-                                t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
-                                t`loss of down.`,
-                            ),
+                            t`Illegal touch by ${offenderNames}`,
+                            t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
+                            t`loss of down.`,
                         ),
                     );
                 });
@@ -144,12 +143,11 @@ export function Blitz({
                 $effect(($) => {
                     $.send(
                         cn(
+                            "❌",
                             penaltyResult.downState,
-                            cn(
-                                t`❌ Illegal touch by ${offenderNames}`,
-                                t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
-                                t`turnover on downs.`,
-                            ),
+                            t`Illegal touch by ${offenderNames}`,
+                            t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
+                            t`turnover on downs.`,
                         ),
                     );
                 });
@@ -220,7 +218,7 @@ export function Blitz({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`FIRST DOWN!`));
+                        $.send(cn("🏁", nextDownState, t`FIRST DOWN!`));
                     });
                 },
                 onNextDown: {
@@ -228,11 +226,10 @@ export function Blitz({
                         $effect(($) => {
                             $.send(
                                 cn(
+                                    "📈",
                                     nextDownState,
-                                    cn(
-                                        t`📈 ${yardsGained}-yard gain`,
-                                        t`next down.`,
-                                    ),
+                                    t`${yardsGained}-yard gain`,
+                                    t`next down.`,
                                 ),
                             );
                         });
@@ -241,8 +238,10 @@ export function Blitz({
                         $effect(($) => {
                             $.send(
                                 cn(
+                                    "➖",
                                     nextDownState,
-                                    cn(t`➖ No gain`, t`next down.`),
+                                    t`No gain`,
+                                    t`next down.`,
                                 ),
                             );
                         });
@@ -251,11 +250,10 @@ export function Blitz({
                         $effect(($) => {
                             $.send(
                                 cn(
+                                    "📉",
                                     nextDownState,
-                                    cn(
-                                        t`📉 ${yardsLost}-yard loss`,
-                                        t`next down.`,
-                                    ),
+                                    t`${yardsLost}-yard loss`,
+                                    t`next down.`,
                                 ),
                             );
                         });
@@ -332,11 +330,10 @@ export function Blitz({
                 $effect(($) => {
                     $.send(
                         cn(
+                            "💥",
                             nextDownState,
-                            cn(
-                                t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames}`,
-                                t`FIRST DOWN!`,
-                            ),
+                            t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
+                            t`FIRST DOWN!`,
                         ),
                     );
                 });
@@ -346,12 +343,11 @@ export function Blitz({
                     $effect(($) => {
                         $.send(
                             cn(
+                                "💥",
                                 nextDownState,
-                                cn(
-                                    t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames}`,
-                                    t`${yardsGained} yard gain`,
-                                    t`next down.`,
-                                ),
+                                t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
+                                t`${yardsGained} yard gain`,
+                                t`next down.`,
                             ),
                         );
                     });
@@ -360,12 +356,11 @@ export function Blitz({
                     $effect(($) => {
                         $.send(
                             cn(
+                                "💥",
                                 nextDownState,
-                                cn(
-                                    t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames}`,
-                                    t`no gain`,
-                                    t`next down.`,
-                                ),
+                                t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
+                                t`no gain`,
+                                t`next down.`,
                             ),
                         );
                     });
@@ -374,12 +369,11 @@ export function Blitz({
                     $effect(($) => {
                         $.send(
                             cn(
+                                "💥",
                                 nextDownState,
-                                cn(
-                                    t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames}`,
-                                    t`${yardsLost} yard loss`,
-                                    t`next down.`,
-                                ),
+                                t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
+                                t`${yardsLost} yard loss`,
+                                t`next down.`,
                             ),
                         );
                     });
@@ -389,11 +383,10 @@ export function Blitz({
                 $effect(($) => {
                     $.send(
                         cn(
+                            "💥",
                             nextDownState,
-                            cn(
-                                t`💥 QB ${frame.quarterback.name} sacked by ${catcherNames}`,
-                                t`TURNOVER ON DOWNS!`,
-                            ),
+                            t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
+                            t`TURNOVER ON DOWNS!`,
                         ),
                     );
                 });

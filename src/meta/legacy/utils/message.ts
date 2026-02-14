@@ -71,18 +71,44 @@ export function stringifyDownState(downState: DownState): string {
         : downText;
 }
 
+function hasAscii(text: string): boolean {
+    return /[\x00-\x7F]/.test(text);
+}
+
 export function cn(...strings: (number | string | DownState)[]): string {
-    return strings
+    const parts = strings
         .filter((s) => s !== "")
         .map((s) => {
             switch (typeof s) {
                 case "number":
-                    return s.toString();
+                    return {
+                        text: s.toString(),
+                        isDownState: false,
+                    };
                 case "string":
-                    return s;
+                    return {
+                        text: s,
+                        isDownState: false,
+                    };
                 default:
-                    return stringifyDownState(s);
+                    return {
+                        text: stringifyDownState(s),
+                        isDownState: true,
+                    };
             }
-        })
-        .join(` ${DIV} `);
+        });
+
+    if (parts.length === 0) return "";
+    if (parts.length === 1) return parts[0]?.text ?? "";
+
+    return parts.reduce((message, currentPart, index) => {
+        if (index === 0) return currentPart.text;
+
+        const previousPart = parts[index - 1];
+        const previousHasAscii = hasAscii(previousPart?.text ?? "");
+        const separator =
+            currentPart.isDownState && !previousHasAscii ? " " : ` ${DIV} `;
+
+        return `${message}${separator}${currentPart.text}`;
+    }, "");
 }

@@ -37,20 +37,6 @@ export function ExtraPointKick({
     });
 
     function run(state: GameState) {
-        if (isOutOfBounds(state.ball)) {
-            $effect(($) => {
-                $.send(t`❌ PAT went out of bounds.`);
-            });
-
-            $next({
-                to: "KICKOFF",
-                params: {
-                    forTeam: offensiveTeam,
-                },
-                wait: EXTRA_POINT_RESULT_DELAY,
-            });
-        }
-
         const crossedGoalLine =
             calculateDirectionalGain(offensiveTeam, state.ball.x - goalLineX) >=
             0;
@@ -76,6 +62,20 @@ export function ExtraPointKick({
 
             $effect(($) => {
                 $.send(t`❌ PAT is no good.`);
+            });
+
+            $next({
+                to: "KICKOFF",
+                params: {
+                    forTeam: offensiveTeam,
+                },
+                wait: EXTRA_POINT_RESULT_DELAY,
+            });
+        }
+
+        if (isOutOfBounds(state.ball)) {
+            $effect(($) => {
+                $.send(t`❌ PAT went out of bounds.`);
             });
 
             $next({
