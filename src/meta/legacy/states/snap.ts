@@ -9,6 +9,8 @@ import {
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     $hideCrowdingBoxes,
+    $setBallActive,
+    $setBallInactive,
     $setFirstDownLine,
     $setLineOfScrimmage,
     $showCrowdingBoxes,
@@ -28,12 +30,13 @@ import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
-    isOutOfBounds,
+    isBallOutOfBounds,
 } from "@meta/legacy/utils/stadium";
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 import { unique } from "@common/general/helpers";
 import * as Crowding from "@meta/legacy/utils/crowding";
+import assert from "assert";
 
 type Frame = {
     state: GameState;
@@ -183,6 +186,27 @@ export function Snap({
             DEFENSIVE_OFFSIDE_PENALTY_YARDS,
         );
 
+        const offsideDefenderId = frame.offsideDefender?.id;
+
+        assert(
+            offsideDefenderId,
+            "Offside defender must exist for defensive offside penalty",
+        );
+
+        $setBallInactive();
+
+        $effect(($) => {
+            $.setAvatar(offsideDefenderId, AVATARS.CLOWN);
+        });
+
+        $dispose(() => {
+            $setBallActive();
+
+            $effect(($) => {
+                $.setAvatar(offsideDefenderId, null);
+            });
+        });
+
         processDefensivePenaltyEvent({
             event: penaltyResult.event,
             onSameDown() {
@@ -196,11 +220,13 @@ export function Snap({
                         ),
                     );
                 });
+
                 $next({
                     to: "PRESNAP",
                     params: {
                         downState: penaltyResult.downState,
                     },
+                    wait: ticks({ seconds: 1 }),
                 });
             },
             onFirstDown() {
@@ -215,16 +241,16 @@ export function Snap({
                         ),
                     );
                 });
+
                 $next({
                     to: "PRESNAP",
                     params: {
                         downState: penaltyResult.downState,
                     },
+                    wait: ticks({ seconds: 1 }),
                 });
             },
             onTouchdown() {
-                const offsideDefenderId = frame.offsideDefender?.id;
-
                 $global((state) =>
                     state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
                 );
@@ -239,19 +265,7 @@ export function Snap({
                             t`automatic touchdown.`,
                         ),
                     );
-
-                    if (offsideDefenderId !== undefined) {
-                        $.setAvatar(offsideDefenderId, AVATARS.CLOWN);
-                    }
                 });
-
-                if (offsideDefenderId !== undefined) {
-                    $dispose(() => {
-                        $effect(($) => {
-                            $.setAvatar(offsideDefenderId, null);
-                        });
-                    });
-                }
 
                 $next({
                     to: "EXTRA_POINT",
@@ -406,6 +420,20 @@ export function Snap({
             (player) => player.id,
         );
 
+        $setBallInactive();
+
+        $effect(($) => {
+            setPlayerAvatars(defensiveToucherIds, $.setAvatar, AVATARS.CLOWN);
+        });
+
+        $dispose(() => {
+            $effect(($) => {
+                setPlayerAvatars(defensiveToucherIds, $.setAvatar, null);
+            });
+
+            $setBallActive();
+        });
+
         processDefensivePenaltyEvent({
             event: penaltyResult.event,
             onSameDown() {
@@ -419,11 +447,13 @@ export function Snap({
                         ),
                     );
                 });
+
                 $next({
                     to: "PRESNAP",
                     params: {
                         downState: penaltyResult.downState,
                     },
+                    wait: ticks({ seconds: 1 }),
                 });
             },
             onFirstDown() {
@@ -438,17 +468,20 @@ export function Snap({
                         ),
                     );
                 });
+
                 $next({
                     to: "PRESNAP",
                     params: {
                         downState: penaltyResult.downState,
                     },
+                    wait: ticks({ seconds: 1 }),
                 });
             },
             onTouchdown() {
                 $global((state) =>
                     state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
                 );
+
                 $effect(($) => {
                     $.send(
                         cn(
@@ -459,21 +492,6 @@ export function Snap({
                             t`automatic touchdown.`,
                         ),
                     );
-                    setPlayerAvatars(
-                        defensiveToucherIds,
-                        $.setAvatar,
-                        AVATARS.CLOWN,
-                    );
-                });
-
-                $dispose(() => {
-                    $effect(($) => {
-                        setPlayerAvatars(
-                            defensiveToucherIds,
-                            $.setAvatar,
-                            null,
-                        );
-                    });
                 });
 
                 $next({
@@ -559,22 +577,45 @@ export function Snap({
             },
         });
 
+        const illegalToucherIds = illegalTouchers.map((player) => player.id);
+
+        $setBallInactive();
+
+        $effect(($) => {
+            setPlayerAvatars(illegalToucherIds, $.setAvatar, AVATARS.CLOWN);
+        });
+
+        $dispose(() => {
+            $effect(($) => {
+                setPlayerAvatars(illegalToucherIds, $.setAvatar, null);
+            });
+
+            $setBallActive();
+        });
+
         $next({
             to: "PRESNAP",
             params: {
                 downState: penaltyResult.downState,
             },
+            wait: ticks({ seconds: 1 }),
         });
     }
 
     function $handleBallOutOfBounds(frame: Frame) {
         if (frame.quarterback.isKickingBall) return;
-        if (!isOutOfBounds(frame.state.ball)) return;
+        if (!isBallOutOfBounds(frame.state.ball)) return;
 
         const penaltyResult = applyOffensivePenalty(
             downState,
             -OFFENSIVE_FOUL_PENALTY_YARDS,
         );
+
+        $setBallInactive();
+
+        $dispose(() => {
+            $setBallActive();
+        });
 
         processOffensivePenalty({
             event: penaltyResult.event,
@@ -611,14 +652,29 @@ export function Snap({
             params: {
                 downState: penaltyResult.downState,
             },
+            wait: ticks({ seconds: 1 }),
         });
     }
 
-    function $penalizeIllegalAdvance() {
+    function $penalizeIllegalQuarterbackAdvance() {
         const penaltyResult = applyOffensivePenalty(
             downState,
             -OFFENSIVE_FOUL_PENALTY_YARDS,
         );
+
+        $setBallInactive();
+
+        $effect(($) => {
+            $.setAvatar(quarterbackId, AVATARS.CLOWN);
+        });
+
+        $dispose(() => {
+            $effect(($) => {
+                $.setAvatar(quarterbackId, null);
+            });
+
+            $setBallActive();
+        });
 
         processOffensivePenalty({
             event: penaltyResult.event,
@@ -655,6 +711,7 @@ export function Snap({
             params: {
                 downState: penaltyResult.downState,
             },
+            wait: ticks({ seconds: 1 }),
         });
     }
 
@@ -663,7 +720,7 @@ export function Snap({
         if (!frame.ballBeyondLineOfScrimmage) return;
 
         if (!frame.isBlitzAllowed) {
-            $penalizeIllegalAdvance();
+            $penalizeIllegalQuarterbackAdvance();
         }
 
         $effect(($) => {
@@ -684,7 +741,7 @@ export function Snap({
         if (!frame.quarterbackCrossedLineOfScrimmage) return;
 
         if (!frame.isBlitzAllowed) {
-            $penalizeIllegalAdvance();
+            $penalizeIllegalQuarterbackAdvance();
         }
 
         $effect(($) => {

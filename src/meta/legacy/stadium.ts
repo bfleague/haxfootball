@@ -41,7 +41,7 @@ export const COLOR_SCHEMA = mapNestedRecordValues(
     (color: string) => color.slice(1),
 );
 
-export const BALL_RADIUS = 7.75;
+export const BALL_RADIUS = 7.85;
 export const BALL_COLOR = COLOR_SCHEMA.BALL.DEFAULT;
 
 export const PLANE_MASK_BY_NAME = {
@@ -192,7 +192,7 @@ export const {
     schema: {
         canBeStored: false,
         playerPhysics: {
-            bCoef: 0.5,
+            bCoef: 0.75,
             invMass: 1e26,
             kickStrength: 7,
         },

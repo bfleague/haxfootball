@@ -6,7 +6,7 @@ import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/utils/message";
 import {
-    isOutOfBounds,
+    isBallOutOfBounds,
     KICKOFF_OUT_OF_BOUNDS_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
 import { getInitialDownState } from "@meta/legacy/utils/down";
@@ -19,7 +19,7 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
     }
 
     function run(state: GameState) {
-        if (isOutOfBounds(state.ball)) {
+        if (isBallOutOfBounds(state.ball)) {
             $setBallInactive();
 
             $dispose(() => {

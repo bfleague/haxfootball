@@ -23,8 +23,8 @@ import { SCORES } from "@meta/legacy/utils/scoring";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
+    isBallOutOfBounds,
     isInExtraPointZone,
-    isOutOfBounds,
 } from "@meta/legacy/utils/stadium";
 import {
     $setBallActive,
@@ -515,7 +515,7 @@ export function ExtraPointSnap({
     }
 
     function $handleBallOutOfBounds(frame: Frame) {
-        if (!isOutOfBounds(frame.state.ball)) return;
+        if (!isBallOutOfBounds(frame.state.ball)) return;
 
         $effect(($) => {
             $.send(t`❌ Two-point try failed.`);

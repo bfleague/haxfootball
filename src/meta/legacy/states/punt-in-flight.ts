@@ -8,7 +8,7 @@ import { cn } from "@meta/legacy/utils/message";
 import {
     getFieldPosition,
     intersectsEndZone,
-    isOutOfBounds,
+    isBallOutOfBounds,
     TOUCHBACK_YARD_LINE,
 } from "@meta/legacy/utils/stadium";
 import { getInitialDownState } from "@meta/legacy/utils/down";
@@ -21,7 +21,7 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
     }
 
     function run(state: GameState) {
-        if (isOutOfBounds(state.ball)) {
+        if (isBallOutOfBounds(state.ball)) {
             const receivingTeam = opposite(kickingTeam);
             const isTouchback = intersectsEndZone(state.ball, receivingTeam);
 

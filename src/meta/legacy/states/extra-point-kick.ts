@@ -11,7 +11,7 @@ import { SCORES } from "@meta/legacy/utils/scoring";
 import {
     calculateDirectionalGain,
     getGoalLine,
-    isOutOfBounds,
+    isBallOutOfBounds,
     isWithinGoalPosts,
 } from "@meta/legacy/utils/stadium";
 
@@ -73,7 +73,7 @@ export function ExtraPointKick({
             });
         }
 
-        if (isOutOfBounds(state.ball)) {
+        if (isBallOutOfBounds(state.ball)) {
             $effect(($) => {
                 $.send(t`❌ PAT went out of bounds.`);
             });

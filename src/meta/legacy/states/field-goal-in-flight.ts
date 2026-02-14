@@ -11,7 +11,7 @@ import { SCORES } from "@meta/legacy/utils/scoring";
 import {
     calculateDirectionalGain,
     getGoalLine,
-    isOutOfBounds,
+    isBallOutOfBounds,
     isWithinGoalPosts,
 } from "@meta/legacy/utils/stadium";
 
@@ -75,7 +75,7 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
             });
         }
 
-        if (isOutOfBounds(state.ball)) {
+        if (isBallOutOfBounds(state.ball)) {
             $effect(($) => {
                 $.send(t`❌ Field goal went out of bounds.`);
             });

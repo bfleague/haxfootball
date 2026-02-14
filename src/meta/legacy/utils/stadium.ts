@@ -88,7 +88,7 @@ const HASH_UPPER_CENTER_Y =
 const HASH_LOWER_CENTER_Y =
     MapMeasures.HASHES_HEIGHT.lowerY - MapMeasures.SINGLE_HASH_HEIGHT / 2;
 
-export const BALL_OFFSET_YARDS = 2;
+export const BALL_OFFSET_YARDS = 2.5;
 export const YARD_LENGTH = MapMeasures.YARD;
 
 export const TOUCHBACK_YARD_LINE = 25;
@@ -248,13 +248,37 @@ export function ballWithRadius(
     };
 }
 
-export function isOutOfBounds(position: Position): boolean {
+type OutOfBoundsMode = "ANY_PART" | "FULLY_OUTSIDE";
+
+export function isOutOfBounds(
+    position: PointLike,
+    mode: OutOfBoundsMode = "ANY_PART",
+): boolean {
+    const minX = MapMeasures.OUTER_FIELD.topLeft.x;
+    const maxX = MapMeasures.OUTER_FIELD.bottomRight.x;
+    const minY = MapMeasures.OUTER_FIELD.topLeft.y;
+    const maxY = MapMeasures.OUTER_FIELD.bottomRight.y;
+    const radius = Math.max(0, position.radius ?? 0);
+
+    if (mode === "FULLY_OUTSIDE") {
+        return (
+            position.x + radius < minX ||
+            position.x - radius > maxX ||
+            position.y + radius < minY ||
+            position.y - radius > maxY
+        );
+    }
+
     return (
-        position.x < MapMeasures.OUTER_FIELD.topLeft.x ||
-        position.x > MapMeasures.OUTER_FIELD.bottomRight.x ||
-        position.y < MapMeasures.OUTER_FIELD.topLeft.y ||
-        position.y > MapMeasures.OUTER_FIELD.bottomRight.y
+        position.x - radius < minX ||
+        position.x + radius > maxX ||
+        position.y - radius < minY ||
+        position.y + radius > maxY
     );
+}
+
+export function isBallOutOfBounds(position: PointLike): boolean {
+    return isOutOfBounds(position, "FULLY_OUTSIDE");
 }
 
 type ZoneBox = {

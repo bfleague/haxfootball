@@ -6,7 +6,7 @@ import { t } from "@lingui/core/macro";
 import { type FieldTeam } from "@runtime/models";
 import {
     isInExtraPointZone,
-    isOutOfBounds,
+    isBallOutOfBounds,
 } from "@meta/legacy/utils/stadium";
 import {
     $setLineOfScrimmage,
@@ -30,7 +30,7 @@ export function ExtraPointSnapInFlight({
     });
 
     function run(state: GameState) {
-        if (isOutOfBounds(state.ball)) {
+        if (isBallOutOfBounds(state.ball)) {
             $effect(($) => {
                 $.send(t`❌ Two-point try failed.`);
             });

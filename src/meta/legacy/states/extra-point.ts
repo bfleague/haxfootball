@@ -15,6 +15,7 @@ import {
 } from "@meta/legacy/utils/stadium";
 import {
     $setBallActive,
+    $setBallInactive,
     $setLineOfScrimmage,
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
@@ -234,6 +235,8 @@ export function ExtraPoint({
 
     function $handleAttemptExpired(frame: Frame) {
         if (frame.elapsedTicks < EXTRA_POINT_DECISION_WINDOW) return;
+
+        $setBallInactive();
 
         $effect(($) => {
             $.send(t`⏱️ PAT window expired.`);
