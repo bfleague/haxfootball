@@ -199,7 +199,7 @@ export const {
         cameraFollow: "player",
         ballPhysics: {
             radius: BALL_RADIUS,
-            bCoef: 0.5,
+            bCoef: 0.25,
             cMask: ["red", "blue", "wall"],
             color: BALL_COLOR,
             cGroup: ["ball", "kick", "score"],
