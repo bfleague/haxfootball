@@ -4,14 +4,14 @@ import { ticks } from "@common/general/time";
 import { AVATARS, findBallCatcher, opposite } from "@common/game/game";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
+import { cn } from "@meta/legacy/shared/message";
 import {
     getFieldPosition,
     intersectsEndZone,
     isBallOutOfBounds,
     TOUCHBACK_YARD_LINE,
-} from "@meta/legacy/utils/stadium";
-import { getInitialDownState } from "@meta/legacy/utils/down";
+} from "@meta/legacy/shared/stadium";
+import { getInitialDownState } from "@meta/legacy/shared/down";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 

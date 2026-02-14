@@ -7,13 +7,13 @@ import { $global } from "@meta/legacy/hooks/global";
 import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
 import { type FieldTeam } from "@runtime/models";
-import { SCORES } from "@meta/legacy/utils/scoring";
+import { SCORES } from "@meta/legacy/shared/scoring";
 import {
     calculateDirectionalGain,
     getGoalLine,
     isBallOutOfBounds,
     isWithinGoalPosts,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 
 const EXTRA_POINT_RESULT_DELAY = ticks({ seconds: 2 });
 const EXTRA_POINT_SUCCESS_DELAY = ticks({ seconds: 2 });

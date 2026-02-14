@@ -1,7 +1,7 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { findCatchers } from "@common/game/game";
 import { type FieldTeam } from "@runtime/models";
-import { calculateDirectionalGain } from "@meta/legacy/utils/stadium";
+import { calculateDirectionalGain } from "@meta/legacy/shared/stadium";
 
 export const DEFAULT_PUSHING_CONTACT_DISTANCE = 1.5;
 export const DEFAULT_PUSHING_MIN_BACKFIELD_STEP = 0.01;

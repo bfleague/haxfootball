@@ -5,7 +5,7 @@ import {
     incrementDownState,
     processDownEventIncrement,
     withLastBallYAtCenter,
-} from "@meta/legacy/utils/down";
+} from "@meta/legacy/shared/down";
 import { ticks } from "@common/general/time";
 import { AVATARS } from "@common/game/game";
 import {
@@ -17,7 +17,7 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
+import { cn } from "@meta/legacy/shared/message";
 
 export function BlockedPass({
     blockerId,

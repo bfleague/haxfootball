@@ -7,7 +7,7 @@ import {
     getBallPath,
     getRayIntersectionWithOuterField,
     intersectsGoalPosts,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 
 type GoalPostIntersectionCandidate = {
     point: PointLike;

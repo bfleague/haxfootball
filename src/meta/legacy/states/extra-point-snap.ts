@@ -9,23 +9,23 @@ import {
     type FieldPosition,
 } from "@common/game/game";
 import { t } from "@lingui/core/macro";
-import { cn, formatNames } from "@meta/legacy/utils/message";
+import { cn, formatNames } from "@meta/legacy/shared/message";
 import { type FieldTeam } from "@runtime/models";
 import {
     DISTANCE_TO_FIRST_DOWN,
     type DownState,
-} from "@meta/legacy/utils/down";
+} from "@meta/legacy/shared/down";
 import {
     applyDefensivePenalty,
     processDefensivePenaltyEvent,
-} from "@meta/legacy/utils/penalty";
-import { SCORES } from "@meta/legacy/utils/scoring";
+} from "@meta/legacy/shared/penalty";
+import { SCORES } from "@meta/legacy/shared/scoring";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
     isBallOutOfBounds,
     isInExtraPointZone,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import {
     $setBallActive,
     $setLineOfScrimmage,
@@ -36,13 +36,13 @@ import {
 } from "@meta/legacy/hooks/game";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import { $global } from "@meta/legacy/hooks/global";
-import * as Crowding from "@meta/legacy/utils/crowding";
+import * as Crowding from "@meta/legacy/shared/crowding";
 import { unique } from "@common/general/helpers";
 import {
     DEFAULT_PUSHING_CONTACT_DISTANCE,
     DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
     detectPushingFoul,
-} from "@meta/legacy/utils/pushing";
+} from "@meta/legacy/shared/pushing";
 
 const DEFENSIVE_FOUL_PENALTY_YARDS = 5;
 const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });

@@ -1,6 +1,6 @@
 import { GameState, GameStateBall, GameStatePlayer } from "@runtime/engine";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
-import { DownState } from "@meta/legacy/utils/down";
+import { DownState } from "@meta/legacy/shared/down";
 import { ticks } from "@common/general/time";
 import { opposite } from "@common/game/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
@@ -15,7 +15,7 @@ import {
 import {
     getProjectedInterceptionPoint,
     getTravelInterceptionPoint,
-} from "@meta/legacy/utils/interception";
+} from "@meta/legacy/shared/interception";
 import { t } from "@lingui/core/macro";
 import { PointLike } from "@common/math/geometry";
 

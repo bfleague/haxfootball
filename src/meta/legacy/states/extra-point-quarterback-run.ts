@@ -8,10 +8,10 @@ import {
     type FieldPosition,
 } from "@common/game/game";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
+import { cn } from "@meta/legacy/shared/message";
 import { type FieldTeam } from "@runtime/models";
-import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
-import { isInExtraPointZone, isOutOfBounds } from "@meta/legacy/utils/stadium";
+import { isTouchdown, SCORES } from "@meta/legacy/shared/scoring";
+import { isInExtraPointZone, isOutOfBounds } from "@meta/legacy/shared/stadium";
 import {
     $setBallActive,
     $setBallInactive,

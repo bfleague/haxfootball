@@ -17,31 +17,31 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
-import { DownState } from "@meta/legacy/utils/down";
-import { cn, formatNames } from "@meta/legacy/utils/message";
+import { DownState } from "@meta/legacy/shared/down";
+import { cn, formatNames } from "@meta/legacy/shared/message";
 import {
     applyDefensivePenalty,
     applyOffensivePenalty,
     processDefensivePenaltyEvent,
     processOffensivePenalty,
-} from "@meta/legacy/utils/penalty";
-import { SCORES } from "@meta/legacy/utils/scoring";
+} from "@meta/legacy/shared/penalty";
+import { SCORES } from "@meta/legacy/shared/scoring";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
     isBallOutOfBounds,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 import { unique } from "@common/general/helpers";
-import * as Crowding from "@meta/legacy/utils/crowding";
+import * as Crowding from "@meta/legacy/shared/crowding";
 import assert from "assert";
 import {
     DEFAULT_PUSHING_CONTACT_DISTANCE,
     DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
     detectPushingFoul,
-} from "@meta/legacy/utils/pushing";
+} from "@meta/legacy/shared/pushing";
 
 type Frame = {
     state: GameState;

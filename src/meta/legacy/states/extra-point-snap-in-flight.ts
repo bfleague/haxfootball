@@ -7,7 +7,7 @@ import { type FieldTeam } from "@runtime/models";
 import {
     isInExtraPointZone,
     isBallOutOfBounds,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import {
     $setLineOfScrimmage,
     $unsetFirstDownLine,
@@ -51,7 +51,9 @@ export function ExtraPointSnapInFlight({
 
         if (offensiveCatcher) {
             $effect(($) => {
-                $.send(t`🏈 Two-point pass complete to ${offensiveCatcher.name}!`);
+                $.send(
+                    t`🏈 Two-point pass complete to ${offensiveCatcher.name}!`,
+                );
             });
 
             $next({

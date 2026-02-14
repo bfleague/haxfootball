@@ -5,14 +5,14 @@ import { opposite, type FieldPosition } from "@common/game/game";
 import { getDistance } from "@common/math/geometry";
 import { type FieldTeam, isFieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
+import { cn } from "@meta/legacy/shared/message";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
     calculateDirectionalGain,
     calculateSnapBallPosition,
     getPositionFromFieldPosition,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import {
     $setBallActive,
     $setBallInactive,
@@ -27,7 +27,7 @@ import {
 import {
     buildInitialPlayerPositions,
     type InitialPositioningRelativeLines,
-} from "@meta/legacy/utils/initial-positioning";
+} from "@meta/legacy/shared/initial-positioning";
 import { $global } from "@meta/legacy/hooks/global";
 
 const LOADING_DURATION = ticks({ seconds: 0.5 });

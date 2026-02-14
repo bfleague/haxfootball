@@ -3,13 +3,13 @@ import { ticks } from "@common/general/time";
 import { findBallCatcher } from "@common/game/game";
 import type { GameState } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
-import { isBallOutOfBounds } from "@meta/legacy/utils/stadium";
+import { cn } from "@meta/legacy/shared/message";
+import { isBallOutOfBounds } from "@meta/legacy/shared/stadium";
 import {
     advanceDownState,
     DownState,
     withLastBallYAtCenter,
-} from "@meta/legacy/utils/down";
+} from "@meta/legacy/shared/down";
 import {
     $setBallActive,
     $setBallInactive,

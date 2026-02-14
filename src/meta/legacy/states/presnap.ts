@@ -8,7 +8,7 @@ import {
     calculateDirectionalGain,
     calculateSnapBallPosition,
     isInRedZone,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
     $lockBall,
@@ -17,20 +17,20 @@ import {
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
+import { cn } from "@meta/legacy/shared/message";
 import {
     $setFirstDownLine,
     $setLineOfScrimmage,
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
-import { DownState, MAX_DOWNS } from "@meta/legacy/utils/down";
+import { DownState, MAX_DOWNS } from "@meta/legacy/shared/down";
 import assert from "node:assert";
 import { $global } from "@meta/legacy/hooks/global";
 import {
     buildInitialPlayerPositions,
     type InitialPositioningRelativeLines,
-} from "@meta/legacy/utils/initial-positioning";
+} from "@meta/legacy/shared/initial-positioning";
 
 const HIKING_DISTANCE_LIMIT = 30;
 

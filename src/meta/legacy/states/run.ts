@@ -4,9 +4,9 @@ import {
     DownState,
     processDownEvent,
     withLastBallY,
-} from "@meta/legacy/utils/down";
-import { cn, formatNames } from "@meta/legacy/utils/message";
-import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
+} from "@meta/legacy/shared/down";
+import { cn, formatNames } from "@meta/legacy/shared/message";
+import { isTouchdown, SCORES } from "@meta/legacy/shared/scoring";
 import { $dispose, $effect, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import { AVATARS, findCatchers, opposite } from "@common/game/game";
@@ -14,7 +14,7 @@ import {
     getFieldPosition,
     isInMainField,
     isOutOfBounds,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { t } from "@lingui/core/macro";
 import {
     $setFirstDownLine,

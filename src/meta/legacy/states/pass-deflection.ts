@@ -1,6 +1,6 @@
 import { GameState } from "@runtime/engine";
 import { $dispose, $next } from "@runtime/runtime";
-import { DownState } from "@meta/legacy/utils/down";
+import { DownState } from "@meta/legacy/shared/down";
 import { ticks } from "@common/general/time";
 import {
     $setBallActive,

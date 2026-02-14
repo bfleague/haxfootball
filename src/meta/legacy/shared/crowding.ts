@@ -1,13 +1,13 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { getDistance } from "@common/math/geometry";
 import { ticks } from "@common/general/time";
-import { DownState } from "@meta/legacy/utils/down";
-import { formatNames } from "@meta/legacy/utils/message";
-import { applyDefensivePenalty } from "@meta/legacy/utils/penalty";
+import { DownState } from "@meta/legacy/shared/down";
+import { formatNames } from "@meta/legacy/shared/message";
+import { applyDefensivePenalty } from "@meta/legacy/shared/penalty";
 import {
     isInCrowdingArea,
     isInInnerCrowdingArea,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { unique } from "@common/general/helpers";
 import { FieldTeam } from "@runtime/models";
 import { FieldPosition } from "@common/game/game";

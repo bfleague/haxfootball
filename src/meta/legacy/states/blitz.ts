@@ -7,19 +7,19 @@ import {
     DownState,
     processDownEvent,
     withLastBallY,
-} from "@meta/legacy/utils/down";
-import { cn, formatNames } from "@meta/legacy/utils/message";
+} from "@meta/legacy/shared/down";
+import { cn, formatNames } from "@meta/legacy/shared/message";
 import {
     applyOffensivePenalty,
     processOffensivePenalty,
-} from "@meta/legacy/utils/penalty";
+} from "@meta/legacy/shared/penalty";
 import {
     calculateDirectionalGain,
     getFieldPosition,
     getPositionFromFieldPosition,
     isInMainField,
     isOutOfBounds,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { t } from "@lingui/core/macro";
 import {
     $setBallActive,

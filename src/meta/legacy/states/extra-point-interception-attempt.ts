@@ -19,7 +19,7 @@ import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     getProjectedInterceptionPoint,
     getTravelInterceptionPoint,
-} from "@meta/legacy/utils/interception";
+} from "@meta/legacy/shared/interception";
 import { PointLike } from "@common/math/geometry";
 
 const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });

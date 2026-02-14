@@ -4,14 +4,14 @@ import { ticks } from "@common/general/time";
 import { AVATARS, findBallCatchers, findCatchers } from "@common/game/game";
 import { type FieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/utils/message";
+import { cn } from "@meta/legacy/shared/message";
 import { type FieldPosition } from "@common/game/game";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
     isInExtraPointZone,
     isOutOfBounds,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import {
     $setBallActive,
     $setBallInactive,

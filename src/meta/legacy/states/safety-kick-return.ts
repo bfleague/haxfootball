@@ -11,10 +11,10 @@ import {
     isOutOfBounds,
     isPartiallyOutsideMainField,
     TOUCHBACK_YARD_LINE,
-} from "@meta/legacy/utils/stadium";
-import { getInitialDownState } from "@meta/legacy/utils/down";
-import { isTouchdown, SCORES } from "@meta/legacy/utils/scoring";
-import { cn, formatNames } from "@meta/legacy/utils/message";
+} from "@meta/legacy/shared/stadium";
+import { getInitialDownState } from "@meta/legacy/shared/down";
+import { isTouchdown, SCORES } from "@meta/legacy/shared/scoring";
+import { cn, formatNames } from "@meta/legacy/shared/message";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 

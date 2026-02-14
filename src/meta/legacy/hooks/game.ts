@@ -12,7 +12,7 @@ import {
     BALL_ACTIVE_COLOR,
     BALL_INACTIVE_COLOR,
     isInMainField,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { SPECIAL_HIDDEN_DISC_POSITION } from "@common/stadium-builder/consts";
 
 export function $setLineOfScrimmage(fieldPos: FieldPosition) {

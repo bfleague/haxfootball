@@ -26,8 +26,8 @@ import {
     $setBallMoveable,
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
-import { DownState, getInitialDownState } from "@meta/legacy/utils/down";
-import { cn, formatNames } from "@meta/legacy/utils/message";
+import { DownState, getInitialDownState } from "@meta/legacy/shared/down";
+import { cn, formatNames } from "@meta/legacy/shared/message";
 import {
     BALL_OFFSET_YARDS,
     calculateDirectionalGain,
@@ -40,7 +40,7 @@ import {
     intersectsGoalPosts,
     offsetXByYards,
     YARD_LENGTH,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { sortBy } from "@common/general/helpers";
 
 const FIELD_GOAL_LINE_HEIGHT = 200;

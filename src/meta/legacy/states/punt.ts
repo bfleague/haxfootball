@@ -14,11 +14,11 @@ import {
     $untrapAllTeams,
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
-import { DownState } from "@meta/legacy/utils/down";
+import { DownState } from "@meta/legacy/shared/down";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {
     start: { x: -50, y: -150 },

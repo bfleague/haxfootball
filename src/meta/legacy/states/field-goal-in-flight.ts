@@ -6,14 +6,14 @@ import { $dispose, $effect, $next } from "@runtime/runtime";
 import { $global } from "@meta/legacy/hooks/global";
 import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
-import { DownState, getInitialDownState } from "@meta/legacy/utils/down";
-import { SCORES } from "@meta/legacy/utils/scoring";
+import { DownState, getInitialDownState } from "@meta/legacy/shared/down";
+import { SCORES } from "@meta/legacy/shared/scoring";
 import {
     calculateDirectionalGain,
     getGoalLine,
     isBallOutOfBounds,
     isWithinGoalPosts,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 
 const FIELD_GOAL_RESULT_DELAY = ticks({ seconds: 2 });
 const FIELD_GOAL_SUCCESS_DELAY = ticks({ seconds: 3 });

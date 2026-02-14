@@ -15,9 +15,9 @@ import { $dispose, $effect } from "@runtime/hooks";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
-} from "@meta/legacy/utils/stadium";
+} from "@meta/legacy/shared/stadium";
 import { $global } from "@meta/legacy/hooks/global";
-import { SCORES } from "@meta/legacy/utils/scoring";
+import { SCORES } from "@meta/legacy/shared/scoring";
 import { $next } from "@runtime/runtime";
 import { t } from "@lingui/core/macro";
 
