@@ -866,7 +866,7 @@ msgstr "🚨 A defesa veio para a blitz!"
 #. placeholder {0}: player.name
 #: src/meta/legacy/states/kickoff-return.ts:57
 msgid "🚪 {0} left during the kickoff return!"
-msgstr "🚪 {0} saiu durante o retorno de kickoff "
+msgstr "🚪 {0} saiu durante o retorno de kickoff!"
 
 #. placeholder {0}: player.name
 #: src/meta/legacy/states/punt-return.ts:56
@@ -908,7 +908,7 @@ msgstr "🚪 {0} saiu no retorno da interceptação."
 #. placeholder {0}: frame.player.name
 #: src/meta/legacy/states/kickoff-return.ts:201
 msgid "🚪 {0} stepped out on the kickoff return."
-msgstr "🚪 {0} saiu no retorno de kickoff "
+msgstr "🚪 {0} saiu no retorno de kickoff."
 
 #. placeholder {0}: frame.player.name
 #: src/meta/legacy/states/punt-return.ts:199

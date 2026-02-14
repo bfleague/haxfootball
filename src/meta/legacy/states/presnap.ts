@@ -137,7 +137,7 @@ export function Presnap({ downState }: { downState: DownState }) {
 
     function chat(player: GameStatePlayer, message: string) {
         const normalizedMessage = message.trim().toLowerCase();
-        const isHikeCommand = normalizedMessage.includes("hike");
+        const isHikeCommand = normalizedMessage === "hike";
 
         if (isHikeCommand) {
             if (player.team !== offensiveTeam) {
