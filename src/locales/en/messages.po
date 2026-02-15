@@ -1124,7 +1124,7 @@ msgstr "field goal is dead."
 msgid "FIRST DOWN!"
 msgstr "FIRST DOWN!"
 
-#: src/room/manual/index.ts:172
+#: src/room/manual/index.ts:176
 msgid "HaxFootball 2026"
 msgstr "HaxFootball 2026"
 
@@ -1149,6 +1149,7 @@ msgid "Interception"
 msgstr "Interception"
 
 #: src/room/manual/index.ts:107
+#: src/room/manual/index.ts:136
 msgid "Join our Discord server: {DISCORD_LINK}"
 msgstr "Join our Discord server: {DISCORD_LINK}"
 
@@ -1331,7 +1332,7 @@ msgstr "Safety kick return"
 msgid "SAFETY!"
 msgstr "SAFETY!"
 
-#: src/room/manual/index.ts:181
+#: src/room/manual/index.ts:185
 msgid "The game has not been started yet."
 msgstr "The game has not been started yet."
 
@@ -1405,7 +1406,7 @@ msgstr "Watch the tutorial: {TUTORIAL_LINK}"
 msgid "You are now an admin."
 msgstr "You are now an admin."
 
-#: src/room/manual/index.ts:180
+#: src/room/manual/index.ts:184
 msgid "You cannot use that command right now."
 msgstr "You cannot use that command right now."
 

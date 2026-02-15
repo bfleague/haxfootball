@@ -572,11 +572,11 @@ msgstr "❌ Falta ofensiva"
 #: src/meta/legacy/states/extra-point-kick.ts:77
 #: src/meta/legacy/states/extra-point-kick.ts:110
 msgid "❌ PAT is no good."
-msgstr "❌ extra point não convertido."
+msgstr "❌ Extra point não convertido."
 
 #: src/meta/legacy/states/extra-point-kick.ts:91
 msgid "❌ PAT went out of bounds."
-msgstr "❌ extra point saiu de campo."
+msgstr "❌ Extra point saiu de campo."
 
 #: src/meta/legacy/states/extra-point-snap.ts:219
 msgid "❌ Pushing foul by {pusherNames}"
@@ -1118,7 +1118,7 @@ msgstr "Offside da defesa"
 #: src/meta/legacy/states/extra-point-snap.ts:631
 #: src/meta/legacy/states/extra-point.ts:306
 msgid "Extra point"
-msgstr ""
+msgstr "Extra point"
 
 #: src/meta/legacy/states/field-goal.ts:324
 #: src/meta/legacy/states/field-goal.ts:347
@@ -1142,7 +1142,7 @@ msgstr "field goal anulado."
 msgid "FIRST DOWN!"
 msgstr "FIRST DOWN!"
 
-#: src/room/manual/index.ts:172
+#: src/room/manual/index.ts:176
 msgid "HaxFootball 2026"
 msgstr "HaxFootball 2026"
 
@@ -1164,9 +1164,10 @@ msgstr "Senha incorreta."
 
 #: src/meta/legacy/states/interception.ts:330
 msgid "Interception"
-msgstr ""
+msgstr "Interceptação"
 
 #: src/room/manual/index.ts:107
+#: src/room/manual/index.ts:136
 msgid "Join our Discord server: {DISCORD_LINK}"
 msgstr "Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
@@ -1176,15 +1177,15 @@ msgstr "chute o extra point."
 
 #: src/meta/legacy/states/kickoff.ts:87
 msgid "Kickoff"
-msgstr ""
+msgstr "Kickoff"
 
 #: src/meta/legacy/states/kickoff-in-flight.ts:27
 msgid "Kickoff in flight"
-msgstr ""
+msgstr "Kickoff no ar"
 
 #: src/meta/legacy/states/kickoff-return.ts:375
 msgid "Kickoff return"
-msgstr ""
+msgstr "Retorno de kickoff"
 
 #: src/meta/legacy/states/blitz.ts:139
 #: src/meta/legacy/states/snap.ts:230
@@ -1267,7 +1268,7 @@ msgstr "punt tocado primeiro pelo time que chutou ({0})."
 
 #: src/meta/legacy/states/punt-in-flight.ts:29
 msgid "Punt in flight"
-msgstr ""
+msgstr "Punt no ar"
 
 #: src/meta/legacy/states/punt-in-flight.ts:49
 msgid "Punt out in the end zone"
@@ -1275,7 +1276,7 @@ msgstr "Punt saiu na end zone"
 
 #: src/meta/legacy/states/punt-return.ts:373
 msgid "Punt return"
-msgstr ""
+msgstr "Retorno de punt"
 
 #: src/meta/legacy/states/snap.ts:228
 #: src/meta/legacy/states/snap.ts:241
@@ -1315,7 +1316,7 @@ msgstr "repete a tentativa."
 
 #: src/meta/legacy/states/safety.ts:101
 msgid "Safety"
-msgstr ""
+msgstr "Safety"
 
 #. placeholder {0}: kickingTeamCatcher.name
 #: src/meta/legacy/states/safety-kick-in-flight.ts:98
@@ -1324,11 +1325,11 @@ msgstr "safety kick tocado primeiro pelo time que chutou ({0})."
 
 #: src/meta/legacy/states/safety-kick-in-flight.ts:32
 msgid "Safety kick in flight"
-msgstr ""
+msgstr "Chute de safety no ar"
 
 #: src/meta/legacy/states/safety-kick-return.ts:375
 msgid "Safety kick return"
-msgstr ""
+msgstr "Retorno de chute de safety"
 
 #: src/meta/legacy/states/blitz.ts:293
 #: src/meta/legacy/states/fake-field-goal.ts:203
@@ -1349,7 +1350,7 @@ msgstr ""
 msgid "SAFETY!"
 msgstr "SAFETY!"
 
-#: src/room/manual/index.ts:181
+#: src/room/manual/index.ts:185
 msgid "The game has not been started yet."
 msgstr "A partida ainda não foi iniciada."
 
@@ -1423,7 +1424,7 @@ msgstr "Assista ao tutorial: {TUTORIAL_LINK}"
 msgid "You are now an admin."
 msgstr "Você agora é admin."
 
-#: src/room/manual/index.ts:180
+#: src/room/manual/index.ts:184
 msgid "You cannot use that command right now."
 msgstr "Você não pode usar esse comando agora."
 
