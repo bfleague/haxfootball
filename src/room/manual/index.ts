@@ -155,10 +155,10 @@ const matchModule = createModule()
         engine.start("KICKOFF", { forTeam: Team.RED });
     })
     .onGameTick(() => {
-        if (engine) engine.tick();
+        engine?.tick();
     })
     .onPlayerBallKick((_room, player) => {
-        if (engine) engine.trackPlayerBallKick(player.id);
+        engine?.trackPlayerBallKick(player.id);
     })
     .onPlayerSendCommand((room, player, command) => {
         const { handled: handledByEngine } = engine
@@ -193,25 +193,25 @@ const matchModule = createModule()
             message: `${player.name}: ${message}`,
         });
 
-        if (engine) engine.handlePlayerChat(player, message);
+        engine?.handlePlayerChat(player, message);
 
         return false;
     })
     .onPlayerTeamChange((_room, changedPlayer, byPlayer) => {
-        if (engine) engine.handlePlayerTeamChange(changedPlayer, byPlayer);
+        engine?.handlePlayerTeamChange(changedPlayer, byPlayer);
     })
     .onPlayerLeave((_room, player) => {
-        if (engine) engine.handlePlayerLeave(player);
+        engine?.handlePlayerLeave(player);
     })
     .onGameStop(() => {
-        if (engine) engine.stop();
+        engine?.stop();
         engine = null;
     })
     .onGamePause((_room, byPlayer) => {
-        if (engine) engine.handleGamePause(byPlayer);
+        engine?.handleGamePause(byPlayer);
     })
     .onGameUnpause((_room, byPlayer) => {
-        if (engine) engine.handleGameUnpause(byPlayer);
+        engine?.handleGameUnpause(byPlayer);
     })
     .onRoomLink((room, _) => {
         room.setStadium(stadium);
