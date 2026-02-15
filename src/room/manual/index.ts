@@ -26,9 +26,13 @@ let engine: Engine<Config> | null = null;
 
 const admins = new Set<number>();
 
-const manageAdmin = (room: Room, player: PlayerObject) => {
+const manageAdmin = (room: Room) => {
     if (!room.getPlayerList().some((p) => p.admin)) {
-        room.setAdmin(player, true);
+        const player = room.getPlayerList()[0];
+
+        if (player) {
+            room.setAdmin(player, true);
+        }
     }
 };
 
@@ -153,14 +157,18 @@ const mainModule = createModule()
                 to: player.id,
             });
 
-            manageAdmin(room, player);
+            manageAdmin(room);
         }
+
+        console.log(`Player joined: ${player.name}`);
     })
     .onPlayerLeave((room, player) => {
-        manageAdmin(room, player);
+        manageAdmin(room);
+
+        console.log(`Player left: ${player.name}`);
     })
-    .onPlayerAdminChange((room, player) => {
-        manageAdmin(room, player);
+    .onPlayerAdminChange((room) => {
+        manageAdmin(room);
     })
     .onPlayerKicked((room, kickedPlayer, _reason, _ban, byPlayer) => {
         if (
@@ -171,6 +179,9 @@ const mainModule = createModule()
             room.clearBan(kickedPlayer.id);
             room.setAdmin(byPlayer, false);
         }
+    })
+    .onPlayerChat((_, player, message) => {
+        console.log(`${player.name}: ${message}`);
     });
 
 const matchModule = createModule()
