@@ -97,22 +97,26 @@ export function PuntReturn({
                             wait: ticks({ seconds: 1 }),
                         });
                     case "Safety":
-                        $effect(($) => {
-                            $.send({
-                                message: cn(
-                                    t`🚪 ${player.name} left from the end zone`,
-                                    t`SAFETY!`,
-                                ),
-                                color: COLOR.ALERT,
-                            });
-                        });
-
                         $global((state) =>
                             state.incrementScore(
                                 opposite(receivingTeam),
                                 SCORES.SAFETY,
                             ),
                         );
+
+                        const { scores } = $global();
+
+                        $effect(($) => {
+                            $.send({
+                                message: cn(
+                                    "🚪",
+                                    scores,
+                                    t`${player.name} left from the end zone`,
+                                    t`SAFETY!`,
+                                ),
+                                color: COLOR.ALERT,
+                            });
+                        });
 
                         $next({
                             to: "SAFETY",
@@ -169,9 +173,15 @@ export function PuntReturn({
             state.incrementScore(receivingTeam, SCORES.TOUCHDOWN),
         );
 
+        const { scores } = $global();
+
         $effect(($) => {
             $.send({
-                message: t`🔥 Punt return touchdown by ${frame.player.name}!`,
+                message: cn(
+                    "🔥",
+                    scores,
+                    t`punt return touchdown by ${frame.player.name}!`,
+                ),
                 color: COLOR.SUCCESS,
             });
             $.setAvatar(playerId, AVATARS.FIRE);
@@ -225,10 +235,21 @@ export function PuntReturn({
                 wait: ticks({ seconds: 1 }),
             });
         } else {
+            $global((state) =>
+                state.incrementScore(
+                    opposite(receivingTeam),
+                    SCORES.SAFETY,
+                ),
+            );
+
+            const { scores } = $global();
+
             $effect(($) => {
                 $.send({
                     message: cn(
-                        t`🚪 ${frame.player.name} went out in the end zone`,
+                        "🚪",
+                        scores,
+                        t`${frame.player.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
@@ -290,10 +311,21 @@ export function PuntReturn({
                         wait: ticks({ seconds: 1 }),
                     });
                 case "Safety":
+                    $global((state) =>
+                        state.incrementScore(
+                            opposite(receivingTeam),
+                            SCORES.SAFETY,
+                        ),
+                    );
+
+                    const { scores } = $global();
+
                     $effect(($) => {
                         $.send({
                             message: cn(
-                                t`🛑 ${frame.player.name} is down in the end zone`,
+                                "🛑",
+                                scores,
+                                t`${frame.player.name} is down in the end zone`,
                                 t`SAFETY!`,
                             ),
                             color: COLOR.ALERT,
@@ -307,13 +339,6 @@ export function PuntReturn({
                             $.setAvatar(playerId, null);
                         });
                     });
-
-                    $global((state) =>
-                        state.incrementScore(
-                            opposite(receivingTeam),
-                            SCORES.SAFETY,
-                        ),
-                    );
 
                     $next({
                         to: "SAFETY",

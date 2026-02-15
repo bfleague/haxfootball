@@ -8,6 +8,7 @@ import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
 import { DownState, getInitialDownState } from "@meta/legacy/shared/down";
 import { SCORES } from "@meta/legacy/shared/scoring";
+import { cn } from "@meta/legacy/shared/message";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     calculateDirectionalGain,
@@ -63,9 +64,11 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
                     state.incrementScore(offensiveTeam, SCORES.FIELD_GOAL),
                 );
 
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
-                        message: t`✅ Field goal is good!`,
+                        message: cn("✅", scores, t`field goal is good!`),
                         color: COLOR.SUCCESS,
                     });
                 });

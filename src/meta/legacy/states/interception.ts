@@ -127,9 +127,11 @@ export function Interception({
 
         $global((state) => state.incrementScore(playerTeam, SCORES.TOUCHDOWN));
 
+        const { scores } = $global();
+
         $effect(($) => {
             $.send({
-                message: t`🔥 PICK-SIX by ${frame.player.name}!`,
+                message: cn("🔥", scores, t`PICK-SIX by ${frame.player.name}!`),
                 color: COLOR.SUCCESS,
             });
             $.setAvatar(playerId, AVATARS.FIRE);
@@ -183,10 +185,21 @@ export function Interception({
                 wait: ticks({ seconds: 1 }),
             });
         } else {
+            $global((state) =>
+                state.incrementScore(
+                    opposite(playerTeam),
+                    SCORES.SAFETY,
+                ),
+            );
+
+            const { scores } = $global();
+
             $effect(($) => {
                 $.send({
                     message: cn(
-                        t`🚪 ${frame.player.name} went out in the end zone`,
+                        "🚪",
+                        scores,
+                        t`${frame.player.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
@@ -248,10 +261,21 @@ export function Interception({
                         wait: ticks({ seconds: 1 }),
                     });
                 case "Safety":
+                    $global((state) =>
+                        state.incrementScore(
+                            opposite(playerTeam),
+                            SCORES.SAFETY,
+                        ),
+                    );
+
+                    const { scores } = $global();
+
                     $effect(($) => {
                         $.send({
                             message: cn(
-                                t`🛑 ${frame.player.name} is down in the end zone`,
+                                "🛑",
+                                scores,
+                                t`${frame.player.name} is down in the end zone`,
                                 t`SAFETY!`,
                             ),
                             color: COLOR.ALERT,
@@ -265,13 +289,6 @@ export function Interception({
                             $.setAvatar(playerId, null);
                         });
                     });
-
-                    $global((state) =>
-                        state.incrementScore(
-                            opposite(playerTeam),
-                            SCORES.SAFETY,
-                        ),
-                    );
 
                     $next({
                         to: "SAFETY",

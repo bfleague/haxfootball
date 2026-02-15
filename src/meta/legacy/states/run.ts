@@ -85,9 +85,15 @@ export function Run({
             state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
         );
 
+        const { scores } = $global();
+
         $effect(($) => {
             $.send({
-                message: t`🔥 TOUCHDOWN by ${frame.player.name}!`,
+                message: cn(
+                    "🔥",
+                    scores,
+                    t`TOUCHDOWN by ${frame.player.name}!`,
+                ),
                 color: COLOR.SUCCESS,
             });
             $.setAvatar(playerId, AVATARS.FIRE);
@@ -199,10 +205,18 @@ export function Run({
                 wait: ticks({ seconds: 1 }),
             });
         } else {
+            $global((state) =>
+                state.incrementScore(opposite(offensiveTeam), SCORES.SAFETY),
+            );
+
+            const { scores } = $global();
+
             $effect(($) => {
                 $.send({
                     message: cn(
-                        t`🚪 ${frame.player.name} went out in the end zone`,
+                        "🚪",
+                        scores,
+                        t`${frame.player.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,

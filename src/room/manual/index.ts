@@ -7,10 +7,11 @@ import { Team } from "@runtime/models";
 import { legacyGlobalSchema } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
 import { randomBytes } from "node:crypto";
+import { Room } from "@core/room";
 
 const IS_DEBUG = process.env["DEBUG"] === "true";
 
-export const config: RoomConfigObject = {
+const config: RoomConfigObject = {
     roomName: t`🏈 HaxFootball - American Football 🏈`,
     maxPlayers: 25,
     noPlayer: true,
@@ -22,6 +23,14 @@ const DISCORD_LINK = "https://discord.gg/q8ay8PmEkp";
 const ADMIN_PASSWORD = randomBytes(4).toString("hex");
 
 let engine: Engine<Config> | null = null;
+
+const admins = new Set<number>();
+
+const manageAdmin = (room: Room, player: PlayerObject) => {
+    if (!room.getPlayerList().some((p) => p.admin)) {
+        room.setAdmin(player, true);
+    }
+};
 
 const mainModule = createModule()
     .setCommands({
@@ -55,6 +64,7 @@ const mainModule = createModule()
                         message: t`You are now an admin.`,
                         to: player.id,
                     });
+                    admins.add(player.id);
                 } else {
                     room.send({
                         message: t`Incorrect password.`,
@@ -142,6 +152,24 @@ const mainModule = createModule()
                 message: t`Join our Discord server: ${DISCORD_LINK}`,
                 to: player.id,
             });
+
+            manageAdmin(room, player);
+        }
+    })
+    .onPlayerLeave((room, player) => {
+        manageAdmin(room, player);
+    })
+    .onPlayerAdminChange((room, player) => {
+        manageAdmin(room, player);
+    })
+    .onPlayerKicked((room, kickedPlayer, _reason, _ban, byPlayer) => {
+        if (
+            byPlayer &&
+            admins.has(kickedPlayer.id) &&
+            !admins.has(byPlayer.id)
+        ) {
+            room.clearBan(kickedPlayer.id);
+            room.setAdmin(byPlayer, false);
         }
     });
 
@@ -242,4 +270,5 @@ const matchModule = createModule()
         room.setStadium(stadium);
     });
 
+export const getConfig = () => config;
 export const modules = [mainModule, matchModule];

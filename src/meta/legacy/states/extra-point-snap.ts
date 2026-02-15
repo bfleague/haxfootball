@@ -329,16 +329,21 @@ export function ExtraPointSnap({
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
             },
             onTouchdown() {
+                $awardTwoPointConversion();
+
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
                         message: cn(
-                            t`❌ Defensive offside`,
+                            "❌",
+                            scores,
+                            t`defensive offside`,
                             t`two-point try awarded.`,
                         ),
                         color: COLOR.WARNING,
                     });
                 });
-                $awardTwoPointConversion();
             },
         });
     }
@@ -387,16 +392,21 @@ export function ExtraPointSnap({
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
             },
             onTouchdown() {
+                $awardTwoPointConversion();
+
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
                         message: cn(
-                            t`❌ Defensive illegal touch`,
+                            "❌",
+                            scores,
+                            t`defensive illegal touch`,
                             t`two-point try awarded.`,
                         ),
                         color: COLOR.WARNING,
                     });
                 });
-                $awardTwoPointConversion();
             },
         });
     }
@@ -479,10 +489,16 @@ export function ExtraPointSnap({
                 });
             },
             onTouchdown() {
+                $awardTwoPointConversion();
+
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
                         message: cn(
-                            t`❌ Crowd abuse (${crowdingOffenderNames})`,
+                            "❌",
+                            scores,
+                            t`crowd abuse by ${crowdingOffenderNames}`,
                             t`two-point try awarded.`,
                         ),
                         color: COLOR.WARNING,
@@ -503,8 +519,6 @@ export function ExtraPointSnap({
                         );
                     });
                 });
-
-                $awardTwoPointConversion();
             },
         });
     }

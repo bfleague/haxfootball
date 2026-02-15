@@ -105,6 +105,12 @@ export function SafetyKickInFlight({
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);
             });
 
+            $dispose(() => {
+                $effect(($) => {
+                    $.setAvatar(kickingTeamCatcher.id, null);
+                });
+            });
+
             $next({
                 to: "PRESNAP",
                 params: {

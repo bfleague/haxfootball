@@ -240,7 +240,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Pushing foul by ${offenderNames}`,
+                            t`pushing foul by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
@@ -304,7 +304,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Defensive offside`,
+                            t`defensive offside`,
                             t`${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty.`,
                         ),
                         color: COLOR.WARNING,
@@ -325,7 +325,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Defensive offside`,
+                            t`defensive offside`,
                             t`${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty`,
                             t`automatic first down.`,
                         ),
@@ -346,12 +346,15 @@ export function Snap({
                     state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
                 );
 
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
                         message: cn(
                             "❌",
+                            scores,
                             penaltyResult.downState,
-                            t`Defensive offside`,
+                            t`defensive offside`,
                             t`${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty`,
                             t`automatic touchdown.`,
                         ),
@@ -439,7 +442,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Crowd abuse (${crowdingOffenderNames})`,
+                            t`crowd abuse by ${crowdingOffenderNames}`,
                             t`${Crowding.CROWDING_PENALTY_YARDS}-yard penalty`,
                             t`automatic first down.`,
                         ),
@@ -456,12 +459,16 @@ export function Snap({
                 $global((state) =>
                     state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
                 );
+
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
                         message: cn(
                             "❌",
+                            scores,
                             penaltyResult.downState,
-                            t`Crowd abuse (${crowdingOffenderNames})`,
+                            t`crowd abuse by ${crowdingOffenderNames}`,
                             t`${Crowding.CROWDING_PENALTY_YARDS}-yard penalty`,
                             t`automatic touchdown.`,
                         ),
@@ -537,7 +544,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Defensive illegal touch by ${offenderNames}`,
+                            t`defensive illegal touch by ${offenderNames}`,
                             t`${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty.`,
                         ),
                         color: COLOR.WARNING,
@@ -558,7 +565,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Defensive illegal touch by ${offenderNames}`,
+                            t`defensive illegal touch by ${offenderNames}`,
                             t`${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty`,
                             t`automatic first down.`,
                         ),
@@ -579,12 +586,15 @@ export function Snap({
                     state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
                 );
 
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
                         message: cn(
                             "❌",
+                            scores,
                             penaltyResult.downState,
-                            t`Defensive illegal touch by ${offenderNames}`,
+                            t`defensive illegal touch by ${offenderNames}`,
                             t`${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty`,
                             t`automatic touchdown.`,
                         ),
@@ -656,7 +666,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Illegal touch by ${offenderNames}`,
+                            t`illegal touch by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
@@ -670,7 +680,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Illegal touch by ${offenderNames}`,
+                            t`illegal touch by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
@@ -728,7 +738,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Ball out of bounds`,
+                            t`ball out of bounds`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
@@ -742,7 +752,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Ball out of bounds`,
+                            t`ball out of bounds`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
@@ -789,7 +799,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Illegal advance beyond the LOS`,
+                            t`illegal advance beyond the LOS`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
@@ -803,7 +813,7 @@ export function Snap({
                         message: cn(
                             "❌",
                             penaltyResult.downState,
-                            t`Illegal advance beyond the LOS`,
+                            t`illegal advance beyond the LOS`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),

@@ -16,8 +16,6 @@ import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
 } from "@meta/legacy/shared/stadium";
-import { $global } from "@meta/legacy/hooks/global";
-import { SCORES } from "@meta/legacy/shared/scoring";
 import { $next } from "@runtime/runtime";
 import { t } from "@lingui/core/macro";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
@@ -35,10 +33,6 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
     $trapTeamInEndZone(opposite(kickingTeam));
     $setBallKickForce("strong");
     $setBallUnmoveable();
-
-    $global((state) =>
-        state.incrementScore(opposite(kickingTeam), SCORES.SAFETY),
-    );
 
     const safetyFieldPos: FieldPosition = {
         yards: YARD_LINE_FOR_SAFETY,

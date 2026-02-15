@@ -8,6 +8,7 @@ import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
 import { type FieldTeam } from "@runtime/models";
 import { SCORES } from "@meta/legacy/shared/scoring";
+import { cn } from "@meta/legacy/shared/message";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     calculateDirectionalGain,
@@ -61,9 +62,11 @@ export function ExtraPointKick({
                     state.incrementScore(offensiveTeam, SCORES.EXTRA_POINT),
                 );
 
+                const { scores } = $global();
+
                 $effect(($) => {
                     $.send({
-                        message: t`✅ PAT is good!`,
+                        message: cn("✅", scores, t`PAT is good!`),
                         color: COLOR.SUCCESS,
                     });
                 });

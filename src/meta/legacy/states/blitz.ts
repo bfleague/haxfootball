@@ -1,7 +1,12 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
-import { $dispose, $effect, $next } from "@runtime/runtime";
+import { $dispose, $effect, $global, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
-import { AVATARS, findBallCatchers, findCatchers } from "@common/game/game";
+import {
+    AVATARS,
+    findBallCatchers,
+    findCatchers,
+    opposite,
+} from "@common/game/game";
 import {
     advanceDownState,
     DownState,
@@ -32,6 +37,7 @@ import {
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
+import { SCORES } from "@meta/legacy/shared/scoring";
 
 const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
 
@@ -304,10 +310,18 @@ export function Blitz({
                 wait: ticks({ seconds: 1 }),
             });
         } else {
+            $global((state) =>
+                state.incrementScore(opposite(offensiveTeam), SCORES.SAFETY),
+            );
+
+            const { scores } = $global();
+
             $effect(($) => {
                 $.send({
                     message: cn(
-                        t`🚪 QB ${frame.quarterback.name} went out in the end zone`,
+                        "🚪",
+                        scores,
+                        t`QB ${frame.quarterback.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,

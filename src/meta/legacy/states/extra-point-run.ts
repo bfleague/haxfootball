@@ -108,15 +108,22 @@ export function ExtraPointRun({
 
         $global((state) => state.incrementScore(ballTeam, SCORES.TWO_POINT));
 
+        const { scores } = $global();
+
         $effect(($) => {
             if (ballTeam === originalOffensiveTeam) {
                 $.send({
-                    message: t`✅ Two-point try is good!`,
+                    message: cn("✅", scores, t`two-point try is good!`),
                     color: COLOR.SUCCESS,
                 });
             } else {
                 $.send({
-                    message: cn(t`🏈 Defense takes it back`, t`TWO POINTS!`),
+                    message: cn(
+                        "🏈",
+                        scores,
+                        t`defense takes it back`,
+                        t`TWO POINTS!`,
+                    ),
                     color: COLOR.MOMENTUM,
                 });
             }
