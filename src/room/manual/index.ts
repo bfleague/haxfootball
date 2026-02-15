@@ -148,7 +148,15 @@ const mainModule = createModule()
 const matchModule = createModule()
     .setCommands({
         spec: { prefix: COMMAND_PREFIX },
-        commands: ["punt", "fg", "version", "undo", "info", "reposition"],
+        commands: [
+            "punt",
+            "fg",
+            "version",
+            "undo",
+            "info",
+            "reposition",
+            "score",
+        ],
     })
     .onGameStart((room) => {
         engine = createEngine(room, registry, {

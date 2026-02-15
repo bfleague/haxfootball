@@ -15,9 +15,10 @@ export type SharedInfoCommandOptions =
 export type SharedCommandOptions = {
     undo?: boolean;
     info?: false | SharedInfoCommandOptions;
+    score?: boolean;
 };
 
-const LEGACY_COMMAND_NAMES = ["undo", "info"] as const;
+const LEGACY_COMMAND_NAMES = ["undo", "info", "score"] as const;
 
 export type SharedCommandName = (typeof LEGACY_COMMAND_NAMES)[number];
 
@@ -49,6 +50,8 @@ const isLegacyCommandEnabled = (
             return options.undo === true;
         case "info":
             return options.info !== false && options.info !== undefined;
+        case "score":
+            return options.score !== false;
         default:
             return false;
     }
@@ -137,10 +140,19 @@ export function $createSharedCommandHandler({
                 $restore();
             },
             info: (player: PlayerObject) => {
-                const score = $global().scores;
+                const { scores } = $global();
 
                 $effect(($) => {
-                    $.send(cn("📋", statePart, score), player.id);
+                    $.send(cn("📋", statePart, scores), player.id);
+                });
+
+                return { handled: true };
+            },
+            score: (player: PlayerObject) => {
+                const { scores } = $global();
+
+                $effect(($) => {
+                    $.send(cn("🏈", scores), player.id);
                 });
 
                 return { handled: true };
