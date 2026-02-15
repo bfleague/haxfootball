@@ -132,6 +132,10 @@ const mainModule = createModule()
                 message: t`Watch the tutorial: ${TUTORIAL_LINK}`,
                 to: player.id,
             });
+            room.send({
+                message: t`Join our Discord server: ${DISCORD_LINK}`,
+                to: player.id,
+            });
         }
     });
 
