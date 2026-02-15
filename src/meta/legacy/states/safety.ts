@@ -133,10 +133,6 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
             return;
         }
 
-        $effect(($) => {
-            $.stat("SAFETY_KICK");
-        });
-
         $next({
             to: "SAFETY_KICK_IN_FLIGHT",
             params: { kickingTeam },

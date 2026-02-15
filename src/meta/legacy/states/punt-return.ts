@@ -57,7 +57,6 @@ export function PuntReturn({
                 $effect(($) => {
                     $.send(t`🚪 ${player.name} left during the punt return!`);
 
-                    $.stat("PUNT_RETURN_LEFT_ROOM");
                 });
 
                 $next({
@@ -82,7 +81,6 @@ export function PuntReturn({
                                 ),
                             );
 
-                            $.stat("PUNT_RETURN_TOUCHBACK_LEFT_ROOM");
                         });
 
                         $next({
@@ -104,7 +102,6 @@ export function PuntReturn({
                                 ),
                             );
 
-                            $.stat("PUNT_RETURN_SAFETY_LEFT_ROOM");
                         });
 
                         $global((state) =>
@@ -171,7 +168,6 @@ export function PuntReturn({
 
         $effect(($) => {
             $.send(t`🔥 Punt return touchdown by ${frame.player.name}!`);
-            $.stat("PUNT_RETURN_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -201,7 +197,6 @@ export function PuntReturn({
                     t`🚪 ${frame.player.name} stepped out on the punt return.`,
                 );
 
-                $.stat("PUNT_RETURN_OUT_OF_BOUNDS");
 
                 $.setAvatar(playerId, AVATARS.CANCEL);
             });
@@ -232,7 +227,6 @@ export function PuntReturn({
                     ),
                 );
 
-                $.stat("PUNT_RETURN_SAFETY");
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
@@ -269,7 +263,6 @@ export function PuntReturn({
                             ),
                         );
 
-                        $.stat("PUNT_RETURN_TOUCHBACK_TACKLED");
 
                         $.setAvatar(playerId, AVATARS.CANCEL);
                     });
@@ -299,7 +292,6 @@ export function PuntReturn({
                             ),
                         );
 
-                        $.stat("PUNT_RETURN_SAFETY_TACKLED");
 
                         $.setAvatar(playerId, AVATARS.CLOWN);
                     });
@@ -333,7 +325,6 @@ export function PuntReturn({
                 $.send(
                     t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
                 );
-                $.stat("PUNT_RETURN_TACKLED");
 
                 catchers.forEach((p) => {
                     $.setAvatar(p.id, AVATARS.MUSCLE);

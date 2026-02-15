@@ -108,7 +108,6 @@ export function LiveBall({
                     t`turnover at the ${fieldPos.yards}-yard line!`,
                 ),
             );
-            $.stat("LIVE_BALL_FUMBLE");
             $.setAvatar(playerId, AVATARS.DIZZY);
             catcherIds.forEach((catcherId) => {
                 $.setAvatar(catcherId, AVATARS.MUSCLE);
@@ -160,7 +159,6 @@ export function LiveBall({
 
         $effect(($) => {
             $.send(t`🔥 TOUCHDOWN by ${frame.player.name}!`);
-            $.stat("LIVE_BALL_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -196,7 +194,6 @@ export function LiveBall({
                 onFirstDown() {
                     $effect(($) => {
                         $.send(cn("🏁", nextDownState, t`FIRST DOWN!`));
-                        $.stat("LIVE_BALL_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
                     });
                 },
                 onNextDown: {
@@ -210,9 +207,6 @@ export function LiveBall({
                                     t`next down.`,
                                 ),
                             );
-                            $.stat(
-                                "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE",
-                            );
                         });
                     },
                     onNoGain() {
@@ -224,9 +218,6 @@ export function LiveBall({
                                     t`No gain`,
                                     t`next down.`,
                                 ),
-                            );
-                            $.stat(
-                                "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
                             );
                         });
                     },
@@ -240,18 +231,12 @@ export function LiveBall({
                                     t`next down.`,
                                 ),
                             );
-                            $.stat(
-                                "LIVE_BALL_OUT_OF_BOUNDS_NEXT_DOWN_LOSS_YARD_LINE",
-                            );
                         });
                     },
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
                         $.send(cn(nextDownState, t`TURNOVER ON DOWNS!`));
-                        $.stat(
-                            "LIVE_BALL_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE",
-                        );
                     });
                 },
             });
@@ -282,7 +267,6 @@ export function LiveBall({
                     ),
                 );
 
-                $.stat("LIVE_BALL_OUT_OF_BOUNDS_SAFETY");
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
 
@@ -327,7 +311,6 @@ export function LiveBall({
                             t`FIRST DOWN!`,
                         ),
                     );
-                    $.stat("LIVE_BALL_TACKLE_FIRST_DOWN_YARD_LINE");
                 });
             },
             onNextDown: {
@@ -342,7 +325,6 @@ export function LiveBall({
                                 t`next down.`,
                             ),
                         );
-                        $.stat("LIVE_BALL_TACKLE_NEXT_DOWN_YARD_LINE");
                     });
                 },
                 onNoGain() {
@@ -356,7 +338,6 @@ export function LiveBall({
                                 t`next down.`,
                             ),
                         );
-                        $.stat("LIVE_BALL_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE");
                     });
                 },
                 onLoss(yardsLost: number) {
@@ -370,7 +351,6 @@ export function LiveBall({
                                 t`next down.`,
                             ),
                         );
-                        $.stat("LIVE_BALL_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
                     });
                 },
             },
@@ -384,7 +364,6 @@ export function LiveBall({
                             t`TURNOVER ON DOWNS!`,
                         ),
                     );
-                    $.stat("LIVE_BALL_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");
                 });
             },
         });

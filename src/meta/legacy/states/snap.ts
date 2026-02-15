@@ -846,10 +846,6 @@ export function Snap({
     function $handleSnapKick(frame: Frame) {
         if (!frame.quarterback.isKickingBall) return;
 
-        $effect(($) => {
-            $.stat("SNAP_KICKED_BALL");
-        });
-
         $next({
             to: "SNAP_IN_FLIGHT",
             params: { downState },

@@ -86,7 +86,6 @@ export function Run({
 
         $effect(($) => {
             $.send(t`🔥 TOUCHDOWN by ${frame.player.name}!`);
-            $.stat("LIVE_BALL_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -122,7 +121,6 @@ export function Run({
                 onFirstDown() {
                     $effect(($) => {
                         $.send(cn("🏁", nextDownState, t`FIRST DOWN!`));
-                        $.stat("RUN_OUT_OF_BOUNDS_FIRST_DOWN_YARD_LINE");
                     });
                 },
                 onNextDown: {
@@ -136,7 +134,6 @@ export function Run({
                                     t`next down.`,
                                 ),
                             );
-                            $.stat("RUN_OUT_OF_BOUNDS_NEXT_DOWN_YARD_LINE");
                         });
                     },
                     onNoGain() {
@@ -148,9 +145,6 @@ export function Run({
                                     t`No gain`,
                                     t`next down.`,
                                 ),
-                            );
-                            $.stat(
-                                "RUN_OUT_OF_BOUNDS_NEXT_DOWN_NO_GAIN_YARD_LINE",
                             );
                         });
                     },
@@ -164,16 +158,12 @@ export function Run({
                                     t`next down.`,
                                 ),
                             );
-                            $.stat(
-                                "RUN_OUT_OF_BOUNDS_NEXT_DOWN_LOSS_YARD_LINE",
-                            );
                         });
                     },
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
                         $.send(cn(nextDownState, t`TURNOVER ON DOWNS!`));
-                        $.stat("RUN_OUT_OF_BOUNDS_TURNOVER_ON_DOWNS_YARD_LINE");
                     });
                 },
             });
@@ -204,7 +194,6 @@ export function Run({
                     ),
                 );
 
-                $.stat("LIVE_BALL_OUT_OF_BOUNDS_SAFETY");
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
 
@@ -249,7 +238,6 @@ export function Run({
                             t`FIRST DOWN!`,
                         ),
                     );
-                    $.stat("RUN_TACKLE_FIRST_DOWN_YARD_LINE");
                 });
             },
             onNextDown: {
@@ -264,7 +252,6 @@ export function Run({
                                 t`next down.`,
                             ),
                         );
-                        $.stat("RUN_TACKLE_NEXT_DOWN_YARD_LINE");
                     });
                 },
                 onNoGain() {
@@ -278,7 +265,6 @@ export function Run({
                                 t`next down.`,
                             ),
                         );
-                        $.stat("RUN_TACKLE_NEXT_DOWN_NO_GAIN_YARD_LINE");
                     });
                 },
                 onLoss(yardsLost: number) {
@@ -292,7 +278,6 @@ export function Run({
                                 t`next down.`,
                             ),
                         );
-                        $.stat("RUN_TACKLE_NEXT_DOWN_LOSS_YARD_LINE");
                     });
                 },
             },
@@ -306,7 +291,6 @@ export function Run({
                             t`TURNOVER ON DOWNS!`,
                         ),
                     );
-                    $.stat("RUN_TACKLE_TURNOVER_ON_DOWNS_YARD_LINE");
                 });
             },
         });

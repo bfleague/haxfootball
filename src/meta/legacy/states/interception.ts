@@ -128,7 +128,6 @@ export function Interception({
 
         $effect(($) => {
             $.send(t`🔥 PICK-SIX by ${frame.player.name}!`);
-            $.stat("INTERCEPTION_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -158,7 +157,6 @@ export function Interception({
                     t`🚪 ${frame.player.name} stepped out on the interception return.`,
                 );
 
-                $.stat("INTERCEPTION_OUT_OF_BOUNDS");
 
                 $.setAvatar(playerId, AVATARS.CANCEL);
             });
@@ -189,7 +187,6 @@ export function Interception({
                     ),
                 );
 
-                $.stat("INTERCEPTION_SAFETY");
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
@@ -226,7 +223,6 @@ export function Interception({
                             ),
                         );
 
-                        $.stat("INTERCEPTION_TOUCHBACK_TACKLED");
 
                         $.setAvatar(playerId, AVATARS.CANCEL);
                     });
@@ -256,7 +252,6 @@ export function Interception({
                             ),
                         );
 
-                        $.stat("INTERCEPTION_SAFETY_TACKLED");
 
                         $.setAvatar(playerId, AVATARS.CLOWN);
                     });
@@ -290,7 +285,6 @@ export function Interception({
                 $.send(
                     t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
                 );
-                $.stat("INTERCEPTION_TACKLED");
 
                 catchers.forEach((p) => {
                     $.setAvatar(p.id, AVATARS.MUSCLE);

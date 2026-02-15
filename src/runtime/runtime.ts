@@ -165,7 +165,6 @@ export interface EffectApi extends RoomMethodApi {
     send(options: SendOptions): void;
     getTickNumber: () => number;
     CollisionFlags: CFType;
-    stat: (key: string) => void;
     setPlayerDisc: (playerId: number, props: DiscProps) => void;
     setBall: (props: DiscProps) => void;
 }
@@ -176,7 +175,6 @@ let RUNTIME: {
     effects: Array<(api: EffectApi) => void>;
     disposals: Array<() => void>;
     transition: Transition | null;
-    onStat: (k: string) => void;
     tickNumber: number;
     mutations: MutationBuffer;
     ownsMutations: boolean;
@@ -224,7 +222,6 @@ const normalizeTransition = (args: {
 export function installRuntime(ctx: {
     room: Room;
     config: unknown;
-    onStat?: (k: string) => void;
     tickNumber?: number;
     mutations?: MutationBuffer | undefined;
     disposals?: Array<() => void>;
@@ -235,7 +232,6 @@ export function installRuntime(ctx: {
     resolveCheckpoint?: (args: CheckpointRestoreArgs) => Transition;
     listCheckpoints?: () => Array<Checkpoint>;
 }) {
-    const onStat = ctx.onStat ? ctx.onStat : () => {};
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
     const disposals = ctx.disposals ?? [];
 
@@ -245,7 +241,6 @@ export function installRuntime(ctx: {
         effects: [],
         disposals,
         transition: null,
-        onStat,
         tickNumber: typeof ctx.tickNumber === "number" ? ctx.tickNumber : 0,
         mutations,
         ownsMutations: !ctx.mutations,
@@ -487,7 +482,6 @@ export function flushRuntime(): {
         },
         getTickNumber: () => RUNTIME!.tickNumber,
         CollisionFlags: cf,
-        stat: (k: string) => RUNTIME!.onStat(k),
         setPlayerDisc: (playerId: number, props: DiscProps) =>
             mutations.queuePlayerDisc(playerId, props),
         setBall: (props: DiscProps) =>

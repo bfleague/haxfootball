@@ -47,7 +47,6 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
             if (isTouchback) {
                 $effect(($) => {
                     $.send(cn(t`Punt out in the end zone`, t`touchback.`));
-                    $.stat("PUNT_OUT_OF_BOUNDS_TOUCHBACK");
                 });
 
                 $next({
@@ -71,7 +70,6 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
                         t`ball spotted at the ${fieldPos.yards}-yard line.`,
                     ),
                 );
-                $.stat("PUNT_OUT_OF_BOUNDS");
             });
 
             $next({
@@ -93,7 +91,6 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         if (catcher) {
             $effect(($) => {
                 $.send(t`🏈 Punt return by ${catcher.name}!`);
-                $.stat("PUNT_RETURNED");
             });
 
             $next({
@@ -115,7 +112,6 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
                         t`punt caught first by the kicking team (${kickingTeamCatcher.name}).`,
                     ),
                 );
-                $.stat("PUNT_CAUGHT_BY_KICKING_TEAM");
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);
             });
 

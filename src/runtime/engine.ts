@@ -39,7 +39,6 @@ export type StateRegistry = Record<string, StateFactory<any>>;
 export interface EngineOptions<Cfg> {
     config: Cfg;
     globalSchema?: GlobalSchema<any, any>;
-    onStats?: (key: string) => void;
 }
 
 /**
@@ -235,10 +234,6 @@ export function createEngine<Cfg>(
     const globalSchema = opts.globalSchema;
     let globalStore: GlobalStoreApi<any> | null = null;
 
-    // Always have a concrete stats handler; defaults to no-op.
-    const onStats: (key: string) => void = opts.onStats
-        ? opts.onStats
-        : () => {};
     const resetGlobalStore = () => {
         globalStore = globalSchema ? createGlobalStore(globalSchema) : null;
     };
@@ -355,7 +350,6 @@ export function createEngine<Cfg>(
         const uninstall = installRuntime({
             room,
             config: opts.config,
-            onStat: onStats,
             tickNumber,
             mutations: optsRun?.mutations ?? sharedTickMutations ?? undefined,
             globalStore,
@@ -735,7 +729,6 @@ export function createEngine<Cfg>(
             const uninstall = installRuntime({
                 room,
                 config: opts.config,
-                onStat: onStats,
                 tickNumber: currentTickNumber,
                 mutations: sharedTickMutations ?? undefined,
                 globalStore,

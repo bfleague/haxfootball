@@ -95,10 +95,6 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
         const kicker = state.players.find((p) => p.isKickingBall);
 
         if (kicker) {
-            $effect(($) => {
-                $.stat("Kickoff");
-            });
-
             $next({
                 to: "KICKOFF_IN_FLIGHT",
                 params: { kickingTeam: forTeam },

@@ -59,7 +59,6 @@ export function SafetyKickReturn({
                         t`🚪 ${player.name} left during the safety-kick return!`,
                     );
 
-                    $.stat("SAFETY_KICK_RETURN_LEFT_ROOM");
                 });
 
                 $next({
@@ -84,7 +83,6 @@ export function SafetyKickReturn({
                                 ),
                             );
 
-                            $.stat("SAFETY_KICK_RETURN_TOUCHBACK_LEFT_ROOM");
                         });
 
                         $next({
@@ -106,7 +104,6 @@ export function SafetyKickReturn({
                                 ),
                             );
 
-                            $.stat("SAFETY_KICK_RETURN_SAFETY_LEFT_ROOM");
                         });
 
                         $global((state) =>
@@ -173,7 +170,6 @@ export function SafetyKickReturn({
 
         $effect(($) => {
             $.send(t`🔥 Safety-kick return touchdown by ${frame.player.name}!`);
-            $.stat("SAFETY_KICK_RETURN_TOUCHDOWN");
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -203,7 +199,6 @@ export function SafetyKickReturn({
                     t`🚪 ${frame.player.name} stepped out on the safety-kick return.`,
                 );
 
-                $.stat("SAFETY_KICK_RETURN_OUT_OF_BOUNDS");
 
                 $.setAvatar(playerId, AVATARS.CANCEL);
             });
@@ -234,7 +229,6 @@ export function SafetyKickReturn({
                     ),
                 );
 
-                $.stat("SAFETY_KICK_RETURN_SAFETY");
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
@@ -271,7 +265,6 @@ export function SafetyKickReturn({
                             ),
                         );
 
-                        $.stat("SAFETY_KICK_RETURN_TOUCHBACK_TACKLED");
 
                         $.setAvatar(playerId, AVATARS.CANCEL);
                     });
@@ -301,7 +294,6 @@ export function SafetyKickReturn({
                             ),
                         );
 
-                        $.stat("SAFETY_KICK_RETURN_SAFETY_TACKLED");
 
                         $.setAvatar(playerId, AVATARS.CLOWN);
                     });
@@ -335,7 +327,6 @@ export function SafetyKickReturn({
                 $.send(
                     t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
                 );
-                $.stat("SAFETY_KICK_RETURN_TACKLED");
 
                 catchers.forEach((p) => {
                     $.setAvatar(p.id, AVATARS.MUSCLE);

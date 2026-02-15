@@ -124,10 +124,6 @@ export function Punt({ downState }: { downState: DownState }) {
             return;
         }
 
-        $effect(($) => {
-            $.stat("PUNT");
-        });
-
         $next({
             to: "PUNT_IN_FLIGHT",
             params: { kickingTeam },

@@ -150,9 +150,6 @@ const matchModule = createModule()
         engine = createEngine(room, registry, {
             config: defaultConfig,
             globalSchema: legacyGlobalSchema,
-            onStats: (key) => {
-                console.log(`Stat recorded: ${key}`);
-            },
         });
 
         engine.start("KICKOFF", { forTeam: Team.RED });
