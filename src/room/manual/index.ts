@@ -8,16 +8,17 @@ import { legacyGlobalSchema } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
 import { randomBytes } from "node:crypto";
 
+const IS_DEBUG = process.env["DEBUG"] === "true";
+
 export const config: RoomConfigObject = {
     roomName: t`🏈 HaxFootball - American Football 🏈`,
     maxPlayers: 25,
     noPlayer: true,
-    public: true,
+    public: !IS_DEBUG,
 };
 
 const TUTORIAL_LINK = "youtube.com/watch?v=Z09dlI3MR28";
 const ADMIN_PASSWORD = randomBytes(4).toString("hex");
-const IS_DEBUG = process.env["DEBUG"] === "true";
 
 let engine: Engine<Config> | null = null;
 
