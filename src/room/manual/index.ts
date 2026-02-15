@@ -18,6 +18,7 @@ export const config: RoomConfigObject = {
 };
 
 const TUTORIAL_LINK = "youtube.com/watch?v=Z09dlI3MR28";
+const DISCORD_LINK = "https://discord.gg/q8ay8PmEkp";
 const ADMIN_PASSWORD = randomBytes(4).toString("hex");
 
 let engine: Engine<Config> | null = null;
@@ -25,7 +26,13 @@ let engine: Engine<Config> | null = null;
 const mainModule = createModule()
     .setCommands({
         spec: { prefix: COMMAND_PREFIX },
-        commands: ["admin", "setpassword", "clearpassword"],
+        commands: [
+            "admin",
+            "setpassword",
+            "clearpassword",
+            "discord",
+            "tutorial",
+        ],
     })
     .onRoomLink((_, url) => {
         console.log(`Room link: ${url}`);
@@ -95,6 +102,20 @@ const mainModule = createModule()
 
                 return { hideMessage: true };
             }
+            case "discord": {
+                room.send({
+                    message: t`Join our Discord server: ${DISCORD_LINK}`,
+                });
+
+                return { hideMessage: false };
+            }
+            case "tutorial": {
+                room.send({
+                    message: t`Watch the tutorial: ${TUTORIAL_LINK}`,
+                });
+
+                return { hideMessage: false };
+            }
             default:
                 return { hideMessage: false };
         }
@@ -117,7 +138,7 @@ const mainModule = createModule()
 const matchModule = createModule()
     .setCommands({
         spec: { prefix: COMMAND_PREFIX },
-        commands: ["punt", "fg", "version", "undo", "info"],
+        commands: ["punt", "fg", "version", "undo", "info", "reposition"],
     })
     .onGameStart((room) => {
         engine = createEngine(room, registry, {

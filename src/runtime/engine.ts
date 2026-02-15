@@ -181,9 +181,9 @@ function resolvePlayerPosition(
     }
 
     if (
-        !player.position ||
-        typeof player.position.x !== "number" ||
-        typeof player.position.y !== "number"
+        player.position &&
+        typeof player.position.x === "number" &&
+        typeof player.position.y === "number"
     ) {
         return { x: player.position.x, y: player.position.y };
     }

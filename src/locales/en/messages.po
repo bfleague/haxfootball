@@ -241,6 +241,10 @@ msgstr "⚠️ No checkpoints available to undo."
 msgid "⚠️ Only admins can call for an undo."
 msgstr "⚠️ Only admins can call for an undo."
 
+#: src/meta/legacy/states/presnap.ts:305
+msgid "⚠️ Only admins can call for repositioning."
+msgstr "⚠️ Only admins can call for repositioning."
+
 #: src/meta/legacy/states/presnap.ts:219
 msgid "⚠️ Only the offense may call for a field goal."
 msgstr "⚠️ Only the offense may call for a field goal."
@@ -663,7 +667,7 @@ msgstr "🏈 Defense takes it back"
 #~ msgid "🏈 Defense takes it back • TWO POINTS!"
 #~ msgstr "🏈 Defense takes it back • TWO POINTS!"
 
-#: src/room/manual/index.ts:12
+#: src/room/manual/index.ts:14
 msgid "🏈 HaxFootball - American Football 🏈"
 msgstr "🏈 HaxFootball - American Football 🏈"
 
@@ -692,7 +696,7 @@ msgstr "🏈 Safety-kick return by {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Two-point pass complete to {0}!"
 
-#: src/room/manual/index.ts:106
+#: src/room/manual/index.ts:128
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Welcome to HaxFootball!"
 
@@ -809,6 +813,11 @@ msgstr "💥 {0} brought down by {catcherNames}!"
 #: src/meta/legacy/states/run.ts:160
 #~ msgid "📉 {yardsLost}-yard loss"
 #~ msgstr "📉 {yardsLost}-yard loss"
+
+#. placeholder {0}: player.name
+#: src/meta/legacy/states/presnap.ts:315
+msgid "📍 {0} repositions the players and ball."
+msgstr "📍 {0} repositions the players and ball."
 
 #. placeholder {0}: frame.player.name
 #: src/meta/legacy/states/kickoff-return.ts:175
@@ -1115,7 +1124,7 @@ msgstr "field goal is dead."
 msgid "FIRST DOWN!"
 msgstr "FIRST DOWN!"
 
-#: src/room/manual/index.ts:150
+#: src/room/manual/index.ts:172
 msgid "HaxFootball 2026"
 msgstr "HaxFootball 2026"
 
@@ -1131,13 +1140,17 @@ msgstr "Illegal advance beyond the LOS"
 msgid "Illegal touch by {offenderNames}"
 msgstr "Illegal touch by {offenderNames}"
 
-#: src/room/manual/index.ts:46
+#: src/room/manual/index.ts:54
 msgid "Incorrect password."
 msgstr "Incorrect password."
 
 #: src/meta/legacy/states/interception.ts:330
 msgid "Interception"
 msgstr "Interception"
+
+#: src/room/manual/index.ts:107
+msgid "Join our Discord server: {DISCORD_LINK}"
+msgstr "Join our Discord server: {DISCORD_LINK}"
 
 #: src/meta/legacy/states/extra-point.ts:159
 msgid "kick the PAT."
@@ -1217,15 +1230,15 @@ msgstr "No gain"
 msgid "no gain."
 msgstr "no gain."
 
-#: src/room/manual/index.ts:91
+#: src/room/manual/index.ts:99
 msgid "Password cleared successfully."
 msgstr "Password cleared successfully."
 
-#: src/room/manual/index.ts:74
+#: src/room/manual/index.ts:82
 msgid "Password updated successfully."
 msgstr "Password updated successfully."
 
-#: src/room/manual/index.ts:66
+#: src/room/manual/index.ts:74
 msgid "Please provide a new password."
 msgstr "Please provide a new password."
 
@@ -1318,7 +1331,7 @@ msgstr "Safety kick return"
 msgid "SAFETY!"
 msgstr "SAFETY!"
 
-#: src/room/manual/index.ts:159
+#: src/room/manual/index.ts:181
 msgid "The game has not been started yet."
 msgstr "The game has not been started yet."
 
@@ -1383,19 +1396,20 @@ msgstr "two-point try failed."
 msgid "two-point try is no longer available."
 msgstr "two-point try is no longer available."
 
-#: src/room/manual/index.ts:110
+#: src/room/manual/index.ts:114
+#: src/room/manual/index.ts:132
 msgid "Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "Watch the tutorial: {TUTORIAL_LINK}"
 
-#: src/room/manual/index.ts:41
+#: src/room/manual/index.ts:49
 msgid "You are now an admin."
 msgstr "You are now an admin."
 
-#: src/room/manual/index.ts:158
+#: src/room/manual/index.ts:180
 msgid "You cannot use that command right now."
 msgstr "You cannot use that command right now."
 
-#: src/room/manual/index.ts:58
-#: src/room/manual/index.ts:83
+#: src/room/manual/index.ts:66
+#: src/room/manual/index.ts:91
 msgid "You must be an admin to use this command."
 msgstr "You must be an admin to use this command."

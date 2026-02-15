@@ -241,6 +241,10 @@ msgstr ""
 msgid "⚠️ Only admins can call for an undo."
 msgstr ""
 
+#: src/meta/legacy/states/presnap.ts:305
+msgid "⚠️ Only admins can call for repositioning."
+msgstr ""
+
 #: src/meta/legacy/states/presnap.ts:219
 msgid "⚠️ Only the offense may call for a field goal."
 msgstr "⚠️ Apenas o ataque pode pedir field goal."
@@ -681,7 +685,7 @@ msgstr "🏈 A defesa retornou"
 #~ msgid "🏈 Defense takes it back • TWO POINTS!"
 #~ msgstr "🏈 Defesa retornou • DOIS PONTOS!"
 
-#: src/room/manual/index.ts:12
+#: src/room/manual/index.ts:14
 msgid "🏈 HaxFootball - American Football 🏈"
 msgstr "🏈 HaxFootball - Futebol Americano 🏈"
 
@@ -710,7 +714,7 @@ msgstr "🏈 Retorno de chute de safety de {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Passe completo na conversão para {0}!"
 
-#: src/room/manual/index.ts:106
+#: src/room/manual/index.ts:128
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Bem-vindo ao HaxFootball!"
 
@@ -827,6 +831,11 @@ msgstr "💥 {0} derrubado por {catcherNames}!"
 #: src/meta/legacy/states/run.ts:160
 #~ msgid "📉 {yardsLost}-yard loss"
 #~ msgstr "📉 perda de {yardsLost} jardas"
+
+#. placeholder {0}: player.name
+#: src/meta/legacy/states/presnap.ts:315
+msgid "📍 {0} repositions the players and ball."
+msgstr ""
 
 #. placeholder {0}: frame.player.name
 #: src/meta/legacy/states/kickoff-return.ts:175
@@ -1133,7 +1142,7 @@ msgstr "field goal anulado."
 msgid "FIRST DOWN!"
 msgstr "FIRST DOWN!"
 
-#: src/room/manual/index.ts:150
+#: src/room/manual/index.ts:172
 msgid "HaxFootball 2026"
 msgstr "HaxFootball 2026"
 
@@ -1149,13 +1158,17 @@ msgstr "Avanço ilegal além da linha de scrimmage"
 msgid "Illegal touch by {offenderNames}"
 msgstr "Toque ilegal por {offenderNames}"
 
-#: src/room/manual/index.ts:46
+#: src/room/manual/index.ts:54
 msgid "Incorrect password."
 msgstr "Senha incorreta."
 
 #: src/meta/legacy/states/interception.ts:330
 msgid "Interception"
 msgstr ""
+
+#: src/room/manual/index.ts:107
+msgid "Join our Discord server: {DISCORD_LINK}"
+msgstr "Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
 #: src/meta/legacy/states/extra-point.ts:159
 msgid "kick the PAT."
@@ -1235,15 +1248,15 @@ msgstr "Sem ganho"
 msgid "no gain."
 msgstr "sem ganho."
 
-#: src/room/manual/index.ts:91
+#: src/room/manual/index.ts:99
 msgid "Password cleared successfully."
 msgstr "Senha removida com sucesso."
 
-#: src/room/manual/index.ts:74
+#: src/room/manual/index.ts:82
 msgid "Password updated successfully."
 msgstr "Senha atualizada com sucesso."
 
-#: src/room/manual/index.ts:66
+#: src/room/manual/index.ts:74
 msgid "Please provide a new password."
 msgstr "Informe uma nova senha."
 
@@ -1336,7 +1349,7 @@ msgstr ""
 msgid "SAFETY!"
 msgstr "SAFETY!"
 
-#: src/room/manual/index.ts:159
+#: src/room/manual/index.ts:181
 msgid "The game has not been started yet."
 msgstr "A partida ainda não foi iniciada."
 
@@ -1401,19 +1414,20 @@ msgstr "tentativa de 2 pontos falhou."
 msgid "two-point try is no longer available."
 msgstr "tentativa de 2 pontos não está mais disponível."
 
-#: src/room/manual/index.ts:110
+#: src/room/manual/index.ts:114
+#: src/room/manual/index.ts:132
 msgid "Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "Assista ao tutorial: {TUTORIAL_LINK}"
 
-#: src/room/manual/index.ts:41
+#: src/room/manual/index.ts:49
 msgid "You are now an admin."
 msgstr "Você agora é admin."
 
-#: src/room/manual/index.ts:158
+#: src/room/manual/index.ts:180
 msgid "You cannot use that command right now."
 msgstr "Você não pode usar esse comando agora."
 
-#: src/room/manual/index.ts:58
-#: src/room/manual/index.ts:83
+#: src/room/manual/index.ts:66
+#: src/room/manual/index.ts:91
 msgid "You must be an admin to use this command."
 msgstr "Você precisa ser admin para usar este comando."

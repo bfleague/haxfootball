@@ -298,6 +298,29 @@ export function Presnap({ downState }: { downState: DownState }) {
                     params: { downState },
                 });
             }
+            case "reposition": {
+                if (!player.admin) {
+                    $effect(($) => {
+                        $.send(
+                            t`⚠️ Only admins can call for repositioning.`,
+                            player.id,
+                        );
+                    });
+
+                    return { handled: true };
+                }
+
+                $effect(($) => {
+                    $.send(
+                        t`📍 ${player.name} repositions the players and ball.`,
+                        player.id,
+                    );
+                });
+
+                $setInitialPlayerPositions(offensiveTeam, ballPos);
+
+                return { handled: true };
+            }
             default:
                 return $createSharedCommandHandler({
                     options: {
