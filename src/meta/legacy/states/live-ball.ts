@@ -27,6 +27,7 @@ import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const FUMBLE_CATCHER_DISTANCE = 1.0;
 
@@ -102,12 +103,13 @@ export function LiveBall({
         );
 
         $effect(($) => {
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`🏈 ${player.name} loses it on contact by ${catcherNames}`,
                     t`turnover at the ${fieldPos.yards}-yard line!`,
                 ),
-            );
+                color: COLOR.SPECIAL,
+            });
             $.setAvatar(playerId, AVATARS.DIZZY);
             catcherIds.forEach((catcherId) => {
                 $.setAvatar(catcherId, AVATARS.MUSCLE);
@@ -158,7 +160,10 @@ export function LiveBall({
         );
 
         $effect(($) => {
-            $.send(t`🔥 TOUCHDOWN by ${frame.player.name}!`);
+            $.send({
+                message: t`🔥 TOUCHDOWN by ${frame.player.name}!`,
+                color: COLOR.SUCCESS,
+            });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -193,50 +198,59 @@ export function LiveBall({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(cn("🏁", nextDownState, t`FIRST DOWN!`));
+                        $.send({
+                            message: cn("🏁", nextDownState, t`FIRST DOWN!`),
+                            color: COLOR.READY,
+                        });
                     });
                 },
                 onNextDown: {
                     onYardsGained(yardsGained: number) {
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     "📈",
                                     nextDownState,
                                     t`${yardsGained}-yard gain`,
                                     t`next down.`,
                                 ),
-                            );
+                                color: COLOR.READY,
+                            });
                         });
                     },
                     onNoGain() {
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     "➖",
                                     nextDownState,
                                     t`No gain`,
                                     t`next down.`,
                                 ),
-                            );
+                                color: COLOR.READY,
+                            });
                         });
                     },
                     onLoss(yardsLost: number) {
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     "📉",
                                     nextDownState,
                                     t`${yardsLost}-yard loss`,
                                     t`next down.`,
                                 ),
-                            );
+                                color: COLOR.READY,
+                            });
                         });
                     },
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`TURNOVER ON DOWNS!`));
+                        $.send({
+                            message: cn(nextDownState, t`TURNOVER ON DOWNS!`),
+                            color: COLOR.READY,
+                        });
                     });
                 },
             });
@@ -260,12 +274,13 @@ export function LiveBall({
             });
         } else {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`🚪 ${frame.player.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
-                );
+                    color: COLOR.ALERT,
+                });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
@@ -303,67 +318,72 @@ export function LiveBall({
             event,
             onFirstDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "💥",
                             nextDownState,
                             t`${frame.player.name} brought down by ${catcherNames}`,
                             t`FIRST DOWN!`,
                         ),
-                    );
+                        color: COLOR.ALERT,
+                    });
                 });
             },
             onNextDown: {
                 onYardsGained(yardsGained: number) {
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 "💥",
                                 nextDownState,
                                 t`${frame.player.name} brought down by ${catcherNames}`,
                                 t`${yardsGained} yard gain`,
                                 t`next down.`,
                             ),
-                        );
+                            color: COLOR.ALERT,
+                        });
                     });
                 },
                 onNoGain() {
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 "💥",
                                 nextDownState,
                                 t`${frame.player.name} brought down by ${catcherNames}`,
                                 t`no gain`,
                                 t`next down.`,
                             ),
-                        );
+                            color: COLOR.ALERT,
+                        });
                     });
                 },
                 onLoss(yardsLost: number) {
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 "💥",
                                 nextDownState,
                                 t`${frame.player.name} brought down by ${catcherNames}`,
                                 t`${yardsLost} yard loss`,
                                 t`next down.`,
                             ),
-                        );
+                            color: COLOR.ALERT,
+                        });
                     });
                 },
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "💥",
                             nextDownState,
                             t`${frame.player.name} brought down by ${catcherNames}`,
                             t`TURNOVER ON DOWNS!`,
                         ),
-                    );
+                        color: COLOR.ALERT,
+                    });
                 });
             },
         });

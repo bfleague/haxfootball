@@ -19,6 +19,7 @@ import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 type EndzoneState = "TOUCHBACK" | "Safety";
 type Frame = {
@@ -55,8 +56,10 @@ export function PuntReturn({
                 const fieldPos = getFieldPosition(player.x);
 
                 $effect(($) => {
-                    $.send(t`🚪 ${player.name} left during the punt return!`);
-
+                    $.send({
+                        message: t`🚪 ${player.name} left during the punt return!`,
+                        color: COLOR.WARNING,
+                    });
                 });
 
                 $next({
@@ -74,13 +77,13 @@ export function PuntReturn({
                 switch (endzoneState) {
                     case "TOUCHBACK":
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     t`🚪 ${player.name} left from the end zone`,
                                     t`touchback.`,
                                 ),
-                            );
-
+                                color: COLOR.WARNING,
+                            });
                         });
 
                         $next({
@@ -95,13 +98,13 @@ export function PuntReturn({
                         });
                     case "Safety":
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     t`🚪 ${player.name} left from the end zone`,
                                     t`SAFETY!`,
                                 ),
-                            );
-
+                                color: COLOR.ALERT,
+                            });
                         });
 
                         $global((state) =>
@@ -167,7 +170,10 @@ export function PuntReturn({
         );
 
         $effect(($) => {
-            $.send(t`🔥 Punt return touchdown by ${frame.player.name}!`);
+            $.send({
+                message: t`🔥 Punt return touchdown by ${frame.player.name}!`,
+                color: COLOR.SUCCESS,
+            });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -193,10 +199,10 @@ export function PuntReturn({
 
         if (isCompletelyInsideMainField(frame.player)) {
             $effect(($) => {
-                $.send(
-                    t`🚪 ${frame.player.name} stepped out on the punt return.`,
-                );
-
+                $.send({
+                    message: t`🚪 ${frame.player.name} stepped out on the punt return.`,
+                    color: COLOR.WARNING,
+                });
 
                 $.setAvatar(playerId, AVATARS.CANCEL);
             });
@@ -220,13 +226,13 @@ export function PuntReturn({
             });
         } else {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`🚪 ${frame.player.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
-                );
-
+                    color: COLOR.ALERT,
+                });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
@@ -256,13 +262,13 @@ export function PuntReturn({
             switch (endzoneState) {
                 case "TOUCHBACK":
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 t`🛑 ${frame.player.name} is down in the end zone`,
                                 t`touchback.`,
                             ),
-                        );
-
+                            color: COLOR.ALERT,
+                        });
 
                         $.setAvatar(playerId, AVATARS.CANCEL);
                     });
@@ -285,13 +291,13 @@ export function PuntReturn({
                     });
                 case "Safety":
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 t`🛑 ${frame.player.name} is down in the end zone`,
                                 t`SAFETY!`,
                             ),
-                        );
-
+                            color: COLOR.ALERT,
+                        });
 
                         $.setAvatar(playerId, AVATARS.CLOWN);
                     });
@@ -322,9 +328,10 @@ export function PuntReturn({
             const fieldPos = getFieldPosition(frame.player.x);
 
             $effect(($) => {
-                $.send(
-                    t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
-                );
+                $.send({
+                    message: t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
+                    color: COLOR.ALERT,
+                });
 
                 catchers.forEach((p) => {
                     $.setAvatar(p.id, AVATARS.MUSCLE);

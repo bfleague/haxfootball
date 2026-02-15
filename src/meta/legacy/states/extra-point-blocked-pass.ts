@@ -14,6 +14,7 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 export function ExtraPointBlockedPass({
     blockerId,
@@ -51,12 +52,13 @@ export function ExtraPointBlockedPass({
 
         $effect(($) => {
             $.setAvatar(blockerId, AVATARS.CONSTRUCTION);
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`🚧 Pass batted by ${blocker.name}`,
                     t`two-point try failed.`,
                 ),
-            );
+                color: COLOR.WARNING,
+            });
         });
 
         $dispose(() => {

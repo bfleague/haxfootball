@@ -20,6 +20,7 @@ import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 export function BlockedPass({
     blockerId,
@@ -73,19 +74,24 @@ export function BlockedPass({
             event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(t`🚧 Pass batted by ${blocker.name}`, t`no gain.`),
-                    );
+                    $.send({
+                        message: cn(
+                            t`🚧 Pass batted by ${blocker.name}`,
+                            t`no gain.`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`🚧 Pass batted by ${blocker.name}`,
                             t`TURNOVER ON DOWNS!`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
         });

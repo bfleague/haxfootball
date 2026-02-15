@@ -21,6 +21,7 @@ import {
     getPositionFromFieldPosition,
 } from "@meta/legacy/shared/stadium";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {
     start: { x: -50, y: -150 },
@@ -115,10 +116,11 @@ export function Punt({ downState }: { downState: DownState }) {
 
         if (hasPlayersPastBall) {
             $effect(($) => {
-                $.send(
-                    t`⚠️ You cannot kick while a teammate is past the ball line.`,
-                    kicker.id,
-                );
+                $.send({
+                    message: t`⚠️ You cannot kick while a teammate is past the ball line.`,
+                    to: kicker.id,
+                    color: COLOR.CRITICAL,
+                });
             });
 
             return;

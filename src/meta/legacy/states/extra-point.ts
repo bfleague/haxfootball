@@ -31,6 +31,7 @@ import {
 import { $global } from "@meta/legacy/hooks/global";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const LOADING_DURATION = ticks({ seconds: 0.5 });
 const EXTRA_POINT_DECISION_WINDOW = ticks({ seconds: 10 });
@@ -160,13 +161,14 @@ export function ExtraPoint({
 
         if (twoPointLocked) {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`⚠️ Two-point try is no longer available`,
                         t`kick the PAT.`,
                     ),
-                    player.id,
-                );
+                    to: player.id,
+                    color: COLOR.CRITICAL,
+                });
             });
 
             return;
@@ -177,13 +179,14 @@ export function ExtraPoint({
 
         if (offensivePlayersBeyondLine.length > 0) {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`❌ Offense crossed the LOS`,
                         t`two-point try is no longer available.`,
                     ),
-                    player.id,
-                );
+                    to: player.id,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -200,17 +203,21 @@ export function ExtraPoint({
 
         if (isTooFarFromBall(player.position, ballPosWithOffset)) {
             $effect(($) => {
-                $.send(
-                    t`⚠️ You are too far from the ball to snap it.`,
-                    player.id,
-                );
+                $.send({
+                    message: t`⚠️ You are too far from the ball to snap it.`,
+                    to: player.id,
+                    color: COLOR.CRITICAL,
+                });
             });
 
             return;
         }
 
         $effect(($) => {
-            $.send(t`*️⃣ ${player.name} starts the two-point try!`);
+            $.send({
+                message: t`*️⃣ ${player.name} starts the two-point try!`,
+                color: COLOR.ACTION,
+            });
         });
 
         $next({
@@ -245,7 +252,7 @@ export function ExtraPoint({
         $setBallInactive();
 
         $effect(($) => {
-            $.send(t`⏱️ PAT window expired.`);
+            $.send({ message: t`⏱️ PAT window expired.`, color: COLOR.ALERT });
         });
 
         $next({
@@ -283,12 +290,13 @@ export function ExtraPoint({
         if (offensivePlayersBeyondLine.length === 0) return;
 
         $effect(($) => {
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`❌ Offense crossed the LOS`,
                     t`two-point try is no longer available.`,
                 ),
-            );
+                color: COLOR.WARNING,
+            });
         });
 
         $next({

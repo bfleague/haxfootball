@@ -25,6 +25,7 @@ import {
 import { $global } from "@meta/legacy/hooks/global";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const MAX_PATH_DURATION = ticks({ seconds: 2 });
 
@@ -109,9 +110,15 @@ export function ExtraPointRun({
 
         $effect(($) => {
             if (ballTeam === originalOffensiveTeam) {
-                $.send(t`✅ Two-point try is good!`);
+                $.send({
+                    message: t`✅ Two-point try is good!`,
+                    color: COLOR.SUCCESS,
+                });
             } else {
-                $.send(cn(t`🏈 Defense takes it back`, t`TWO POINTS!`));
+                $.send({
+                    message: cn(t`🏈 Defense takes it back`, t`TWO POINTS!`),
+                    color: COLOR.MOMENTUM,
+                });
             }
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -137,7 +144,10 @@ export function ExtraPointRun({
         if (isInExtraPointZone(frame.player, originalOffensiveTeam)) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
             $.setAvatar(playerId, AVATARS.CANCEL);
         });
 
@@ -154,7 +164,10 @@ export function ExtraPointRun({
         if (!isOutOfBounds(frame.player)) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
             $.setAvatar(playerId, AVATARS.CANCEL);
         });
 
@@ -172,7 +185,10 @@ export function ExtraPointRun({
         if (catchers.length === 0) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
             $.setAvatar(playerId, AVATARS.CANCEL);
 
             catchers.forEach((player) => {

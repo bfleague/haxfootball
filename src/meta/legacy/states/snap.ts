@@ -44,6 +44,7 @@ import {
     detectPushingFoul,
 } from "@meta/legacy/shared/pushing";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 type Frame = {
     state: GameState;
@@ -221,28 +222,30 @@ export function Snap({
             event: penaltyResult.event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Pushing foul by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Pushing foul by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
         });
@@ -297,14 +300,15 @@ export function Snap({
             event: penaltyResult.event,
             onSameDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Defensive offside`,
                             t`${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
 
                 $next({
@@ -317,15 +321,16 @@ export function Snap({
             },
             onFirstDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Defensive offside`,
                             t`${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty`,
                             t`automatic first down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
 
                 $next({
@@ -342,15 +347,16 @@ export function Snap({
                 );
 
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Defensive offside`,
                             t`${DEFENSIVE_OFFSIDE_PENALTY_YARDS}-yard penalty`,
                             t`automatic touchdown.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
 
                 $next({
@@ -409,14 +415,15 @@ export function Snap({
                 $effect(($) => {
                     $.pauseGame(true);
                     $.pauseGame(false);
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Crowd abuse by ${crowdingOffenderNames}`,
                             t`${Crowding.CROWDING_PENALTY_YARDS}-yard penalty.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $next({
                     to: "PRESNAP",
@@ -428,15 +435,16 @@ export function Snap({
                 $effect(($) => {
                     $.pauseGame(true);
                     $.pauseGame(false);
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Crowd abuse (${crowdingOffenderNames})`,
                             t`${Crowding.CROWDING_PENALTY_YARDS}-yard penalty`,
                             t`automatic first down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $next({
                     to: "PRESNAP",
@@ -449,15 +457,16 @@ export function Snap({
                     state.incrementScore(offensiveTeam, SCORES.TOUCHDOWN),
                 );
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Crowd abuse (${crowdingOffenderNames})`,
                             t`${Crowding.CROWDING_PENALTY_YARDS}-yard penalty`,
                             t`automatic touchdown.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
 
                     setPlayerAvatars(
                         crowdingOffenderIds,
@@ -524,14 +533,15 @@ export function Snap({
             event: penaltyResult.event,
             onSameDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Defensive illegal touch by ${offenderNames}`,
                             t`${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
 
                 $next({
@@ -544,15 +554,16 @@ export function Snap({
             },
             onFirstDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Defensive illegal touch by ${offenderNames}`,
                             t`${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty`,
                             t`automatic first down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
 
                 $next({
@@ -569,15 +580,16 @@ export function Snap({
                 );
 
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Defensive illegal touch by ${offenderNames}`,
                             t`${DEFENSIVE_TOUCHING_PENALTY_YARDS}-yard penalty`,
                             t`automatic touchdown.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
 
                 $next({
@@ -604,7 +616,10 @@ export function Snap({
         const runner = offensiveTouchers[0];
 
         $effect(($) => {
-            $.send(t`🏃 ${runner.name} takes the handoff and starts a run!`);
+            $.send({
+                message: t`🏃 ${runner.name} takes the handoff and starts a run!`,
+                color: COLOR.ACTION,
+            });
         });
 
         $next({
@@ -637,28 +652,30 @@ export function Snap({
             event: penaltyResult.event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Illegal touch by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Illegal touch by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
         });
@@ -707,28 +724,30 @@ export function Snap({
             event: penaltyResult.event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Ball out of bounds`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Ball out of bounds`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
         });
@@ -766,28 +785,30 @@ export function Snap({
             event: penaltyResult.event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Illegal advance beyond the LOS`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Illegal advance beyond the LOS`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
         });
@@ -810,7 +831,10 @@ export function Snap({
         }
 
         $effect(($) => {
-            $.send(cn(t`🏃 Ball crossed the LOS`, t`QB run is live.`));
+            $.send({
+                message: cn(t`🏃 Ball crossed the LOS`, t`QB run is live.`),
+                color: COLOR.ACTION,
+            });
         });
 
         $next({
@@ -831,7 +855,13 @@ export function Snap({
         }
 
         $effect(($) => {
-            $.send(cn(t`🏃 QB crossed the LOS`, t`quarterback run is live.`));
+            $.send({
+                message: cn(
+                    t`🏃 QB crossed the LOS`,
+                    t`quarterback run is live.`,
+                ),
+                color: COLOR.ACTION,
+            });
         });
 
         $next({
@@ -858,7 +888,10 @@ export function Snap({
         }
 
         $effect(($) => {
-            $.send(t`🚨 Defense is bringing the blitz!`);
+            $.send({
+                message: t`🚨 Defense is bringing the blitz!`,
+                color: COLOR.CRITICAL,
+            });
         });
 
         $next({

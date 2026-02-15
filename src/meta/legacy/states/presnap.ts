@@ -38,6 +38,7 @@ import {
     type InitialPositioningRelativeLines,
 } from "@meta/legacy/shared/initial-positioning";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import { COLOR } from "@common/general/color";
 
 const HIKING_DISTANCE_LIMIT = 30;
 
@@ -179,10 +180,11 @@ export function Presnap({ downState }: { downState: DownState }) {
 
             if (isTooFarFromBall(player.position, ballPosWithOffset)) {
                 $effect(($) => {
-                    $.send(
-                        t`⚠️ You are too far from the ball to snap it.`,
-                        player.id,
-                    );
+                    $.send({
+                        message: t`⚠️ You are too far from the ball to snap it.`,
+                        to: player.id,
+                        color: COLOR.CRITICAL,
+                    });
                 });
 
                 return false;
@@ -193,10 +195,11 @@ export function Presnap({ downState }: { downState: DownState }) {
 
             if (offensivePlayersPastLine.length > 0) {
                 $effect(($) => {
-                    $.send(
-                        t`⚠️ You cannot snap while a teammate is past the LOS.`,
-                        player.id,
-                    );
+                    $.send({
+                        message: t`⚠️ You cannot snap while a teammate is past the LOS.`,
+                        to: player.id,
+                        color: COLOR.CRITICAL,
+                    });
                 });
 
                 for (const teammate of offensivePlayersPastLine) {
@@ -205,6 +208,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                             message: t`⚠️ You must get back behind the line of scrimmage to allow the snap!`,
                             to: teammate.id,
                             sound: "notification",
+                            color: COLOR.CRITICAL,
                         });
                     });
                 }
@@ -213,7 +217,13 @@ export function Presnap({ downState }: { downState: DownState }) {
             }
 
             $effect(($) => {
-                $.send(cn(t`🏈 ${player.name} snaps it`, t`ball is live!`));
+                $.send({
+                    message: cn(
+                        t`🏈 ${player.name} snaps it`,
+                        t`ball is live!`,
+                    ),
+                    color: COLOR.ACTION,
+                });
             });
 
             $global((state) => state.clearSnapProfile());
@@ -236,10 +246,11 @@ export function Presnap({ downState }: { downState: DownState }) {
             case "fg": {
                 if (player.team !== offensiveTeam) {
                     $effect(($) => {
-                        $.send(
-                            t`⚠️ Only the offense may call for a field goal.`,
-                            player.id,
-                        );
+                        $.send({
+                            message: t`⚠️ Only the offense may call for a field goal.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
                     });
 
                     return { handled: true };
@@ -247,17 +258,21 @@ export function Presnap({ downState }: { downState: DownState }) {
 
                 if (isTooFarFromBall(player.position, ballPosWithOffset)) {
                     $effect(($) => {
-                        $.send(
-                            t`⚠️ You are too far from the ball to attempt the field goal.`,
-                            player.id,
-                        );
+                        $.send({
+                            message: t`⚠️ You are too far from the ball to attempt the field goal.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
                     });
 
                     return { handled: true };
                 }
 
                 $effect(($) => {
-                    $.send(t`🥅 ${player.name} sets up for the field goal!`);
+                    $.send({
+                        message: t`🥅 ${player.name} sets up for the field goal!`,
+                        color: COLOR.ACTION,
+                    });
                 });
 
                 $next({
@@ -268,7 +283,11 @@ export function Presnap({ downState }: { downState: DownState }) {
             case "punt": {
                 if (player.team !== offensiveTeam) {
                     $effect(($) => {
-                        $.send(t`⚠️ Only the offense may punt.`, player.id);
+                        $.send({
+                            message: t`⚠️ Only the offense may punt.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
                     });
 
                     return { handled: true };
@@ -276,10 +295,11 @@ export function Presnap({ downState }: { downState: DownState }) {
 
                 if (isTooFarFromBall(player.position, ballPosWithOffset)) {
                     $effect(($) => {
-                        $.send(
-                            t`⚠️ You are too far from the ball to punt.`,
-                            player.id,
-                        );
+                        $.send({
+                            message: t`⚠️ You are too far from the ball to punt.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
                     });
 
                     return { handled: true };
@@ -287,10 +307,11 @@ export function Presnap({ downState }: { downState: DownState }) {
 
                 if (isInRedZone(offensiveTeam, downState.fieldPos)) {
                     $effect(($) => {
-                        $.send(
-                            t`⚠️ You cannot punt from the opponent red zone.`,
-                            player.id,
-                        );
+                        $.send({
+                            message: t`⚠️ You cannot punt from the opponent red zone.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
                     });
 
                     return { handled: true };
@@ -301,17 +322,21 @@ export function Presnap({ downState }: { downState: DownState }) {
 
                 if (offensivePlayersPastLine.length > 0) {
                     $effect(($) => {
-                        $.send(
-                            t`⚠️ You cannot punt while a teammate is past the LOS.`,
-                            player.id,
-                        );
+                        $.send({
+                            message: t`⚠️ You cannot punt while a teammate is past the LOS.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
                     });
 
                     return { handled: true };
                 }
 
                 $effect(($) => {
-                    $.send(t`🦵 ${player.name} punts it away!`);
+                    $.send({
+                        message: t`🦵 ${player.name} punts it away!`,
+                        color: COLOR.ACTION,
+                    });
                 });
 
                 $next({
@@ -322,20 +347,22 @@ export function Presnap({ downState }: { downState: DownState }) {
             case "reposition": {
                 if (!player.admin) {
                     $effect(($) => {
-                        $.send(
-                            t`⚠️ Only admins can call for repositioning.`,
-                            player.id,
-                        );
+                        $.send({
+                            message: t`⚠️ Only admins can call for repositioning.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
                     });
 
                     return { handled: true };
                 }
 
                 $effect(($) => {
-                    $.send(
-                        t`📍 ${player.name} repositions the players and ball.`,
-                        player.id,
-                    );
+                    $.send({
+                        message: t`📍 ${player.name} repositions the players and ball.`,
+                        to: player.id,
+                        color: COLOR.ACTION,
+                    });
                 });
 
                 $setInitialPlayerPositions(offensiveTeam, ballPos);

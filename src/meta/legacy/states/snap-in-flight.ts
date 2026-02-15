@@ -20,6 +20,7 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 export function SnapInFlight({ downState }: { downState: DownState }) {
     const { offensiveTeam, fieldPos, downAndDistance } = downState;
@@ -58,17 +59,30 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
             $effect(($) => {
                 switch (event.type) {
                     case "FIRST_DOWN":
-                        $.send(cn(t`🚪 Ball out of bounds`, t`FIRST DOWN!`));
+                        $.send({
+                            message: cn(
+                                t`🚪 Ball out of bounds`,
+                                t`FIRST DOWN!`,
+                            ),
+                            color: COLOR.WARNING,
+                        });
 
                         break;
                     case "NEXT_DOWN":
-                        $.send(cn(t`🚪 Ball out of bounds`, t`no gain.`));
+                        $.send({
+                            message: cn(t`🚪 Ball out of bounds`, t`no gain.`),
+                            color: COLOR.WARNING,
+                        });
 
                         break;
                     case "TURNOVER_ON_DOWNS":
-                        $.send(
-                            cn(t`❌ TURNOVER ON DOWNS`, t`ball out of bounds.`),
-                        );
+                        $.send({
+                            message: cn(
+                                t`❌ TURNOVER ON DOWNS`,
+                                t`ball out of bounds.`,
+                            ),
+                            color: COLOR.WARNING,
+                        });
 
                         break;
                 }
@@ -90,7 +104,10 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
 
         if (offensiveCatcher) {
             $effect(($) => {
-                $.send(t`🏈 Pass complete to ${offensiveCatcher.name}!`);
+                $.send({
+                    message: t`🏈 Pass complete to ${offensiveCatcher.name}!`,
+                    color: COLOR.MOMENTUM,
+                });
             });
 
             $next({

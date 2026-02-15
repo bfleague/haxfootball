@@ -14,6 +14,7 @@ import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
     function join(player: GameStatePlayer) {
@@ -40,12 +41,13 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
             });
 
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`❌ Kickoff out of bounds`,
                         t`ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
                     ),
-                );
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -69,7 +71,10 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`🏈 Kickoff return by ${catcher.name}!`);
+                $.send({
+                    message: t`🏈 Kickoff return by ${catcher.name}!`,
+                    color: COLOR.MOMENTUM,
+                });
             });
 
             $next({

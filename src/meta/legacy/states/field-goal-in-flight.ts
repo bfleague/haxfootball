@@ -16,6 +16,7 @@ import {
     isWithinGoalPosts,
 } from "@meta/legacy/shared/stadium";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const FIELD_GOAL_RESULT_DELAY = ticks({ seconds: 2 });
 const FIELD_GOAL_SUCCESS_DELAY = ticks({ seconds: 3 });
@@ -63,7 +64,10 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
                 );
 
                 $effect(($) => {
-                    $.send(t`✅ Field goal is good!`);
+                    $.send({
+                        message: t`✅ Field goal is good!`,
+                        color: COLOR.SUCCESS,
+                    });
                 });
 
                 $next({
@@ -76,7 +80,10 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
             }
 
             $effect(($) => {
-                $.send(t`❌ Field goal is no good.`);
+                $.send({
+                    message: t`❌ Field goal is no good.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -90,7 +97,10 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
 
         if (isBallOutOfBounds(state.ball)) {
             $effect(($) => {
-                $.send(t`❌ Field goal went out of bounds.`);
+                $.send({
+                    message: t`❌ Field goal went out of bounds.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -109,7 +119,10 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
 
         if (isStopped) {
             $effect(($) => {
-                $.send(t`❌ Field goal is no good.`);
+                $.send({
+                    message: t`❌ Field goal is no good.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({

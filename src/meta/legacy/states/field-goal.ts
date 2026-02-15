@@ -44,6 +44,7 @@ import {
 import { sortBy } from "@common/general/helpers";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const FIELD_GOAL_LINE_HEIGHT = 200;
 const OFFENSE_LINE_OFFSET_YARDS = 20;
@@ -292,7 +293,10 @@ export function FieldGoal({
 
         if (isEarlyOutOfBounds(frame.state.ball)) {
             $effect(($) => {
-                $.send(t`❌ Field goal went out of bounds.`);
+                $.send({
+                    message: t`❌ Field goal went out of bounds.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -318,12 +322,13 @@ export function FieldGoal({
         const offenderNames = formatNames(frame.offensiveBallTouchers);
 
         $effect(($) => {
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`❌ Illegal touch by ${offenderNames} before the kick`,
                     t`field goal is dead.`,
                 ),
-            );
+                color: COLOR.WARNING,
+            });
         });
 
         $next({
@@ -341,12 +346,13 @@ export function FieldGoal({
         const offenderNames = formatNames(frame.defensiveBallTouchers);
 
         $effect(($) => {
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`❌ Defensive touch by ${offenderNames} before the kick`,
                     t`field goal is dead.`,
                 ),
-            );
+                color: COLOR.WARNING,
+            });
         });
 
         $next({
@@ -364,12 +370,13 @@ export function FieldGoal({
         const offenderNames = formatNames(frame.defensiveKickerTouchers);
 
         $effect(($) => {
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`❌ Defensive contact by ${offenderNames} on ${frame.kicker.name} before the kick`,
                     t`field goal is dead.`,
                 ),
-            );
+                color: COLOR.WARNING,
+            });
         });
 
         $next({
@@ -386,7 +393,10 @@ export function FieldGoal({
 
         if (frame.canFake) {
             $effect(($) => {
-                $.send(t`🎭 ${frame.kicker.name} sells the fake field goal!`);
+                $.send({
+                    message: t`🎭 ${frame.kicker.name} sells the fake field goal!`,
+                    color: COLOR.ACTION,
+                });
             });
 
             $next({
@@ -400,12 +410,13 @@ export function FieldGoal({
 
         if (!frame.canFake) {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`❌ ${frame.kicker.name} crossed the LOS early`,
                         t`field goal is dead.`,
                     ),
-                );
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -422,12 +433,13 @@ export function FieldGoal({
         if (frame.kicker.isKickingBall || !frame.ballCrossedLine) return;
 
         $effect(($) => {
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`❌ Ball crossed the LOS before the kick`,
                     t`field goal is dead.`,
                 ),
-            );
+                color: COLOR.WARNING,
+            });
         });
 
         $next({

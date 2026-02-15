@@ -16,6 +16,7 @@ import {
     isWithinGoalPosts,
 } from "@meta/legacy/shared/stadium";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const EXTRA_POINT_RESULT_DELAY = ticks({ seconds: 2 });
 const EXTRA_POINT_SUCCESS_DELAY = ticks({ seconds: 2 });
@@ -61,7 +62,10 @@ export function ExtraPointKick({
                 );
 
                 $effect(($) => {
-                    $.send(t`✅ PAT is good!`);
+                    $.send({
+                        message: t`✅ PAT is good!`,
+                        color: COLOR.SUCCESS,
+                    });
                 });
 
                 $next({
@@ -74,7 +78,10 @@ export function ExtraPointKick({
             }
 
             $effect(($) => {
-                $.send(t`❌ PAT is no good.`);
+                $.send({
+                    message: t`❌ PAT is no good.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -88,7 +95,10 @@ export function ExtraPointKick({
 
         if (isBallOutOfBounds(state.ball)) {
             $effect(($) => {
-                $.send(t`❌ PAT went out of bounds.`);
+                $.send({
+                    message: t`❌ PAT went out of bounds.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -107,7 +117,10 @@ export function ExtraPointKick({
 
         if (isStopped) {
             $effect(($) => {
-                $.send(t`❌ PAT is no good.`);
+                $.send({
+                    message: t`❌ PAT is no good.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({

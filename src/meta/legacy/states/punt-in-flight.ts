@@ -16,6 +16,7 @@ import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
     function join(player: GameStatePlayer) {
@@ -46,7 +47,10 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
             if (isTouchback) {
                 $effect(($) => {
-                    $.send(cn(t`Punt out in the end zone`, t`touchback.`));
+                    $.send({
+                        message: cn(t`Punt out in the end zone`, t`touchback.`),
+                        color: COLOR.ALERT,
+                    });
                 });
 
                 $next({
@@ -64,12 +68,13 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
             const fieldPos = getFieldPosition(state.ball.x);
 
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`🚪 Punt out of bounds`,
                         t`ball spotted at the ${fieldPos.yards}-yard line.`,
                     ),
-                );
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -90,7 +95,10 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`🏈 Punt return by ${catcher.name}!`);
+                $.send({
+                    message: t`🏈 Punt return by ${catcher.name}!`,
+                    color: COLOR.MOMENTUM,
+                });
             });
 
             $next({
@@ -106,12 +114,13 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (kickingTeamCatcher) {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`❌ Illegal touch`,
                         t`punt caught first by the kicking team (${kickingTeamCatcher.name}).`,
                     ),
-                );
+                    color: COLOR.WARNING,
+                });
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);
             });
 

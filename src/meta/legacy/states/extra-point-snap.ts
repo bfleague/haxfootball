@@ -45,6 +45,7 @@ import {
     detectPushingFoul,
 } from "@meta/legacy/shared/pushing";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const DEFENSIVE_FOUL_PENALTY_YARDS = 5;
 const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });
@@ -214,12 +215,13 @@ export function ExtraPointSnap({
         const pusherIds = pushingFoul.pushers.map((player) => player.id);
 
         $effect(($) => {
-            $.send(
-                cn(
+            $.send({
+                message: cn(
                     t`❌ Pushing foul by ${pusherNames}`,
                     t`two-point try failed.`,
                 ),
-            );
+                color: COLOR.WARNING,
+            });
 
             setPlayerAvatars(pusherIds, $.setAvatar, AVATARS.CLOWN);
         });
@@ -277,7 +279,10 @@ export function ExtraPointSnap({
         if (isInExtraPointZone(state.ball, offensiveTeam)) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
         });
 
         $failTwoPointAttempt();
@@ -299,33 +304,39 @@ export function ExtraPointSnap({
             event: penaltyResult.event,
             onSameDown(yardsGained) {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Defensive offside`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
             },
             onFirstDown(yardsGained) {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Defensive offside`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
             },
             onTouchdown() {
                 $effect(($) => {
-                    $.send(
-                        cn(t`❌ Defensive offside`, t`two-point try awarded.`),
-                    );
+                    $.send({
+                        message: cn(
+                            t`❌ Defensive offside`,
+                            t`two-point try awarded.`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
                 });
                 $awardTwoPointConversion();
             },
@@ -351,36 +362,39 @@ export function ExtraPointSnap({
             event: penaltyResult.event,
             onSameDown(yardsGained) {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Defensive illegal touch`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
             },
             onFirstDown(yardsGained) {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Defensive illegal touch`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls);
             },
             onTouchdown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Defensive illegal touch`,
                             t`two-point try awarded.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $awardTwoPointConversion();
             },
@@ -434,13 +448,14 @@ export function ExtraPointSnap({
                 $effect(($) => {
                     $.pauseGame(true);
                     $.pauseGame(false);
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Crowd abuse by ${crowdingOffenderNames}`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls, {
                     disposal: "AFTER_RESUME",
@@ -450,13 +465,14 @@ export function ExtraPointSnap({
                 $effect(($) => {
                     $.pauseGame(true);
                     $.pauseGame(false);
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Crowd abuse (${crowdingOffenderNames})`,
                             t`${yardsGained}-yard penalty`,
                             t`replay the try.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
                 $retryExtraPointAttempt(nextFieldPos, nextDefensiveFouls, {
                     disposal: "AFTER_RESUME",
@@ -464,12 +480,13 @@ export function ExtraPointSnap({
             },
             onTouchdown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             t`❌ Crowd abuse (${crowdingOffenderNames})`,
                             t`two-point try awarded.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                     setPlayerAvatars(
                         crowdingOffenderIds,
                         $.setAvatar,
@@ -531,7 +548,10 @@ export function ExtraPointSnap({
         const runner = offensiveTouchers[0];
 
         $effect(($) => {
-            $.send(t`🏃 ${runner.name} takes the handoff!`);
+            $.send({
+                message: t`🏃 ${runner.name} takes the handoff!`,
+                color: COLOR.ACTION,
+            });
             $.setAvatar(quarterbackId, null);
         });
 
@@ -557,7 +577,10 @@ export function ExtraPointSnap({
         if (offensiveTouchers.length === 0) return;
 
         $effect(($) => {
-            $.send(cn(t`❌ Offensive foul`, t`two-point try failed.`));
+            $.send({
+                message: cn(t`❌ Offensive foul`, t`two-point try failed.`),
+                color: COLOR.WARNING,
+            });
         });
 
         $failTwoPointAttempt();
@@ -567,7 +590,10 @@ export function ExtraPointSnap({
         if (!isBallOutOfBounds(frame.state.ball)) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
         });
 
         $failTwoPointAttempt();
@@ -590,7 +616,10 @@ export function ExtraPointSnap({
         if (!frame.quarterbackCrossedLineOfScrimmage) return;
 
         $effect(($) => {
-            $.send(t`🏃 QB ${frame.quarterback.name} keeps it and runs!`);
+            $.send({
+                message: t`🏃 QB ${frame.quarterback.name} keeps it and runs!`,
+                color: COLOR.ACTION,
+            });
         });
 
         $next({
@@ -610,7 +639,10 @@ export function ExtraPointSnap({
         }
 
         $effect(($) => {
-            $.send(t`🚨 Defense is bringing the blitz!`);
+            $.send({
+                message: t`🚨 Defense is bringing the blitz!`,
+                color: COLOR.CRITICAL,
+            });
         });
 
         $next({

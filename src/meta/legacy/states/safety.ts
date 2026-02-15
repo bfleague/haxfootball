@@ -22,6 +22,7 @@ import { $next } from "@runtime/runtime";
 import { t } from "@lingui/core/macro";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {
     start: { x: -50, y: -150 },
@@ -124,10 +125,11 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
 
         if (hasPlayersPastBall) {
             $effect(($) => {
-                $.send(
-                    t`⚠️ You cannot kick while a teammate is past the ball line.`,
-                    kicker.id,
-                );
+                $.send({
+                    message: t`⚠️ You cannot kick while a teammate is past the ball line.`,
+                    to: kicker.id,
+                    color: COLOR.CRITICAL,
+                });
             });
 
             return;

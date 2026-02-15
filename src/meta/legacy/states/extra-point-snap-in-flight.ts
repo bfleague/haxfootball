@@ -15,6 +15,7 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 export function ExtraPointSnapInFlight({
     offensiveTeam,
@@ -45,7 +46,10 @@ export function ExtraPointSnapInFlight({
     function run(state: GameState) {
         if (isBallOutOfBounds(state.ball)) {
             $effect(($) => {
-                $.send(t`❌ Two-point try failed.`);
+                $.send({
+                    message: t`❌ Two-point try failed.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -64,9 +68,10 @@ export function ExtraPointSnapInFlight({
 
         if (offensiveCatcher) {
             $effect(($) => {
-                $.send(
-                    t`🏈 Two-point pass complete to ${offensiveCatcher.name}!`,
-                );
+                $.send({
+                    message: t`🏈 Two-point pass complete to ${offensiveCatcher.name}!`,
+                    color: COLOR.MOMENTUM,
+                });
             });
 
             $next({
@@ -100,7 +105,10 @@ export function ExtraPointSnapInFlight({
 
         if (!isInExtraPointZone(state.ball, offensiveTeam)) {
             $effect(($) => {
-                $.send(t`❌ Two-point try failed.`);
+                $.send({
+                    message: t`❌ Two-point try failed.`,
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({

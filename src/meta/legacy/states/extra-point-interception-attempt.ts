@@ -23,6 +23,7 @@ import {
 import { PointLike } from "@common/math/geometry";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });
 
@@ -58,7 +59,10 @@ export function ExtraPointInterceptionAttempt({
         intersectionPoint: PointLike;
     }) {
         $effect(($) => {
-            $.send(t`🛡️ INTERCEPTION by ${args.blocker.name}!`);
+            $.send({
+                message: t`🛡️ INTERCEPTION by ${args.blocker.name}!`,
+                color: COLOR.SPECIAL,
+            });
         });
 
         $next({

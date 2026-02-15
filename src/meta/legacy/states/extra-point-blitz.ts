@@ -21,6 +21,7 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });
 
@@ -133,7 +134,10 @@ export function ExtraPointBlitz({
         if (offensiveTouchers.length === 0) return;
 
         $effect(($) => {
-            $.send(cn(t`❌ Offensive foul`, t`two-point try failed.`));
+            $.send({
+                message: cn(t`❌ Offensive foul`, t`two-point try failed.`),
+                color: COLOR.WARNING,
+            });
         });
 
         $failTwoPointAttempt();
@@ -167,7 +171,10 @@ export function ExtraPointBlitz({
         if (!frame.isQuarterbackEligibleToRun) return;
 
         $effect(($) => {
-            $.send(t`🏃 QB ${frame.quarterback.name} keeps it and runs!`);
+            $.send({
+                message: t`🏃 QB ${frame.quarterback.name} keeps it and runs!`,
+                color: COLOR.ACTION,
+            });
         });
 
         $next({
@@ -185,7 +192,10 @@ export function ExtraPointBlitz({
         if (isInExtraPointZone(frame.quarterback, offensiveTeam)) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
             $.setAvatar(quarterbackId, AVATARS.CANCEL);
         });
 
@@ -202,7 +212,10 @@ export function ExtraPointBlitz({
         if (!isOutOfBounds(frame.quarterback)) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
             $.setAvatar(quarterbackId, AVATARS.CANCEL);
         });
 
@@ -220,7 +233,10 @@ export function ExtraPointBlitz({
         if (catchers.length === 0) return;
 
         $effect(($) => {
-            $.send(t`❌ Two-point try failed.`);
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
             $.setAvatar(quarterbackId, AVATARS.CANCEL);
 
             catchers.forEach((player) => {

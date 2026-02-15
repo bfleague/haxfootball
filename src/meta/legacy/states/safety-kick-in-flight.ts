@@ -15,6 +15,7 @@ import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 export function SafetyKickInFlight({
     kickingTeam,
@@ -45,12 +46,13 @@ export function SafetyKickInFlight({
             });
 
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`❌ Safety kick out of bounds`,
                         t`ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
                     ),
-                );
+                    color: COLOR.WARNING,
+                });
             });
 
             $next({
@@ -74,7 +76,10 @@ export function SafetyKickInFlight({
 
         if (catcher) {
             $effect(($) => {
-                $.send(t`🏈 Safety-kick return by ${catcher.name}!`);
+                $.send({
+                    message: t`🏈 Safety-kick return by ${catcher.name}!`,
+                    color: COLOR.MOMENTUM,
+                });
             });
 
             $next({
@@ -90,12 +95,13 @@ export function SafetyKickInFlight({
 
         if (kickingTeamCatcher) {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`❌ Illegal touch`,
                         t`safety kick caught first by the kicking team (${kickingTeamCatcher.name}).`,
                     ),
-                );
+                    color: COLOR.WARNING,
+                });
                 $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);
             });
 

@@ -28,6 +28,7 @@ import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const MAX_PATH_DURATION = ticks({ seconds: 2 });
 
@@ -127,7 +128,10 @@ export function Interception({
         $global((state) => state.incrementScore(playerTeam, SCORES.TOUCHDOWN));
 
         $effect(($) => {
-            $.send(t`🔥 PICK-SIX by ${frame.player.name}!`);
+            $.send({
+                message: t`🔥 PICK-SIX by ${frame.player.name}!`,
+                color: COLOR.SUCCESS,
+            });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
 
@@ -153,10 +157,10 @@ export function Interception({
 
         if (isCompletelyInsideMainField(frame.player)) {
             $effect(($) => {
-                $.send(
-                    t`🚪 ${frame.player.name} stepped out on the interception return.`,
-                );
-
+                $.send({
+                    message: t`🚪 ${frame.player.name} stepped out on the interception return.`,
+                    color: COLOR.WARNING,
+                });
 
                 $.setAvatar(playerId, AVATARS.CANCEL);
             });
@@ -180,13 +184,13 @@ export function Interception({
             });
         } else {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`🚪 ${frame.player.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
-                );
-
+                    color: COLOR.ALERT,
+                });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
             });
@@ -216,13 +220,13 @@ export function Interception({
             switch (endzoneState) {
                 case "TOUCHBACK":
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 t`🛑 ${frame.player.name} is down in the end zone`,
                                 t`touchback.`,
                             ),
-                        );
-
+                            color: COLOR.ALERT,
+                        });
 
                         $.setAvatar(playerId, AVATARS.CANCEL);
                     });
@@ -245,13 +249,13 @@ export function Interception({
                     });
                 case "Safety":
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 t`🛑 ${frame.player.name} is down in the end zone`,
                                 t`SAFETY!`,
                             ),
-                        );
-
+                            color: COLOR.ALERT,
+                        });
 
                         $.setAvatar(playerId, AVATARS.CLOWN);
                     });
@@ -282,9 +286,10 @@ export function Interception({
             const fieldPos = getFieldPosition(frame.player.x);
 
             $effect(($) => {
-                $.send(
-                    t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
-                );
+                $.send({
+                    message: t`💥 ${frame.player.name} brought down by ${catcherNames}!`,
+                    color: COLOR.ALERT,
+                });
 
                 catchers.forEach((p) => {
                     $.setAvatar(p.id, AVATARS.MUSCLE);

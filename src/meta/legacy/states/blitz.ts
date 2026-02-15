@@ -31,6 +31,7 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
+import { COLOR } from "@common/general/color";
 
 const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
 
@@ -130,28 +131,30 @@ export function Blitz({
             event: penaltyResult.event,
             onNextDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Illegal touch by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`loss of down.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "❌",
                             penaltyResult.downState,
                             t`Illegal touch by ${offenderNames}`,
                             t`${OFFENSIVE_FOUL_PENALTY_YARDS}-yard penalty`,
                             t`turnover on downs.`,
                         ),
-                    );
+                        color: COLOR.WARNING,
+                    });
                 });
             },
         });
@@ -189,7 +192,13 @@ export function Blitz({
         if (!frame.quarterbackCrossedLineOfScrimmage) return;
 
         $effect(($) => {
-            $.send(cn(t`🏃 QB crossed the LOS`, t`quarterback run is live.`));
+            $.send({
+                message: cn(
+                    t`🏃 QB crossed the LOS`,
+                    t`quarterback run is live.`,
+                ),
+                color: COLOR.ACTION,
+            });
         });
 
         $next({
@@ -220,50 +229,59 @@ export function Blitz({
                 event,
                 onFirstDown() {
                     $effect(($) => {
-                        $.send(cn("🏁", nextDownState, t`FIRST DOWN!`));
+                        $.send({
+                            message: cn("🏁", nextDownState, t`FIRST DOWN!`),
+                            color: COLOR.READY,
+                        });
                     });
                 },
                 onNextDown: {
                     onYardsGained(yardsGained: number) {
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     "📈",
                                     nextDownState,
                                     t`${yardsGained}-yard gain`,
                                     t`next down.`,
                                 ),
-                            );
+                                color: COLOR.READY,
+                            });
                         });
                     },
                     onNoGain() {
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     "➖",
                                     nextDownState,
                                     t`No gain`,
                                     t`next down.`,
                                 ),
-                            );
+                                color: COLOR.READY,
+                            });
                         });
                     },
                     onLoss(yardsLost: number) {
                         $effect(($) => {
-                            $.send(
-                                cn(
+                            $.send({
+                                message: cn(
                                     "📉",
                                     nextDownState,
                                     t`${yardsLost}-yard loss`,
                                     t`next down.`,
                                 ),
-                            );
+                                color: COLOR.READY,
+                            });
                         });
                     },
                 },
                 onTurnoverOnDowns() {
                     $effect(($) => {
-                        $.send(cn(nextDownState, t`TURNOVER ON DOWNS!`));
+                        $.send({
+                            message: cn(nextDownState, t`TURNOVER ON DOWNS!`),
+                            color: COLOR.READY,
+                        });
                     });
                 },
             });
@@ -287,12 +305,13 @@ export function Blitz({
             });
         } else {
             $effect(($) => {
-                $.send(
-                    cn(
+                $.send({
+                    message: cn(
                         t`🚪 QB ${frame.quarterback.name} went out in the end zone`,
                         t`SAFETY!`,
                     ),
-                );
+                    color: COLOR.ALERT,
+                });
 
                 $.setAvatar(quarterbackId, AVATARS.CLOWN);
             });
@@ -330,67 +349,72 @@ export function Blitz({
             event,
             onFirstDown() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "💥",
                             nextDownState,
                             t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
                             t`FIRST DOWN!`,
                         ),
-                    );
+                        color: COLOR.ALERT,
+                    });
                 });
             },
             onNextDown: {
                 onYardsGained(yardsGained: number) {
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 "💥",
                                 nextDownState,
                                 t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
                                 t`${yardsGained} yard gain`,
                                 t`next down.`,
                             ),
-                        );
+                            color: COLOR.ALERT,
+                        });
                     });
                 },
                 onNoGain() {
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 "💥",
                                 nextDownState,
                                 t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
                                 t`no gain`,
                                 t`next down.`,
                             ),
-                        );
+                            color: COLOR.ALERT,
+                        });
                     });
                 },
                 onLoss(yardsLost: number) {
                     $effect(($) => {
-                        $.send(
-                            cn(
+                        $.send({
+                            message: cn(
                                 "💥",
                                 nextDownState,
                                 t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
                                 t`${yardsLost} yard loss`,
                                 t`next down.`,
                             ),
-                        );
+                            color: COLOR.ALERT,
+                        });
                     });
                 },
             },
             onTurnoverOnDowns() {
                 $effect(($) => {
-                    $.send(
-                        cn(
+                    $.send({
+                        message: cn(
                             "💥",
                             nextDownState,
                             t`QB ${frame.quarterback.name} sacked by ${catcherNames}`,
                             t`TURNOVER ON DOWNS!`,
                         ),
-                    );
+                        color: COLOR.ALERT,
+                    });
                 });
             },
         });
