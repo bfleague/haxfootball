@@ -293,7 +293,7 @@ msgstr "⚠️ Você não pode dar hike enquanto um companheiro estiver além da
 
 #: src/meta/legacy/states/field-goal-in-flight.ts:66
 msgid "✅ Field goal is good!"
-msgstr "✅ field goal convertido!"
+msgstr "✅ Field goal convertido!"
 
 #: src/meta/legacy/states/extra-point-kick.ts:64
 msgid "✅ PAT is good!"
@@ -1264,7 +1264,7 @@ msgstr "Informe uma nova senha."
 #. placeholder {0}: kickingTeamCatcher.name
 #: src/meta/legacy/states/punt-in-flight.ts:115
 msgid "punt caught first by the kicking team ({0})."
-msgstr "punt tocado primeiro pelo time que chutou ({0})."
+msgstr "Punt tocado primeiro pelo time que chutou ({0})."
 
 #: src/meta/legacy/states/punt-in-flight.ts:29
 msgid "Punt in flight"

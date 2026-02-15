@@ -34,9 +34,11 @@ const mainModule = createModule()
             "tutorial",
         ],
     })
-    .onRoomLink((_, url) => {
+    .onRoomLink((room, url) => {
         console.log(`Room link: ${url}`);
         console.log(`Admin password: ${ADMIN_PASSWORD}`);
+
+        room.lockTeams();
     })
     .onPlayerSendCommand((room, player, command) => {
         switch (command.name) {
