@@ -62,6 +62,7 @@ function isTooFarFromBall(position: Position | undefined, ballPos: Position) {
 function $setInitialPlayerPositions(
     offensiveTeam: FieldTeam,
     ballPos: Position,
+    targetPlayerId?: number,
 ) {
     const snapProfile = $global().snapProfile;
 
@@ -83,13 +84,22 @@ function $setInitialPlayerPositions(
             ];
         });
 
-        buildInitialPlayerPositions({
+        const initialPlayerPositions = buildInitialPlayerPositions({
             players,
             offensiveTeam,
             ballPos,
             relativeLines: DEFAULT_INITIAL_RELATIVE_POSITIONS,
             snapProfile,
-        }).forEach(({ id, x, y }) => {
+        });
+
+        const playerPositions =
+            typeof targetPlayerId === "number"
+                ? initialPlayerPositions.filter(
+                      ({ id }) => id === targetPlayerId,
+                  )
+                : initialPlayerPositions;
+
+        playerPositions.forEach(({ id, x, y }) => {
             $.setPlayerDiscProperties(id, {
                 x,
                 y,
@@ -154,7 +164,11 @@ export function Presnap({ downState }: { downState: DownState }) {
         );
     }
 
-    function chat(player: GameStatePlayer, message: string) {
+    function join(player: GameStatePlayer) {
+        $setInitialPlayerPositions(offensiveTeam, ballPos, player.id);
+    }
+
+    function chat(player: PlayerObject, message: string): false | void {
         const normalizedMessage = message.trim().toLowerCase();
         const isHikeCommand = normalizedMessage === "hike";
 
@@ -163,10 +177,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                 return;
             }
 
-            if (
-                getDistance(player, ballWithRadius(ballPosWithOffset)) >
-                HIKING_DISTANCE_LIMIT
-            ) {
+            if (isTooFarFromBall(player.position, ballPosWithOffset)) {
                 $effect(($) => {
                     $.send(
                         t`⚠️ You are too far from the ball to snap it.`,
@@ -174,7 +185,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                     );
                 });
 
-                return;
+                return false;
             }
 
             const offensivePlayersPastLine =
@@ -188,7 +199,17 @@ export function Presnap({ downState }: { downState: DownState }) {
                     );
                 });
 
-                return;
+                for (const teammate of offensivePlayersPastLine) {
+                    $effect(($) => {
+                        $.send({
+                            message: t`⚠️ You must get back behind the line of scrimmage to allow the snap!`,
+                            to: teammate.id,
+                            sound: "notification",
+                        });
+                    });
+                }
+
+                return false;
             }
 
             $effect(($) => {
@@ -337,5 +358,5 @@ export function Presnap({ downState }: { downState: DownState }) {
         // TODO: Prehike logic
     }
 
-    return { run, chat, command };
+    return { run, chat, command, join };
 }

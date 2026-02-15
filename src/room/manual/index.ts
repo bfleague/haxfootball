@@ -35,6 +35,10 @@ const mainModule = createModule()
         ],
     })
     .onRoomLink((room, url) => {
+        if (IS_DEBUG) {
+            console.warn("Running in debug mode.");
+        }
+
         console.log(`Room link: ${url}`);
         console.log(`Admin password: ${ADMIN_PASSWORD}`);
 
@@ -188,12 +192,25 @@ const matchModule = createModule()
                 return { hideMessage: true };
         }
     })
-    .onPlayerChat((room, player, message) => {
-        room.send({
-            message: `${player.name}: ${message}`,
-        });
+    .onPlayerChat((room, player, rawMessage) => {
+        const message = `${player.name}: ${rawMessage}`;
 
-        engine?.handlePlayerChat(player, message);
+        const engineChatResult = engine?.handlePlayerChat(
+            player,
+            rawMessage,
+            () => room.send({ message }),
+        );
+
+        const defaultResult = {
+            allowBroadcast: true,
+            sentBeforeHooks: false,
+        };
+
+        const chatResult = engineChatResult ?? defaultResult;
+
+        if (chatResult.allowBroadcast && !chatResult.sentBeforeHooks) {
+            room.send({ message });
+        }
 
         return false;
     })

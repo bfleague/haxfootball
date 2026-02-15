@@ -25,7 +25,7 @@ export interface StateApi {
     run: (state: GameState) => void;
     join?: (player: GameStatePlayer) => void;
     leave?: (player: GameStatePlayer) => void;
-    chat?: (player: GameStatePlayer, message: string) => void;
+    chat?: (player: PlayerObject, message: string) => boolean | void;
     command?: (
         player: PlayerObject,
         command: CommandSpec,
@@ -68,6 +68,11 @@ export interface GameState {
     tickNumber: number;
 }
 
+export type ChatHandleResult = {
+    allowBroadcast: boolean;
+    sentBeforeHooks: boolean;
+};
+
 export interface Engine<Cfg = unknown> {
     start: (name: string, params?: any) => void;
     stop: () => void;
@@ -75,7 +80,11 @@ export interface Engine<Cfg = unknown> {
     handleGamePause: (byPlayer: PlayerObject | null) => void;
     handleGameUnpause: (byPlayer: PlayerObject | null) => void;
     trackPlayerBallKick: (playerId: number) => void;
-    handlePlayerChat: (player: PlayerObject, message: string) => void;
+    handlePlayerChat: (
+        player: PlayerObject,
+        message: string,
+        onBeforeHooks?: () => void,
+    ) => ChatHandleResult;
     handlePlayerCommand: (
         player: PlayerObject,
         command: CommandSpec,
@@ -797,15 +806,40 @@ export function createEngine<Cfg>(
         resumePending = true;
     }
 
-    function handlePlayerChat(player: PlayerObject, message: string) {
-        if (!running || !current || !current.api.chat) return;
+    function handlePlayerChat(
+        player: PlayerObject,
+        message: string,
+        onBeforeHooks?: () => void,
+    ): ChatHandleResult {
+        if (!running || !current || !current.api.chat) {
+            onBeforeHooks?.();
+            return {
+                allowBroadcast: true,
+                sentBeforeHooks: !!onBeforeHooks,
+            };
+        }
 
-        const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
-        if (!snapshot) return;
+        let sentBeforeHooks = false;
 
-        runOutsideTick(
+        const chatResult = runOutsideTick(
             () => {
-                current!.api.chat!(snapshot, message);
+                try {
+                    const result = current!.api.chat!(player, message);
+
+                    if (result !== false && onBeforeHooks) {
+                        onBeforeHooks();
+                        sentBeforeHooks = true;
+                    }
+
+                    return result;
+                } catch (err) {
+                    if (err === "__NEXT__" && onBeforeHooks) {
+                        onBeforeHooks();
+                        sentBeforeHooks = true;
+                    }
+
+                    throw err;
+                }
             },
             {
                 allowTransition: true,
@@ -814,6 +848,13 @@ export function createEngine<Cfg>(
                 beforeGameState: lastGameState,
             },
         );
+
+        const allowBroadcast = chatResult !== false;
+
+        return {
+            allowBroadcast,
+            sentBeforeHooks,
+        };
     }
 
     function handlePlayerCommand(

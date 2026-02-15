@@ -47,6 +47,13 @@ const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
     },
 };
 
+function isTooFarFromBall(position: Position | undefined, ballPos: Position) {
+    return (
+        !position ||
+        getDistance(position, ballWithRadius(ballPos)) > HIKING_DISTANCE_LIMIT
+    );
+}
+
 function $setInitialPlayerPositions(
     offensiveTeam: FieldTeam,
     ballPos: Position,
@@ -145,7 +152,7 @@ export function ExtraPoint({
         );
     };
 
-    function chat(player: GameStatePlayer, message: string) {
+    function chat(player: PlayerObject, message: string) {
         const normalizedMessage = message.trim().toLowerCase();
         const isHikeCommand = normalizedMessage.includes("hike");
 
@@ -191,10 +198,7 @@ export function ExtraPoint({
             });
         }
 
-        if (
-            getDistance(player, ballWithRadius(ballPosWithOffset)) >
-            HIKING_DISTANCE_LIMIT
-        ) {
+        if (isTooFarFromBall(player.position, ballPosWithOffset)) {
             $effect(($) => {
                 $.send(
                     t`⚠️ You are too far from the ball to snap it.`,
