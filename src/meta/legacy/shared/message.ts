@@ -1,15 +1,18 @@
 import { i18n } from "@lingui/core";
 import { plural, t } from "@lingui/core/macro";
 import { DownState } from "./down";
-import { FieldPosition } from "@common/game/game";
-import { Team } from "@runtime/models";
+import { FieldPosition, type ScoreState } from "@common/game/game";
+import { FieldTeam, Team } from "@runtime/models";
 import { RED_ZONE_FOUL_LIMIT } from "./penalty";
 
 export const DIV = t`•`;
 
-export function stringifyFieldPosition(fieldPos: FieldPosition): string {
-    const teamName = fieldPos.side === Team.RED ? t`Red` : t`Blue`;
+export function formatTeamName(team: FieldTeam): string {
+    return team === Team.RED ? t`Red` : t`Blue`;
+}
 
+export function stringifyFieldPosition(fieldPos: FieldPosition): string {
+    const teamName = formatTeamName(fieldPos.side);
     return t`${teamName} ${fieldPos.yards}`;
 }
 
@@ -71,31 +74,75 @@ export function stringifyDownState(downState: DownState): string {
         : downText;
 }
 
+export function stringifyScoreState(scoreState: ScoreState): string {
+    const redTeam = formatTeamName(Team.RED);
+    const blueTeam = formatTeamName(Team.BLUE);
+
+    return t`${redTeam} ${scoreState[Team.RED]} × ${scoreState[Team.BLUE]} ${blueTeam}`;
+}
+
+function isDownState(value: unknown): value is DownState {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        "downAndDistance" in value &&
+        "fieldPos" in value
+    );
+}
+
+function isScoreState(value: unknown): value is ScoreState {
+    if (typeof value !== "object" || value === null) return false;
+
+    const scoreRecord = value as Record<number, unknown>;
+
+    return (
+        typeof scoreRecord[Team.RED] === "number" &&
+        typeof scoreRecord[Team.BLUE] === "number"
+    );
+}
+
 function hasAscii(text: string): boolean {
     return /[\x00-\x7F]/.test(text);
 }
 
-export function cn(...strings: (number | string | DownState)[]): string {
+export function cn(
+    ...strings: (number | string | DownState | ScoreState)[]
+): string {
     const parts = strings
         .filter((s) => s !== "")
         .map((s) => {
-            switch (typeof s) {
-                case "number":
-                    return {
-                        text: s.toString(),
-                        isDownState: false,
-                    };
-                case "string":
-                    return {
-                        text: s,
-                        isDownState: false,
-                    };
-                default:
-                    return {
-                        text: stringifyDownState(s),
-                        isDownState: true,
-                    };
+            if (typeof s === "number") {
+                return {
+                    text: s.toString(),
+                    isState: false,
+                };
             }
+
+            if (typeof s === "string") {
+                return {
+                    text: s,
+                    isState: false,
+                };
+            }
+
+            if (isDownState(s)) {
+                return {
+                    text: stringifyDownState(s),
+                    isState: true,
+                };
+            }
+
+            if (isScoreState(s)) {
+                return {
+                    text: stringifyScoreState(s),
+                    isState: true,
+                };
+            }
+
+            return {
+                text: "",
+                isState: false,
+            };
         });
 
     if (parts.length === 0) return "";
@@ -107,7 +154,7 @@ export function cn(...strings: (number | string | DownState)[]): string {
         const previousPart = parts[index - 1];
         const previousHasAscii = hasAscii(previousPart?.text ?? "");
         const separator =
-            currentPart.isDownState && !previousHasAscii ? " " : ` ${DIV} `;
+            currentPart.isState && !previousHasAscii ? " " : ` ${DIV} `;
 
         return `${message}${separator}${currentPart.text}`;
     }, "");

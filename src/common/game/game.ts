@@ -18,6 +18,7 @@ export function opposite(t: FieldTeam): FieldTeam {
 }
 
 export type FieldPosition = { yards: number; side: FieldTeam };
+export type ScoreState = Record<FieldTeam, number>;
 
 type IdentifiedPointLike = PointLike & { id: number };
 type MaybeKickableIdentifiedPointLike = IdentifiedPointLike & {

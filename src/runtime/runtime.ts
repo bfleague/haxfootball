@@ -33,11 +33,29 @@ type RoomMethodApi = Pick<Room, RoomMethodKeys>;
 type DiscPropsPatch = Partial<DiscProps>;
 
 export type MutationBuffer = ReturnType<typeof createMutationBuffer>;
+export type TransitionDisposal = "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
 export type Transition = {
     to: string;
     params: any;
     wait?: number;
-    disposal?: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
+    disposal?: TransitionDisposal;
+};
+
+export type Checkpoint = {
+    key?: string;
+    sourceState: string;
+    tickNumber: number;
+    transition: Transition;
+};
+
+export type CheckpointDraft = {
+    key?: string;
+    transition: Transition;
+};
+
+export type CheckpointRestoreArgs = {
+    key?: string;
+    consume?: boolean;
 };
 
 const BALL_DEFAULT_INDEX = 0;
@@ -166,7 +184,39 @@ let RUNTIME: {
     beforeGameState: GameState | null;
     muteEffects: boolean;
     globalStore: GlobalStoreApi<any> | null;
+    checkpointDrafts: Array<CheckpointDraft>;
+    resolveCheckpoint: ((args: CheckpointRestoreArgs) => Transition) | null;
+    listCheckpoints: (() => Array<Checkpoint>) | null;
 } | null = null;
+
+const normalizeTransition = (args: {
+    to: string;
+    params?: any;
+    wait?: number;
+    disposal?: TransitionDisposal;
+}): Transition => {
+    const wait =
+        typeof args.wait === "number" && args.wait > 0
+            ? Math.floor(args.wait)
+            : 0;
+    const disposal =
+        args.disposal === "IMMEDIATE"
+            ? "IMMEDIATE"
+            : args.disposal === "AFTER_RESUME"
+              ? "AFTER_RESUME"
+              : "DELAYED";
+    const transition: Transition = {
+        to: args.to,
+        params: args.params ? args.params : {},
+        disposal,
+    };
+
+    if (wait > 0) {
+        transition.wait = wait;
+    }
+
+    return transition;
+};
 
 /**
  * Install a per-tick runtime.
@@ -181,6 +231,9 @@ export function installRuntime(ctx: {
     beforeGameState?: GameState | null;
     muteEffects?: boolean;
     globalStore?: GlobalStoreApi<any> | null;
+    checkpointDrafts?: Array<CheckpointDraft>;
+    resolveCheckpoint?: (args: CheckpointRestoreArgs) => Transition;
+    listCheckpoints?: () => Array<Checkpoint>;
 }) {
     const onStat = ctx.onStat ? ctx.onStat : () => {};
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
@@ -201,6 +254,9 @@ export function installRuntime(ctx: {
             ctx.beforeGameState === undefined ? null : ctx.beforeGameState,
         muteEffects: !!ctx.muteEffects,
         globalStore: ctx.globalStore ?? null,
+        checkpointDrafts: ctx.checkpointDrafts ?? [],
+        resolveCheckpoint: ctx.resolveCheckpoint ?? null,
+        listCheckpoints: ctx.listCheckpoints ?? null,
     };
 
     return function uninstall() {
@@ -242,36 +298,72 @@ export function $next(args: {
     to: string;
     params?: any;
     wait?: number;
-    disposal?: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
+    disposal?: TransitionDisposal;
 }): never {
     if (!RUNTIME) throw new Error("$next used outside of runtime");
 
-    const wait =
-        typeof args.wait === "number" && args.wait > 0
-            ? Math.floor(args.wait)
-            : 0;
-
-    const disposal =
-        args.disposal === "IMMEDIATE"
-            ? "IMMEDIATE"
-            : args.disposal === "AFTER_RESUME"
-              ? "AFTER_RESUME"
-              : "DELAYED";
-
-    const transition: Transition = {
-        to: args.to,
-        params: args.params ? args.params : {},
-        disposal,
-    };
-
-    if (wait > 0) {
-        transition.wait = wait;
-    }
-
-    RUNTIME.transition = transition;
+    RUNTIME.transition = normalizeTransition(args);
 
     // eslint-disable-next-line no-throw-literal
     throw "__NEXT__";
+}
+
+/**
+ * Register a checkpoint draft for the current state instance.
+ * The engine only commits drafts when this state transitions to a different state.
+ */
+export function $checkpoint(args: {
+    key?: string;
+    to: string;
+    params?: any;
+    wait?: number;
+    disposal?: TransitionDisposal;
+}): void {
+    if (!RUNTIME) throw new Error("$checkpoint used outside of runtime");
+
+    const key =
+        typeof args.key === "string" && args.key.trim() !== ""
+            ? args.key
+            : undefined;
+
+    RUNTIME.checkpointDrafts.push({
+        ...(key ? { key } : {}),
+        transition: normalizeTransition(args),
+    });
+}
+
+/**
+ * Restore a committed checkpoint by key, or the most recent one.
+ * Restore always forces a full state recreation: current state disposes,
+ * then checkpoint target state is built from factory scope.
+ */
+export function $restore(args: CheckpointRestoreArgs = {}): never {
+    if (!RUNTIME) throw new Error("$restore used outside of runtime");
+    if (!RUNTIME.resolveCheckpoint) {
+        throw new Error("$restore used without checkpoint resolver");
+    }
+
+    const checkpointTransition = RUNTIME.resolveCheckpoint({
+        ...(args.key ? { key: args.key } : {}),
+        ...(typeof args.consume === "boolean" ? { consume: args.consume } : {}),
+    });
+    RUNTIME.transition = {
+        to: checkpointTransition.to,
+        params: checkpointTransition.params,
+        disposal: "IMMEDIATE",
+    };
+
+    // eslint-disable-next-line no-throw-literal
+    throw "__NEXT__";
+}
+
+export function $checkpoints(): Array<Checkpoint> {
+    if (!RUNTIME) throw new Error("$checkpoints used outside of runtime");
+    if (!RUNTIME.listCheckpoints) {
+        throw new Error("$checkpoints used without checkpoint resolver");
+    }
+
+    return RUNTIME.listCheckpoints();
 }
 
 /**

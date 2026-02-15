@@ -26,10 +26,12 @@ import { isTouchdown, SCORES } from "@meta/legacy/shared/scoring";
 import { cn, formatNames } from "@meta/legacy/shared/message";
 import { $global } from "@meta/legacy/hooks/global";
 import { t } from "@lingui/core/macro";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 const MAX_PATH_DURATION = ticks({ seconds: 2 });
 
-type EndzoneState = "TOUCHBACK" | "SAFETY";
+type EndzoneState = "TOUCHBACK" | "Safety";
 type Frame = {
     state: GameState;
     player: GameStatePlayer;
@@ -107,7 +109,7 @@ export function Interception({
                 intersectionPoint,
                 ballState,
                 playerTeam,
-                endzoneState: "SAFETY",
+                endzoneState: "Safety",
             },
         });
     }
@@ -245,7 +247,7 @@ export function Interception({
                         },
                         wait: ticks({ seconds: 1 }),
                     });
-                case "SAFETY":
+                case "Safety":
                     $effect(($) => {
                         $.send(
                             cn(
@@ -321,6 +323,17 @@ export function Interception({
         }
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Interception` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         $maybeHideInterceptionPath(state);
 
@@ -333,5 +346,5 @@ export function Interception({
         $handleTackle(frame);
     }
 
-    return { run };
+    return { run, command };
 }

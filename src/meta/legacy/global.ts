@@ -1,4 +1,5 @@
 import { FieldTeam, Team } from "@runtime/models";
+import { type ScoreState } from "@common/game/game";
 import { defineGlobalSchema } from "@runtime/global";
 
 type PlayerSnapProfile = {
@@ -12,7 +13,7 @@ const initialState = {
     scores: {
         [Team.RED]: 0,
         [Team.BLUE]: 0,
-    },
+    } as ScoreState,
     snapProfile: [] as PlayerSnapProfile[],
 };
 

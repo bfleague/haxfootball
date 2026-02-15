@@ -15,10 +15,12 @@ import {
     $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import { DownState } from "@meta/legacy/shared/down";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
 } from "@meta/legacy/shared/stadium";
+import type { CommandSpec } from "@runtime/commands";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {
     start: { x: -50, y: -150 },
@@ -83,6 +85,17 @@ export function Punt({ downState }: { downState: DownState }) {
                     0,
         );
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const playersPastBall = getPlayersBeyondBallLine(state);
         const hasPlayersPastBall = playersPastBall.length > 0;
@@ -121,5 +134,5 @@ export function Punt({ downState }: { downState: DownState }) {
         });
     }
 
-    return { run };
+    return { run, command };
 }

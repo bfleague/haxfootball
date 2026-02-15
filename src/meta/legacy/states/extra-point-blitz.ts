@@ -6,6 +6,7 @@ import { type FieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
 import { type FieldPosition } from "@common/game/game";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
@@ -19,6 +20,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import type { CommandSpec } from "@runtime/commands";
 
 const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });
 
@@ -239,6 +241,17 @@ export function ExtraPointBlitz({
         $failTwoPointAttempt();
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -252,5 +265,5 @@ export function ExtraPointBlitz({
         $handleQuarterbackSacked(frame);
     }
 
-    return { run };
+    return { run, command };
 }

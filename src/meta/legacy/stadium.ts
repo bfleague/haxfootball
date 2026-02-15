@@ -154,7 +154,7 @@ export const {
             {
                 rect: { x: [-1065, 1065], y: [-350, 350] },
                 side: "outside",
-                props: { cMask: ["ball"] },
+                props: { cMask: ["ball"], bCoef: 1.5 },
                 name: "ballOutOfBounds",
             },
             {

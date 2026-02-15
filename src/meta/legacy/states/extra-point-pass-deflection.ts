@@ -3,6 +3,8 @@ import { $dispose, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import { type FieldPosition } from "@common/game/game";
 import { type FieldTeam } from "@runtime/models";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import { t } from "@lingui/core/macro";
 import {
     $setBallActive,
     $setBallInactive,
@@ -10,6 +12,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import type { CommandSpec } from "@runtime/commands";
 
 const TIME_TO_BLOCKED_PASS_STATE = ticks({ milliseconds: 200 });
 
@@ -35,6 +38,17 @@ export function ExtraPointPassDeflection({
         $unsetFirstDownLine();
         $setBallActive();
     });
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
 
     function run(state: GameState) {
         const blocker = state.players.find((player) => player.id === blockerId);
@@ -65,5 +79,5 @@ export function ExtraPointPassDeflection({
         }
     }
 
-    return { run };
+    return { run, command };
 }

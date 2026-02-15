@@ -12,10 +12,23 @@ import {
 import { getInitialDownState } from "@meta/legacy/shared/down";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
     function join(player: GameStatePlayer) {
         $setBallMoveableByPlayer(player.id);
+    }
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Kickoff in flight` },
+            },
+            player,
+            spec,
+        });
     }
 
     function run(state: GameState) {
@@ -68,5 +81,5 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         }
     }
 
-    return { run, join };
+    return { run, join, command };
 }

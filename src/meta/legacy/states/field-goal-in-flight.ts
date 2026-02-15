@@ -8,12 +8,14 @@ import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
 import { DownState, getInitialDownState } from "@meta/legacy/shared/down";
 import { SCORES } from "@meta/legacy/shared/scoring";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     calculateDirectionalGain,
     getGoalLine,
     isBallOutOfBounds,
     isWithinGoalPosts,
 } from "@meta/legacy/shared/stadium";
+import type { CommandSpec } from "@runtime/commands";
 
 const FIELD_GOAL_RESULT_DELAY = ticks({ seconds: 2 });
 const FIELD_GOAL_SUCCESS_DELAY = ticks({ seconds: 3 });
@@ -37,6 +39,17 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
     $dispose(() => {
         $unlockBall();
     });
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
 
     function run(state: GameState) {
         const crossedGoalLine =
@@ -109,5 +122,5 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
         }
     }
 
-    return { run };
+    return { run, command };
 }

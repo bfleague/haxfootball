@@ -29,6 +29,8 @@ import {
     type InitialPositioningRelativeLines,
 } from "@meta/legacy/shared/initial-positioning";
 import { $global } from "@meta/legacy/hooks/global";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 const LOADING_DURATION = ticks({ seconds: 0.5 });
 const EXTRA_POINT_DECISION_WINDOW = ticks({ seconds: 10 });
@@ -297,6 +299,17 @@ export function ExtraPoint({
         });
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
 
@@ -305,5 +318,5 @@ export function ExtraPoint({
         $handleEarlyOffenseCrossedLine(frame);
     }
 
-    return { run, chat };
+    return { run, chat, command };
 }

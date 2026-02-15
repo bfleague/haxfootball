@@ -1,7 +1,7 @@
 import { type FieldTeam, isFieldTeam } from "@runtime/models";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
-import { getDistance } from "@common/math/geometry";
 import { CommandHandleResult, CommandSpec } from "@runtime/commands";
+import { getDistance } from "@common/math/geometry";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
@@ -9,7 +9,13 @@ import {
     calculateSnapBallPosition,
     isInRedZone,
 } from "@meta/legacy/shared/stadium";
-import { $before, $dispose, $effect, $next } from "@runtime/runtime";
+import {
+    $before,
+    $checkpoint,
+    $dispose,
+    $effect,
+    $next,
+} from "@runtime/runtime";
 import {
     $lockBall,
     $setBallMoveable,
@@ -31,6 +37,7 @@ import {
     buildInitialPlayerPositions,
     type InitialPositioningRelativeLines,
 } from "@meta/legacy/shared/initial-positioning";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 
 const HIKING_DISTANCE_LIMIT = 30;
 
@@ -44,6 +51,13 @@ const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
         end: { x: -100, y: 100 },
     },
 };
+
+function isTooFarFromBall(position: Position | undefined, ballPos: Position) {
+    return (
+        !position ||
+        getDistance(position, ballWithRadius(ballPos)) > HIKING_DISTANCE_LIMIT
+    );
+}
 
 function $setInitialPlayerPositions(
     offensiveTeam: FieldTeam,
@@ -122,6 +136,11 @@ export function Presnap({ downState }: { downState: DownState }) {
         $unsetFirstDownLine();
     });
 
+    $checkpoint({
+        to: "PRESNAP",
+        params: { downState },
+    });
+
     function getOffensivePlayersBeyondLineOfScrimmage(): GameStatePlayer[] {
         const state = $before();
 
@@ -189,10 +208,10 @@ export function Presnap({ downState }: { downState: DownState }) {
     }
 
     function command(
-        player: GameStatePlayer,
-        command: CommandSpec,
+        player: PlayerObject,
+        spec: CommandSpec,
     ): CommandHandleResult {
-        switch (command.name) {
+        switch (spec.name) {
             case "fg": {
                 if (player.team !== offensiveTeam) {
                     $effect(($) => {
@@ -205,10 +224,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                     return { handled: true };
                 }
 
-                if (
-                    getDistance(player, ballWithRadius(ballPosWithOffset)) >
-                    HIKING_DISTANCE_LIMIT
-                ) {
+                if (isTooFarFromBall(player.position, ballPosWithOffset)) {
                     $effect(($) => {
                         $.send(
                             t`⚠️ You are too far from the ball to attempt the field goal.`,
@@ -237,10 +253,7 @@ export function Presnap({ downState }: { downState: DownState }) {
                     return { handled: true };
                 }
 
-                if (
-                    getDistance(player, ballWithRadius(ballPosWithOffset)) >
-                    HIKING_DISTANCE_LIMIT
-                ) {
+                if (isTooFarFromBall(player.position, ballPosWithOffset)) {
                     $effect(($) => {
                         $.send(
                             t`⚠️ You are too far from the ball to punt.`,
@@ -286,7 +299,14 @@ export function Presnap({ downState }: { downState: DownState }) {
                 });
             }
             default:
-                return { handled: false };
+                return $createSharedCommandHandler({
+                    options: {
+                        undo: true,
+                        info: { downState },
+                    },
+                    player,
+                    spec,
+                });
         }
     }
 

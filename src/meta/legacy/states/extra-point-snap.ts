@@ -38,11 +38,13 @@ import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import { $global } from "@meta/legacy/hooks/global";
 import * as Crowding from "@meta/legacy/shared/crowding";
 import { unique } from "@common/general/helpers";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     DEFAULT_PUSHING_CONTACT_DISTANCE,
     DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
     detectPushingFoul,
 } from "@meta/legacy/shared/pushing";
+import type { CommandSpec } from "@runtime/commands";
 
 const DEFENSIVE_FOUL_PENALTY_YARDS = 5;
 const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });
@@ -622,6 +624,17 @@ export function ExtraPointSnap({
         });
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         $handleBallOutsideZone(state);
 
@@ -642,5 +655,5 @@ export function ExtraPointSnap({
         $refreshExtraPointSnap(frame, crowdingResult);
     }
 
-    return { run };
+    return { run, command };
 }

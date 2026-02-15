@@ -21,6 +21,8 @@ import {
     getTravelInterceptionPoint,
 } from "@meta/legacy/shared/interception";
 import { PointLike } from "@common/math/geometry";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });
 
@@ -80,6 +82,17 @@ export function ExtraPointInterceptionAttempt({
         });
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const blocker = state.players.find((player) => player.id === playerId);
         if (!blocker) return;
@@ -121,5 +134,5 @@ export function ExtraPointInterceptionAttempt({
         });
     }
 
-    return { run };
+    return { run, command };
 }

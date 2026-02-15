@@ -3,7 +3,10 @@ import {
     flushRuntime,
     setRuntimeRoom,
     createMutationBuffer,
+    type Checkpoint,
     type MutationBuffer,
+    type CheckpointDraft,
+    type CheckpointRestoreArgs,
     type Transition,
 } from "@runtime/runtime";
 import { Room } from "@core/room";
@@ -24,7 +27,7 @@ export interface StateApi {
     leave?: (player: GameStatePlayer) => void;
     chat?: (player: GameStatePlayer, message: string) => void;
     command?: (
-        player: GameStatePlayer,
+        player: PlayerObject,
         command: CommandSpec,
     ) => CommandHandleResult | void;
 }
@@ -86,6 +89,48 @@ export interface Engine<Cfg = unknown> {
     isRunning: () => boolean;
     readonly _configBrand?: Cfg;
 }
+
+type StateInstance = {
+    name: string;
+    api: StateApi;
+    disposals: Array<() => void>;
+    checkpointDrafts: Array<CheckpointDraft>;
+};
+
+type DelayedTransition = {
+    to: string;
+    params: any;
+    remainingTicks: number;
+    disposal: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
+};
+
+type CommittedCheckpoint = Checkpoint;
+
+type PendingCheckpointDrafts = {
+    sourceState: string;
+    drafts: Array<CheckpointDraft>;
+};
+
+const CHECKPOINT_LIMIT = 50;
+
+const cloneTransitionParams = (params: any): any => {
+    if (Array.isArray(params)) {
+        return [...params];
+    }
+
+    if (params && typeof params === "object") {
+        return { ...params };
+    }
+
+    return params;
+};
+
+const cloneTransition = (transition: Transition): Transition => ({
+    to: transition.to,
+    params: cloneTransitionParams(transition.params),
+    ...(typeof transition.wait === "number" ? { wait: transition.wait } : {}),
+    ...(transition.disposal ? { disposal: transition.disposal } : {}),
+});
 
 function getBallSnapshot(room: Room): GameStateBall {
     const ballPos = room.getBallPosition();
@@ -170,18 +215,9 @@ export function createEngine<Cfg>(
     registry: StateRegistry,
     opts: EngineOptions<Cfg>,
 ): Engine<Cfg> {
-    let current: {
-        name: string;
-        api: StateApi;
-        disposals: Array<() => void>;
-    } | null = null;
+    let current: StateInstance | null = null;
     let pendingTransition: Transition | null = null;
-    let delayedTransition: {
-        to: string;
-        params: any;
-        remainingTicks: number;
-        disposal: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
-    } | null = null;
+    let delayedTransition: DelayedTransition | null = null;
     let kickerSet: Set<number> = new Set();
     let running = false;
     let disableStateExecution = false;
@@ -194,6 +230,8 @@ export function createEngine<Cfg>(
     let isResumeTick = false;
     let afterResumeDisposers: Array<() => void> = [];
     let afterResumeTransition: Transition | null = null;
+    let checkpoints: Array<CommittedCheckpoint> = [];
+    let pendingCheckpointDrafts: PendingCheckpointDrafts | null = null;
     const globalSchema = opts.globalSchema;
     let globalStore: GlobalStoreApi<any> | null = null;
 
@@ -205,11 +243,109 @@ export function createEngine<Cfg>(
         globalStore = globalSchema ? createGlobalStore(globalSchema) : null;
     };
 
+    function commitCheckpointDrafts(
+        sourceState: string,
+        drafts: Array<CheckpointDraft>,
+    ) {
+        if (drafts.length === 0) return;
+
+        const committed = drafts.map((draft) => ({
+            ...(draft.key ? { key: draft.key } : {}),
+            sourceState,
+            tickNumber,
+            transition: cloneTransition(draft.transition),
+        }));
+
+        checkpoints = [...checkpoints, ...committed];
+        if (checkpoints.length > CHECKPOINT_LIMIT) {
+            checkpoints = checkpoints.slice(
+                checkpoints.length - CHECKPOINT_LIMIT,
+            );
+        }
+    }
+
+    function commitStateCheckpointDrafts(target: StateInstance) {
+        if (target.checkpointDrafts.length === 0) return;
+
+        commitCheckpointDrafts(target.name, target.checkpointDrafts);
+        target.checkpointDrafts.length = 0;
+    }
+
+    function detachStateCheckpointDrafts(
+        target: StateInstance,
+    ): PendingCheckpointDrafts | null {
+        if (target.checkpointDrafts.length === 0) return null;
+
+        const drafts = target.checkpointDrafts.map((draft) => ({
+            ...(draft.key ? { key: draft.key } : {}),
+            transition: cloneTransition(draft.transition),
+        }));
+
+        target.checkpointDrafts.length = 0;
+
+        return {
+            sourceState: target.name,
+            drafts,
+        };
+    }
+
+    function resolveCheckpoint(args: CheckpointRestoreArgs): Transition {
+        const consume = args.consume ?? true;
+        const normalizedKey =
+            typeof args.key === "string" && args.key.trim() !== ""
+                ? args.key
+                : null;
+        const index = (() => {
+            if (!normalizedKey) {
+                return checkpoints.length - 1;
+            }
+
+            for (let i = checkpoints.length - 1; i >= 0; i -= 1) {
+                const checkpoint = checkpoints[i];
+                if (checkpoint && checkpoint.key === normalizedKey) {
+                    return i;
+                }
+            }
+
+            return -1;
+        })();
+
+        if (index < 0) {
+            if (normalizedKey) {
+                throw new Error(`Checkpoint "${normalizedKey}" was not found`);
+            }
+
+            throw new Error("No checkpoints are available");
+        }
+
+        const checkpoint = checkpoints[index];
+
+        if (!checkpoint) {
+            throw new Error("Checkpoint lookup failed");
+        }
+
+        if (consume) {
+            checkpoints.splice(index, 1);
+        }
+
+        return cloneTransition(checkpoint.transition);
+    }
+
+    function listCheckpoints(): Array<Checkpoint> {
+        return checkpoints.map((checkpoint) => ({
+            ...(checkpoint.key ? { key: checkpoint.key } : {}),
+            sourceState: checkpoint.sourceState,
+            tickNumber: checkpoint.tickNumber,
+            transition: cloneTransition(checkpoint.transition),
+        }));
+    }
+
     function runOutsideTick<T>(
         fn: () => T,
         optsRun?: {
             allowTransition?: boolean;
             disposals?: Array<() => void>;
+            checkpointDrafts?: Array<CheckpointDraft>;
             beforeGameState?: GameState | null;
             muteEffects?: boolean;
             mutations?: MutationBuffer;
@@ -224,6 +360,9 @@ export function createEngine<Cfg>(
             mutations: optsRun?.mutations ?? sharedTickMutations ?? undefined,
             globalStore,
             ...(optsRun?.disposals ? { disposals: optsRun.disposals } : {}),
+            ...(optsRun?.checkpointDrafts
+                ? { checkpointDrafts: optsRun.checkpointDrafts }
+                : {}),
             beforeGameState:
                 optsRun && "beforeGameState" in optsRun
                     ? optsRun.beforeGameState
@@ -231,6 +370,8 @@ export function createEngine<Cfg>(
             ...(optsRun?.muteEffects !== undefined
                 ? { muteEffects: optsRun.muteEffects }
                 : {}),
+            resolveCheckpoint,
+            listCheckpoints,
         });
 
         setRuntimeRoom(room);
@@ -282,13 +423,15 @@ export function createEngine<Cfg>(
         params?: any,
         factory?: StateFactory<any>,
         options?: { muteEffects?: boolean; mutations?: MutationBuffer },
-    ) {
+    ): Omit<StateInstance, "name"> {
         const resolved = factory ?? ensureFactory(name);
 
         const disposals: Array<() => void> = [];
+        const checkpointDrafts: Array<CheckpointDraft> = [];
 
         const api = runOutsideTick(() => resolved(params ?? {}), {
             disposals,
+            checkpointDrafts,
             beforeGameState: lastGameState,
             ...(options?.muteEffects !== undefined
                 ? { muteEffects: options.muteEffects }
@@ -296,15 +439,10 @@ export function createEngine<Cfg>(
             ...(options?.mutations ? { mutations: options.mutations } : {}),
         });
 
-        return { api, disposals };
+        return { api, disposals, checkpointDrafts };
     }
 
-    function collectDisposers(
-        target: {
-            api: StateApi;
-            disposals: Array<() => void>;
-        } | null,
-    ): Array<() => void> {
+    function collectDisposers(target: StateInstance | null): Array<() => void> {
         if (!target) return [];
 
         const disposeFns: Array<() => void> = [];
@@ -351,22 +489,14 @@ export function createEngine<Cfg>(
     }
 
     function disposeState(
-        target: {
-            api: StateApi;
-            disposals: Array<() => void>;
-        } | null,
+        target: StateInstance | null,
         mutations?: MutationBuffer,
     ) {
         const disposeFns = collectDisposers(target);
         runDisposers(disposeFns, mutations);
     }
 
-    function deferDisposeState(
-        target: {
-            api: StateApi;
-            disposals: Array<() => void>;
-        } | null,
-    ) {
+    function deferDisposeState(target: StateInstance | null) {
         const disposeFns = collectDisposers(target);
         queueAfterResumeDisposers(disposeFns);
     }
@@ -374,31 +504,33 @@ export function createEngine<Cfg>(
     function applyTransition() {
         if (!pendingTransition) return;
         const next = pendingTransition;
+        const previous = current;
         pendingTransition = null;
 
-        const isSameState = current && current.name === next.to;
+        const isSameState = previous && previous.name === next.to;
 
-        if (current && isSameState && next.disposal !== "IMMEDIATE") {
+        if (previous && isSameState && next.disposal !== "IMMEDIATE") {
             const factory = ensureFactory(next.to);
             const created = createState(next.to, next.params, factory, {
                 muteEffects: true,
             });
 
-            current.api = created.api;
-            current.disposals = created.disposals;
+            previous.api = created.api;
+            previous.disposals = created.disposals;
+            previous.checkpointDrafts = created.checkpointDrafts;
             return;
         }
 
         const factory = ensureFactory(next.to);
         const transitionMutations =
-            current && next.disposal !== "AFTER_RESUME"
+            previous && next.disposal !== "AFTER_RESUME"
                 ? createMutationBuffer(room)
                 : null;
 
         if (next.disposal === "AFTER_RESUME") {
-            deferDisposeState(current);
+            deferDisposeState(previous);
         } else {
-            disposeState(current, transitionMutations ?? undefined);
+            disposeState(previous, transitionMutations ?? undefined);
         }
 
         const created = createState(next.to, next.params, factory, {
@@ -409,7 +541,22 @@ export function createEngine<Cfg>(
             name: next.to,
             api: created.api,
             disposals: created.disposals,
+            checkpointDrafts: created.checkpointDrafts,
         };
+
+        if (previous && previous.name !== next.to) {
+            commitStateCheckpointDrafts(previous);
+        }
+        if (
+            pendingCheckpointDrafts &&
+            pendingCheckpointDrafts.sourceState !== next.to
+        ) {
+            commitCheckpointDrafts(
+                pendingCheckpointDrafts.sourceState,
+                pendingCheckpointDrafts.drafts,
+            );
+        }
+        pendingCheckpointDrafts = null;
 
         if (transitionMutations) {
             transitionMutations.flush();
@@ -443,6 +590,12 @@ export function createEngine<Cfg>(
             };
 
             if (disposal === "IMMEDIATE") {
+                if (current && current.name !== transition.to) {
+                    pendingCheckpointDrafts =
+                        detachStateCheckpointDrafts(current);
+                } else {
+                    pendingCheckpointDrafts = null;
+                }
                 disposeState(current);
                 current = null;
             }
@@ -474,6 +627,8 @@ export function createEngine<Cfg>(
         isPaused = false;
         isResumeTick = false;
         afterResumeTransition = null;
+        checkpoints = [];
+        pendingCheckpointDrafts = null;
         resetGlobalStore();
 
         const created = createState(name, params, factory);
@@ -482,6 +637,7 @@ export function createEngine<Cfg>(
             name,
             api: created.api,
             disposals: created.disposals,
+            checkpointDrafts: created.checkpointDrafts,
         };
 
         running = true;
@@ -504,6 +660,8 @@ export function createEngine<Cfg>(
         isPaused = false;
         isResumeTick = false;
         afterResumeTransition = null;
+        checkpoints = [];
+        pendingCheckpointDrafts = null;
     }
 
     function tick() {
@@ -582,7 +740,10 @@ export function createEngine<Cfg>(
                 mutations: sharedTickMutations ?? undefined,
                 globalStore,
                 disposals: current.disposals,
+                checkpointDrafts: current.checkpointDrafts,
                 beforeGameState: lastGameState,
+                resolveCheckpoint,
+                listCheckpoints,
             });
 
             setRuntimeRoom(room);
@@ -656,6 +817,7 @@ export function createEngine<Cfg>(
             {
                 allowTransition: true,
                 disposals: current.disposals,
+                checkpointDrafts: current.checkpointDrafts,
                 beforeGameState: lastGameState,
             },
         );
@@ -669,18 +831,16 @@ export function createEngine<Cfg>(
             return { handled: false };
         }
 
-        const snapshot = createGameStatePlayerSnapshot(room, player, kickerSet);
-        if (!snapshot) return { handled: false };
-
         const commandResult = runOutsideTick(
             () => {
-                const handlerResult = current!.api.command!(snapshot, command);
+                const handlerResult = current!.api.command!(player, command);
 
                 return handlerResult ?? { handled: false };
             },
             {
                 allowTransition: true,
                 disposals: current.disposals,
+                checkpointDrafts: current.checkpointDrafts,
                 beforeGameState: lastGameState,
             },
         );
@@ -703,6 +863,7 @@ export function createEngine<Cfg>(
             },
             {
                 disposals: current.disposals,
+                checkpointDrafts: current.checkpointDrafts,
                 beforeGameState: lastGameState,
             },
         );
@@ -721,6 +882,7 @@ export function createEngine<Cfg>(
             {
                 allowTransition: true,
                 disposals: current.disposals,
+                checkpointDrafts: current.checkpointDrafts,
                 beforeGameState: lastGameState,
             },
         );

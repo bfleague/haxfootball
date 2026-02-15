@@ -42,6 +42,8 @@ import {
     YARD_LENGTH,
 } from "@meta/legacy/shared/stadium";
 import { sortBy } from "@common/general/helpers";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 const FIELD_GOAL_LINE_HEIGHT = 200;
 const OFFENSE_LINE_OFFSET_YARDS = 20;
@@ -437,6 +439,17 @@ export function FieldGoal({
         });
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -449,5 +462,5 @@ export function FieldGoal({
         $handleBallCrossedLine(frame);
     }
 
-    return { run };
+    return { run, command };
 }

@@ -21,6 +21,7 @@ import {
     isOutOfBounds,
 } from "@meta/legacy/shared/stadium";
 import { t } from "@lingui/core/macro";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     $setBallActive,
     $setBallInactive,
@@ -29,6 +30,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import type { CommandSpec } from "@runtime/commands";
 
 const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
 
@@ -420,6 +422,17 @@ export function Blitz({
         });
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -432,5 +445,5 @@ export function Blitz({
         $handleQuarterbackSacked(frame);
     }
 
-    return { run };
+    return { run, command };
 }

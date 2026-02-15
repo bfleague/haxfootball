@@ -13,6 +13,8 @@ import {
 import { getInitialDownState } from "@meta/legacy/shared/down";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 export function SafetyKickInFlight({
     kickingTeam,
@@ -21,6 +23,17 @@ export function SafetyKickInFlight({
 }) {
     function join(player: GameStatePlayer) {
         $setBallMoveableByPlayer(player.id);
+    }
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Safety kick in flight` },
+            },
+            player,
+            spec,
+        });
     }
 
     function run(state: GameState) {
@@ -103,5 +116,5 @@ export function SafetyKickInFlight({
         }
     }
 
-    return { run, join };
+    return { run, join, command };
 }

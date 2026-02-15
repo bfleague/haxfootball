@@ -4,6 +4,7 @@ import { ticks } from "@common/general/time";
 import { findBallCatcher, type FieldPosition } from "@common/game/game";
 import { t } from "@lingui/core/macro";
 import { type FieldTeam } from "@runtime/models";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     isInExtraPointZone,
     isBallOutOfBounds,
@@ -13,6 +14,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import type { CommandSpec } from "@runtime/commands";
 
 export function ExtraPointSnapInFlight({
     offensiveTeam,
@@ -28,6 +30,17 @@ export function ExtraPointSnapInFlight({
         $unsetLineOfScrimmage();
         $unsetFirstDownLine();
     });
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
 
     function run(state: GameState) {
         if (isBallOutOfBounds(state.ball)) {
@@ -100,5 +113,5 @@ export function ExtraPointSnapInFlight({
         }
     }
 
-    return { run };
+    return { run, command };
 }

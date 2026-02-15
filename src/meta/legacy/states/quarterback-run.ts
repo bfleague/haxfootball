@@ -24,6 +24,8 @@ import {
 } from "@meta/legacy/hooks/game";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 type Frame = {
     player: GameStatePlayer;
@@ -338,6 +340,17 @@ export function QuarterbackRun({
         });
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -347,5 +360,5 @@ export function QuarterbackRun({
         $handleTackle(frame);
     }
 
-    return { run };
+    return { run, command };
 }

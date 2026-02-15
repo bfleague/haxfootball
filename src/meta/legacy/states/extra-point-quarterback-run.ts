@@ -20,6 +20,8 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 type Frame = {
     player: GameStatePlayer;
@@ -174,6 +176,17 @@ export function ExtraPointQuarterbackRun({
         $completeAttempt();
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -184,5 +197,5 @@ export function ExtraPointQuarterbackRun({
         $handleTackle(frame);
     }
 
-    return { run };
+    return { run, command };
 }

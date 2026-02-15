@@ -23,6 +23,8 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 const MAX_PATH_DURATION = ticks({ seconds: 2 });
 
@@ -191,6 +193,17 @@ export function ExtraPointRun({
         $completeAttempt();
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -208,5 +221,5 @@ export function ExtraPointRun({
         $handleTackle(frame);
     }
 
-    return { run };
+    return { run, command };
 }

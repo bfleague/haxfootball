@@ -6,28 +6,117 @@ import { defaultConfig, type Config } from "@meta/legacy/config";
 import { Team } from "@runtime/models";
 import { legacyGlobalSchema } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
+import { randomBytes } from "node:crypto";
 
 export const config: RoomConfigObject = {
-    roomName: "HaxFootball",
-    maxPlayers: 16,
+    roomName: t`🏈 HaxFootball - American Football 🏈`,
+    maxPlayers: 25,
     noPlayer: true,
-    public: false,
+    public: true,
 };
+
+const TUTORIAL_LINK = "youtube.com/watch?v=Z09dlI3MR28";
+const ADMIN_PASSWORD = randomBytes(4).toString("hex");
+const IS_DEBUG = process.env["DEBUG"] === "true";
 
 let engine: Engine<Config> | null = null;
 
 const mainModule = createModule()
+    .setCommands({
+        spec: { prefix: COMMAND_PREFIX },
+        commands: ["admin", "setpassword", "clearpassword"],
+    })
     .onRoomLink((_, url) => {
         console.log(`Room link: ${url}`);
+        console.log(`Admin password: ${ADMIN_PASSWORD}`);
+    })
+    .onPlayerSendCommand((room, player, command) => {
+        switch (command.name) {
+            case "admin": {
+                const password = command.args[0];
+
+                if (password === ADMIN_PASSWORD) {
+                    room.setAdmin(player, true);
+                    room.send({
+                        message: t`You are now an admin.`,
+                        to: player.id,
+                    });
+                } else {
+                    room.send({
+                        message: t`Incorrect password.`,
+                        to: player.id,
+                    });
+                }
+
+                return { hideMessage: true };
+            }
+            case "setpassword": {
+                const newPassword = command.args[0];
+
+                if (!player.admin) {
+                    room.send({
+                        message: t`You must be an admin to use this command.`,
+                        to: player.id,
+                    });
+                    return { hideMessage: true };
+                }
+
+                if (!newPassword) {
+                    room.send({
+                        message: t`Please provide a new password.`,
+                        to: player.id,
+                    });
+                    return { hideMessage: true };
+                }
+
+                room.setPassword(newPassword);
+                room.send({
+                    message: t`Password updated successfully.`,
+                    to: player.id,
+                });
+
+                return { hideMessage: true };
+            }
+            case "clearpassword": {
+                if (!player.admin) {
+                    room.send({
+                        message: t`You must be an admin to use this command.`,
+                        to: player.id,
+                    });
+                    return { hideMessage: true };
+                }
+
+                room.removePassword();
+                room.send({
+                    message: t`Password cleared successfully.`,
+                    to: player.id,
+                });
+
+                return { hideMessage: true };
+            }
+            default:
+                return { hideMessage: false };
+        }
     })
     .onPlayerJoin((room, player) => {
-        room.setAdmin(player, true);
+        if (IS_DEBUG) {
+            room.setAdmin(player, true);
+        } else {
+            room.send({
+                message: t`🏈 Welcome to HaxFootball!`,
+                to: player.id,
+            });
+            room.send({
+                message: t`Watch the tutorial: ${TUTORIAL_LINK}`,
+                to: player.id,
+            });
+        }
     });
 
 const matchModule = createModule()
     .setCommands({
         spec: { prefix: COMMAND_PREFIX },
-        commands: ["punt", "fg", "version"],
+        commands: ["punt", "fg", "version", "undo", "info"],
     })
     .onGameStart((room) => {
         engine = createEngine(room, registry, {
@@ -66,8 +155,8 @@ const matchModule = createModule()
             default:
                 room.send({
                     message: engine
-                        ? t`The game has not been started yet.`
-                        : t`You cannot use that command right now.`,
+                        ? t`You cannot use that command right now.`
+                        : t`The game has not been started yet.`,
                     to: player.id,
                 });
 

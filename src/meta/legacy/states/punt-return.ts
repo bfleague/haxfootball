@@ -17,8 +17,10 @@ import { isTouchdown, SCORES } from "@meta/legacy/shared/scoring";
 import { cn, formatNames } from "@meta/legacy/shared/message";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $global } from "@meta/legacy/hooks/global";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
-type EndzoneState = "TOUCHBACK" | "SAFETY";
+type EndzoneState = "TOUCHBACK" | "Safety";
 type Frame = {
     player: GameStatePlayer;
     defenders: GameStatePlayer[];
@@ -93,7 +95,7 @@ export function PuntReturn({
                             },
                             wait: ticks({ seconds: 1 }),
                         });
-                    case "SAFETY":
+                    case "Safety":
                         $effect(($) => {
                             $.send(
                                 cn(
@@ -148,7 +150,7 @@ export function PuntReturn({
             params: {
                 playerId,
                 receivingTeam,
-                endzoneState: "SAFETY",
+                endzoneState: "Safety",
             },
         });
     }
@@ -288,7 +290,7 @@ export function PuntReturn({
                         },
                         wait: ticks({ seconds: 1 }),
                     });
-                case "SAFETY":
+                case "Safety":
                     $effect(($) => {
                         $.send(
                             cn(
@@ -364,6 +366,17 @@ export function PuntReturn({
         }
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Punt return` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -374,5 +387,5 @@ export function PuntReturn({
         $handleTackle(frame);
     }
 
-    return { run, leave };
+    return { run, leave, command };
 }

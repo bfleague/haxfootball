@@ -37,11 +37,13 @@ import { t } from "@lingui/core/macro";
 import { unique } from "@common/general/helpers";
 import * as Crowding from "@meta/legacy/shared/crowding";
 import assert from "assert";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     DEFAULT_PUSHING_CONTACT_DISTANCE,
     DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
     detectPushingFoul,
 } from "@meta/legacy/shared/pushing";
+import type { CommandSpec } from "@runtime/commands";
 
 type Frame = {
     state: GameState;
@@ -895,6 +897,17 @@ export function Snap({
         });
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const frame = buildFrame(state);
         if (!frame) return;
@@ -917,5 +930,5 @@ export function Snap({
         $refreshSnapState(frame, crowdingResult);
     }
 
-    return { run };
+    return { run, command };
 }

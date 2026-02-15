@@ -2,6 +2,7 @@ import { $dispose, $effect, $next } from "@runtime/hooks";
 import { Team, type FieldTeam } from "@runtime/models";
 import { distributeOnLine, getMidpoint } from "@common/math/geometry";
 import { opposite } from "@common/game/game";
+import { t } from "@lingui/core/macro";
 import {
     $trapTeamInMidField,
     $trapTeamInEndZone,
@@ -15,6 +16,8 @@ import {
     $setBallUnmoveableByPlayer,
 } from "@meta/legacy/hooks/physics";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 const KICKOFF_START_LINE = {
     [Team.RED]: {
@@ -77,12 +80,23 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
         }
     }
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Kickoff` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const kicker = state.players.find((p) => p.isKickingBall);
 
         if (kicker) {
             $effect(($) => {
-                $.stat("KICKOFF");
+                $.stat("Kickoff");
             });
 
             $next({
@@ -92,5 +106,5 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
         }
     }
 
-    return { join, run };
+    return { join, run, command };
 }

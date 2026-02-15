@@ -2,6 +2,7 @@ import { GameState } from "@runtime/engine";
 import { $dispose, $next } from "@runtime/runtime";
 import { DownState } from "@meta/legacy/shared/down";
 import { ticks } from "@common/general/time";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     $setBallActive,
     $setBallInactive,
@@ -10,6 +11,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import type { CommandSpec } from "@runtime/commands";
 
 const TIME_TO_BLOCKED_PASS_STATE = ticks({ milliseconds: 200 });
 
@@ -38,6 +40,17 @@ export function PassDeflection({
 
     // TODO: Check if player leaves
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const blocker = state.players.find((p) => p.id === blockerId);
         if (!blocker) return;
@@ -65,5 +78,5 @@ export function PassDeflection({
         }
     }
 
-    return { run };
+    return { run, command };
 }

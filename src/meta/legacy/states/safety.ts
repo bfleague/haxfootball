@@ -20,6 +20,8 @@ import { $global } from "@meta/legacy/hooks/global";
 import { SCORES } from "@meta/legacy/shared/scoring";
 import { $next } from "@runtime/runtime";
 import { t } from "@lingui/core/macro";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 const KICKING_TEAM_POSITIONS_OFFSET = {
     start: { x: -50, y: -150 },
@@ -92,6 +94,17 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
                     0,
         );
 
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Safety` },
+            },
+            player,
+            spec,
+        });
+    }
+
     function run(state: GameState) {
         const playersPastBall = getPlayersBeyondBallLine(state);
         const hasPlayersPastBall = playersPastBall.length > 0;
@@ -130,5 +143,5 @@ export function Safety({ kickingTeam }: { kickingTeam: FieldTeam }) {
         });
     }
 
-    return { run };
+    return { run, command };
 }

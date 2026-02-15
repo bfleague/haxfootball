@@ -5,6 +5,7 @@ import type { GameState } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
 import { isBallOutOfBounds } from "@meta/legacy/shared/stadium";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     advanceDownState,
     DownState,
@@ -18,6 +19,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import type { CommandSpec } from "@runtime/commands";
 
 export function SnapInFlight({ downState }: { downState: DownState }) {
     const { offensiveTeam, fieldPos, downAndDistance } = downState;
@@ -29,6 +31,17 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         $unsetLineOfScrimmage();
         $unsetFirstDownLine();
     });
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
 
     function run(state: GameState) {
         if (isBallOutOfBounds(state.ball)) {
@@ -110,5 +123,5 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         }
     }
 
-    return { run };
+    return { run, command };
 }

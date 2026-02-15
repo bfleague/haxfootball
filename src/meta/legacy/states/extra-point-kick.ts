@@ -8,12 +8,14 @@ import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
 import { type FieldTeam } from "@runtime/models";
 import { SCORES } from "@meta/legacy/shared/scoring";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     calculateDirectionalGain,
     getGoalLine,
     isBallOutOfBounds,
     isWithinGoalPosts,
 } from "@meta/legacy/shared/stadium";
+import type { CommandSpec } from "@runtime/commands";
 
 const EXTRA_POINT_RESULT_DELAY = ticks({ seconds: 2 });
 const EXTRA_POINT_SUCCESS_DELAY = ticks({ seconds: 2 });
@@ -35,6 +37,17 @@ export function ExtraPointKick({
     $dispose(() => {
         $unlockBall();
     });
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
 
     function run(state: GameState) {
         const crossedGoalLine =
@@ -107,5 +120,5 @@ export function ExtraPointKick({
         }
     }
 
-    return { run };
+    return { run, command };
 }

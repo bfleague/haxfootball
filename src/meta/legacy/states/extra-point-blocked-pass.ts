@@ -5,6 +5,7 @@ import { AVATARS, type FieldPosition } from "@common/game/game";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
 import { type FieldTeam } from "@runtime/models";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     $setBallActive,
     $setBallInactive,
@@ -12,6 +13,7 @@ import {
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
+import type { CommandSpec } from "@runtime/commands";
 
 export function ExtraPointBlockedPass({
     blockerId,
@@ -31,6 +33,17 @@ export function ExtraPointBlockedPass({
         $unsetFirstDownLine();
         $setBallActive();
     });
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
+    }
 
     function run(state: GameState) {
         const blocker = state.players.find((player) => player.id === blockerId);
@@ -61,5 +74,5 @@ export function ExtraPointBlockedPass({
         });
     }
 
-    return { run };
+    return { run, command };
 }

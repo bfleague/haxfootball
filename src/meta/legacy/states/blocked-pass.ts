@@ -18,6 +18,8 @@ import {
 } from "@meta/legacy/hooks/game";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
+import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import type { CommandSpec } from "@runtime/commands";
 
 export function BlockedPass({
     blockerId,
@@ -37,6 +39,17 @@ export function BlockedPass({
         $setBallActive();
         $unsetFirstDownLine();
     });
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
+        });
+    }
 
     function run(state: GameState) {
         const blocker = state.players.find((p) => p.id === blockerId);
@@ -86,5 +99,5 @@ export function BlockedPass({
         });
     }
 
-    return { run };
+    return { run, command };
 }
