@@ -76,7 +76,9 @@ export function BlockedPass({
                 $effect(($) => {
                     $.send({
                         message: cn(
-                            t`🚧 Pass batted by ${blocker.name}`,
+                            "🚧",
+                            nextDownState,
+                            t`pass batted by ${blocker.name}`,
                             t`no gain.`,
                         ),
                         color: COLOR.WARNING,
@@ -87,7 +89,9 @@ export function BlockedPass({
                 $effect(($) => {
                     $.send({
                         message: cn(
-                            t`🚧 Pass batted by ${blocker.name}`,
+                            "🚧",
+                            nextDownState,
+                            t`pass batted by ${blocker.name}`,
                             t`TURNOVER ON DOWNS!`,
                         ),
                         color: COLOR.WARNING,

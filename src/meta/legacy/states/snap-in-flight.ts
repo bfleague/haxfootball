@@ -61,7 +61,9 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                     case "FIRST_DOWN":
                         $.send({
                             message: cn(
-                                t`🚪 Ball out of bounds`,
+                                "🏁",
+                                nextDownState,
+                                t`ball out of bounds`,
                                 t`FIRST DOWN!`,
                             ),
                             color: COLOR.WARNING,
@@ -70,7 +72,12 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                         break;
                     case "NEXT_DOWN":
                         $.send({
-                            message: cn(t`🚪 Ball out of bounds`, t`no gain.`),
+                            message: cn(
+                                "🚪",
+                                nextDownState,
+                                t`ball out of bounds`,
+                                t`no gain.`,
+                            ),
                             color: COLOR.WARNING,
                         });
 
@@ -78,8 +85,10 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                     case "TURNOVER_ON_DOWNS":
                         $.send({
                             message: cn(
-                                t`❌ TURNOVER ON DOWNS`,
-                                t`ball out of bounds.`,
+                                "❌",
+                                nextDownState,
+                                t`ball out of bounds`,
+                                t`TURNOVER ON DOWNS!`,
                             ),
                             color: COLOR.WARNING,
                         });
