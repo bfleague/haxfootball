@@ -32,6 +32,9 @@ jobs:
             - name: Typecheck
               run: npx tsc --noEmit
 
+            - name: Test
+              run: npm test -- --run
+
             - name: Notify Discord
               if: always()
               env:

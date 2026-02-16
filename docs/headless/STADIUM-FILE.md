@@ -2,27 +2,21 @@
 
 A HaxBall stadium file is a text file with json5 format which contains a single StadiumObject.
 
-
-
 ## StadiumObject
 
 StadiumObjects are the root object of a stadium file.
-
 
 ### `name : string`
 
 The name of the stadium.
 
-
 ### `width: float`
 
 The width of a rectangle centered in coordinates <0,0> in which the camera will be contained. The camera follows the player and ball until it reaches the bounds of this rectanngle.
 
-
 ### `height: float`
 
 The height of a rectangle centered in coordinates <0,0> in which the camera will be contained. The camera follows the player and ball until it reaches the bounds of this rectanngle.
-
 
 ### `maxViewWidth : float`
 
@@ -31,7 +25,6 @@ The maximum allowed width viewable width for the level. If the player screen wer
 Setting maxViewWidth to 0 disables this feature.
 
 Default value: 0
-
 
 ### `cameraFollow : string`
 
@@ -43,18 +36,15 @@ If set to "ball" the camera will follow the average position between the player 
 
 Default value: "ball"
 
-
 ### `spawnDistance : float`
 
 The distance from <0,0> at which the teams will spawn during kickoff. This value is ignored if `redSpawnPoints` or `blueSpawnPoints` are not empty.
-
 
 ### `canBeStored : Boolean`
 
 This value defines whether this stadium can be stored with the /store command.
 
 Default value: true
-
 
 ### `kickOffReset : String`
 
@@ -66,11 +56,9 @@ When set to `"full"` all discs will be reset for the kickoff.
 
 Default value: `"partial"`
 
-
 ### `bg : BackgroundObject`
 
 An object describing the background for the stadium.
-
 
 ### `traits : Map<string, TraitValues>`
 
@@ -86,12 +74,13 @@ Example:
 "traits" : {
   "ballArea" : { "vis" : false, "bCoef" : 1, "cMask" : ["ball"] },
   "goalPost" : { "radius" : 8, "invMass" : 0, "bCoef" : 0.5 },
-  "goalNet" : { "vis" : true, "bCoef" : 0.1, "cMask" : ["ball"] }, 
+  "goalNet" : { "vis" : true, "bCoef" : 0.1, "cMask" : ["ball"] },
   "kickOffBarrier" : { "vis" : false, "bCoef" : 0.1, "cGroup" : ["redKO", "blueKO"], "cMask" : ["red", "blue"] },
 }
 ```
 
 It can then be referenced by other objects by using the "trait" property.
+
 ```json5
 "segments" : [
   { "v0" : 0, "v1" : 1, "trait" : "ballArea" },
@@ -126,8 +115,8 @@ List of planes.
 
 List of joints.
 
-
 ### `redSpawnPoints : float[][]`
+
 List of spawn points used for the red team kickoff.
 
 If the list is empty then the default spawn behaviour is employed.
@@ -138,10 +127,9 @@ Example: `"redSpawnPoints" : [[100, 0], [100, 30], [100, -30], [100, 60], [100, 
 
 Default value: `[]`
 
-
 ### `blueSpawnPoints : float[][]`
-Same as `redSpawnPoints` but for the blue team.
 
+Same as `redSpawnPoints` but for the blue team.
 
 ### `playerPhysics : PlayerPhysics`
 
@@ -157,8 +145,7 @@ Setting ballPhysics to the string "disc0" will instead use the first disc as the
 
 If omitted default ball physics will be used.
 
-
-***
+---
 
 ## BackgroundObject
 
@@ -204,32 +191,41 @@ Background color for the stadium.
 
 Default value: "718C5A"
 
-
-***
+---
 
 ## Vertex
 
 A vertex is a point which can collide with discs but cannot move and is not visible.
 
 ### `x : float`
+
 The x position for the vertex.
+
 ### `y : float`
+
 The y position for the vertex.
+
 ### `bCoef : float`
+
 The bouncing coefficient.
+
 ### `cMask : string[]`
+
 A list of flags that represent this object's collision mask.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
+
 ### `cGroup : string[]`
+
 A list of flags that represent this object's collision group.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
 
 ### `trait : string`
+
 A trait to use as default values for this object. See `StadiumObject` `traits` property for more info.
 
-***
+---
 
 ## Segment
 
@@ -244,14 +240,17 @@ Index of a vertex in the stadium vertex list to be used as first point of the se
 Index of a vertex in the stadium vertex list to be used as the second point of the segment.
 
 ### `bCoef : float`
+
 The bouncing coefficient.
 
 ### `curve : float`
+
 The angle in degrees with which the segment will curve forming an arc between it's two vertexes.
 
 Default value is 0 which makes the segment a straight line.
 
 ### `curveF : float`
+
 Alternative representation of the segment's curve. If this value is present the `curve` value will be ignored.
 
 This value is only useful for exporting stadiums without precision loss, it is recommended to remove `curveF` and use only `curve` when editing an exported stadium.
@@ -267,10 +266,13 @@ This property can be useful to create boundaries that small and fast moving ball
 Default value: 0
 
 ### `cMask : string[]`
+
 A list of flags that represent this object's collision mask.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
+
 ### `cGroup : string[]`
+
 A list of flags that represent this object's collision group.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
@@ -291,7 +293,7 @@ Default value: "000000" (black)
 
 A trait to use as default values for this object. See `StadiumObject` `traits` property for more info.
 
-***
+---
 
 ## Goal
 
@@ -313,26 +315,32 @@ The team the goal belongs to. Possible values: "red" or "blue"
 
 A trait to use as default values for this object. See `StadiumObject` `traits` property for more info.
 
-***
+---
 
 ## Plane
 
 Planes are collision objects that divide the map in two by an infinite line. They are useful for creating the boundaries of the stadium.
 
 ### `normal : float[]`
+
 The direction vector of the plane in an array form [x, y].
 
 ### `dist : float`
+
 The distance from coordinates [0,0] (in direction of the normal) in which the plane is located at.
 
 ### `bCoef : float`
+
 The bouncing coefficient.
 
 ### `cMask : string[]`
+
 A list of flags that represent this object's collision mask.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
+
 ### `cGroup : string[]`
+
 A list of flags that represent this object's collision group.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
@@ -341,36 +349,54 @@ A list of flags that represent this object's collision group.
 
 A trait to use as default values for this object. See `StadiumObject` `traits` property for more info.
 
-***
+---
 
 ## Disc
 
 Discs are circular physical objects that are placed in the stadium, they can move and collide with other discs.
 
 ### `pos : float[]`
+
 The starting position of the object in array form [x, y].
+
 ### `speed : float[]`
+
 The starting speed of the object in array form [x, y].
+
 ### `gravity : float[]`
+
 The gravity vector of the object in array form [x, y].
+
 ### `radius : float`
+
 The radius of the disc.
+
 ### `invMass : float`
+
 The inverse of the disc's mass.
+
 ### `damping : float`
+
 The damping factor of the disc.
+
 ### `color : Color`
+
 The disc fill color. Supports "transparent" color.
 
 Default value: `"FFFFFF"`
 
 ### `bCoef : float`
+
 The bouncing coefficient.
+
 ### `cMask : string[]`
+
 A list of flags that represent this object's collision mask.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
+
 ### `cGroup : string[]`
+
 A list of flags that represent this object's collision group.
 
 [Read more about collision flags here](https://github.com/haxball/haxball-issues/wiki/Collision-Flags).
@@ -379,52 +405,76 @@ A list of flags that represent this object's collision group.
 
 A trait to use as default values for this object. See `StadiumObject` `traits` property for more info.
 
-***
+---
 
 ## PlayerPhysics
 
 PlayerPhysics describes physical constants affecting the players.
 
 ### `gravity : float[]`
+
 See Disc.gravity
+
 ### `radius : float`
+
 See Disc.radius
+
 ### `invMass : float`
+
 See Disc.invMAss
+
 ### `bCoef : float`
+
 See Disc.bCoef
+
 ### `damping : float`
+
 See Disc.damping
+
 ### `cGroup : string[]`
+
 See Disc.cGroup
 
 ### `acceleration : float`
+
 How fast a player accelerates when moving around with his keys.
+
 ### `kickingAcceleration : float`
+
 Replaces acceleration when the player is holding the kick button.
+
 ### `kickingDamping : float`
+
 Replaces damping when the player is holding the kick button.
+
 ### `kickStrength : float`
+
 How much force the player applies to the a ball when kicking.
+
 ### `kickback : float`
+
 Much like kickStrength but it's applied to the kicking player instead.
 
-***
+---
 
 ## Joint
+
 Joints are physical connections between two Discs.
 
 ### `d0 : Int`
-Index of one of the two discs connected by the joint. 
+
+Index of one of the two discs connected by the joint.
 
 Note: Index 0 will be used by the ball disc if `StadiumObject.ballPhysics` is not set to `"disc0"`.
 
 ### `d1 : Int`
-Index of one of the two discs connected by the joint. 
+
+Index of one of the two discs connected by the joint.
 
 Note: Index 0 will be used by the ball disc if `StadiumObject.ballPhysics` is not set to `"disc0"`.
 
 ### `length : float | [min, max] | null`
+
 If set to null then the length will be automatically computed to match the distance between the two discs connected by the joint.
 
 If set to a float value then the join will use that as length.
@@ -434,6 +484,7 @@ If set to a 2 elements array [min, max] then the joint will have a min length an
 Default value: `null`
 
 ### `strength : float | "rigid"`
+
 If set to `"rigid"` then the joint acts like a solid.
 
 If set to a float value then the joint will act like a spring.
@@ -441,6 +492,7 @@ If set to a float value then the joint will act like a spring.
 Default value: `"rigid"`
 
 ### `color : Color`
+
 The color of the joint. Supports "transparent" color.
 
 Default value: `"000000"` (black)
@@ -449,7 +501,7 @@ Default value: `"000000"` (black)
 
 A trait to use as default values for this object. See `StadiumObject` `traits` property for more info.
 
-***
+---
 
 ## Color
 
