@@ -11,10 +11,13 @@ jobs:
         runs-on: ubuntu-latest
         env:
             DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+            OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -37,6 +40,71 @@ jobs:
             - name: Test
               run: npm test -- --run
 
+            - name: Summarize changes with OpenAI
+              if: always() && env.OPENAI_API_KEY != ''
+              id: openai
+              continue-on-error: true
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  BEFORE_SHA: ${{ github.event.before }}
+                  PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+                  PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  HEAD_SHA: ${{ github.sha }}
+              run: |
+                  if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ] && [ -n "${PR_HEAD_SHA:-}" ]; then
+                    RANGE="$PR_BASE_SHA...$PR_HEAD_SHA"
+                  elif [ -n "${BEFORE_SHA:-}" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+                    RANGE="$BEFORE_SHA...$HEAD_SHA"
+                  elif git rev-parse HEAD~1 >/dev/null 2>&1; then
+                    RANGE="$(git rev-parse HEAD~1)...$HEAD_SHA"
+                  else
+                    RANGE="$HEAD_SHA"
+                  fi
+
+                  git diff --name-status "$RANGE" > /tmp/changed_files.txt || true
+                  git diff --unified=0 "$RANGE" > /tmp/changes.patch || true
+                  head -c 50000 /tmp/changes.patch > /tmp/changes.trim.patch || true
+
+                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 2-4 concise bullets as plain text, max 700 chars. Mention what changed, likely impact, and risk/test notes."
+                  USER_PROMPT="$(cat <<'EOF'
+                  Changed files:
+                  EOF
+                  )"
+
+                  USER_PROMPT="$USER_PROMPT
+                  $(cat /tmp/changed_files.txt)
+
+                  Patch snippet:
+                  $(cat /tmp/changes.trim.patch)"
+
+                  RESPONSE="$(
+                    jq -n \
+                      --arg model "gpt-5-mini" \
+                      --arg system "$SYSTEM_PROMPT" \
+                      --arg user "$USER_PROMPT" \
+                      '{
+                        model: $model,
+                        input: [
+                          { role: "system", content: $system },
+                          { role: "user", content: $user }
+                        ],
+                        max_output_tokens: 220
+                      }' \
+                    | curl -sS https://api.openai.com/v1/responses \
+                        -H "Authorization: Bearer $OPENAI_API_KEY" \
+                        -H "Content-Type: application/json" \
+                        -d @-
+                  )"
+
+                  SUMMARY="$(printf '%s' "$RESPONSE" | jq -r '.output_text // empty')"
+                  if [ -z "$SUMMARY" ]; then
+                    echo "OpenAI summary unavailable."
+                    exit 0
+                  fi
+
+                  SUMMARY="$(printf '%s' "$SUMMARY" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g' | head -c 900)"
+                  echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
+
             - name: Prepare Discord metadata
               if: always() && env.DISCORD_WEBHOOK_URL != ''
               id: discord
@@ -45,6 +113,7 @@ jobs:
                   EVENT_NAME: ${{ github.event_name }}
                   PR_TITLE: ${{ github.event.pull_request.title }}
                   COMMIT_MSG: ${{ github.event.head_commit.message }}
+                  OPENAI_SUMMARY: ${{ steps.openai.outputs.summary }}
               run: |
                   case "$JOB_STATUS" in
                     success)
@@ -65,7 +134,9 @@ jobs:
                       ;;
                   esac
 
-                  if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_TITLE:-}" ]; then
+                  if [ -n "${OPENAI_SUMMARY:-}" ]; then
+                    DETAILS="$OPENAI_SUMMARY"
+                  elif [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_TITLE:-}" ]; then
                     DETAILS="PR: ${PR_TITLE}"
                   elif [ -n "${COMMIT_MSG:-}" ]; then
                     DETAILS="Commit: ${COMMIT_MSG}"
