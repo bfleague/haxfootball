@@ -104,12 +104,7 @@ jobs:
               id: openai
               continue-on-error: true
               env:
-                  INPUT_OPENAI-API-KEY: ${{ env.OPENAI_API_KEY }}
-                  INPUT_OPENAI-MODE: chat
-                  INPUT_OPENAI-PARAMS: ${{ steps.openai_prompt.outputs.params }}
-                  INPUT_OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
-                  INPUT_OPENAI_MODE: chat
-                  INPUT_OPENAI_PARAMS: ${{ steps.openai_prompt.outputs.params }}
+                  INPUT_MODE: chat
               uses: Just-Moh-it/openai@v0.0.1
               with:
                   openai-api-key: ${{ env.OPENAI_API_KEY }}
