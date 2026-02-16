@@ -10,12 +10,14 @@ import { randomBytes } from "node:crypto";
 import { Room } from "@core/room";
 
 const IS_DEBUG = process.env["DEBUG"] === "true";
+const PROXY = process.env["PROXY"];
 
 const config: RoomConfigObject = {
     roomName: t`🏈 HaxFootball - American Football 🏈`,
     maxPlayers: 25,
     noPlayer: true,
     public: !IS_DEBUG,
+    ...(PROXY ? { proxy: PROXY } : {}),
 };
 
 const TUTORIAL_LINK = "youtube.com/watch?v=Z09dlI3MR28";
