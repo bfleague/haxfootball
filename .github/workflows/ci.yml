@@ -62,10 +62,54 @@ jobs:
                   fi
 
                   git diff --name-status "$RANGE" > /tmp/changed_files.txt || true
+                  git diff --numstat "$RANGE" > /tmp/changed_files_numstat.txt || true
+                  git diff --stat "$RANGE" > /tmp/changes.stat || true
+                  git diff --unified=0 "$RANGE" | rg '^@@' | head -n 120 > /tmp/changes.hunks || true
                   git diff --unified=0 "$RANGE" > /tmp/changes.patch || true
                   head -c 50000 /tmp/changes.patch > /tmp/changes.trim.patch || true
 
-                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 1-4 concise bullets as plain text, max 700 chars. Mention what changed from a user-facing, gameplay standpoint, not a technical one."
+                  python3 - <<'PY'
+                  from pathlib import Path
+
+                  def classify(path: str) -> str:
+                      if path.startswith("src/meta/legacy/states/"):
+                          return "Gameplay states"
+                      if path.startswith("src/meta/legacy/shared/"):
+                          return "Shared gameplay logic"
+                      if path.startswith("src/meta/legacy/hooks/"):
+                          return "Gameplay hooks"
+                      if path.startswith("src/runtime/"):
+                          return "Runtime/engine"
+                      if path.startswith("src/room/"):
+                          return "Room integration"
+                      if path.startswith("src/common/"):
+                          return "Core utilities"
+                      if path.startswith("src/locales/"):
+                          return "Localization"
+                      if path.startswith(".github/workflows/"):
+                          return "CI workflow"
+                      if path.startswith("docs/"):
+                          return "Documentation"
+                      return "Other"
+
+                  lines = []
+                  for raw in Path("/tmp/changed_files_numstat.txt").read_text().splitlines():
+                      parts = raw.split("\t", 2)
+                      if len(parts) != 3:
+                          continue
+                      added, deleted, path = parts
+                      added_label = added if added != "-" else "?"
+                      deleted_label = deleted if deleted != "-" else "?"
+                      lines.append(
+                          f"- {path} (+{added_label}/-{deleted_label}) [{classify(path)}]"
+                      )
+
+                  Path("/tmp/changed_files_context.txt").write_text(
+                      "\n".join(lines[:40])
+                  )
+                  PY
+
+                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 1-4 concise bullets as plain text, max 700 chars. Mention what changed from a user-facing, gameplay standpoint, not a technical one. Use the file-area context to avoid vague summaries."
                   USER_PROMPT="$(cat <<'EOF'
                   Changed files:
                   EOF
@@ -73,6 +117,15 @@ jobs:
 
                   USER_PROMPT="$USER_PROMPT
                   $(cat /tmp/changed_files.txt)
+
+                  Changed files context (path, churn, area):
+                  $(cat /tmp/changed_files_context.txt)
+
+                  Diff stat:
+                  $(cat /tmp/changes.stat)
+
+                  Hunk headers:
+                  $(cat /tmp/changes.hunks)
 
                   Patch snippet:
                   $(cat /tmp/changes.trim.patch)"
