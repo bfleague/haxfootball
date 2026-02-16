@@ -5,6 +5,8 @@ import {
     findCatchers,
 } from "@common/game/game";
 import { getDistance, type PointLike } from "@common/math/geometry";
+import { type FieldTeam } from "@runtime/models";
+import { isTouchdown } from "@meta/legacy/shared/scoring";
 import { isOutOfBounds } from "@meta/legacy/shared/stadium";
 
 type MaybeKickableIdentifiedPointLike = PointLike & {
@@ -28,6 +30,25 @@ export function findEligibleBallCatcher<
     maxDistance = DEFAULT_TOUCHING_DISTANCE,
 ): T | null {
     return findBallCatcher(ball, filterEligibleReceivers(players), maxDistance);
+}
+
+export function findTouchdownAwareBallCatcher<
+    T extends MaybeKickableIdentifiedPointLike,
+>(
+    ball: PointLike,
+    players: T[],
+    offensiveTeam: FieldTeam,
+    maxDistance = DEFAULT_TOUCHING_DISTANCE,
+): T | null {
+    return findBallCatcher(
+        ball,
+        players.filter(
+            (player) =>
+                isEligibleReceiver(player) ||
+                isTouchdown({ player, offensiveTeam }),
+        ),
+        maxDistance,
+    );
 }
 
 export function findEligibleBallCatchers<

@@ -79,9 +79,9 @@ export const BALL_DISC_ID = 0;
 export const BALL_ACTIVE_COLOR = hexColorToNumber(BALL_COLOR);
 export const BALL_INACTIVE_COLOR = 0x808080;
 
-const CROWDING_OUTER_BEHIND_YARDS = 2;
-const CROWDING_OUTER_AHEAD_YARDS = 8;
-const CROWDING_INNER_AHEAD_YARDS = 4;
+const CROWDING_OUTER_BEHIND_YARDS = 2.5;
+const CROWDING_OUTER_AHEAD_YARDS = 7;
+const CROWDING_INNER_AHEAD_YARDS = 3;
 
 const HASH_UPPER_CENTER_Y =
     MapMeasures.HASHES_HEIGHT.upperY + MapMeasures.SINGLE_HASH_HEIGHT / 2;
@@ -463,9 +463,10 @@ function getCrowdingDirection(team: FieldTeam): 1 | -1 {
 
 function getCrowdingHashBand() {
     const { upperY, lowerY } = MapMeasures.HASHES_HEIGHT;
+    const hashHeight = MapMeasures.SINGLE_HASH_HEIGHT;
     return {
         yMid: (upperY + lowerY) / 2,
-        height: Math.abs(lowerY - upperY),
+        height: Math.abs(lowerY - upperY) - 2 * hashHeight,
     };
 }
 

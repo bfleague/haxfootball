@@ -4,7 +4,6 @@ import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
     intersectsEndZone,
-    isOutOfBounds,
 } from "./stadium";
 import { FieldTeam } from "@runtime/models";
 
@@ -35,10 +34,7 @@ export function isTouchdown({
             radius >=
         0;
 
-    const isTouchdown =
-        !isOutOfBounds(player) &&
-        brokePlane &&
-        intersectsEndZone(player, scoringSide);
+    const isTouchdown = brokePlane && intersectsEndZone(player, scoringSide);
 
     return isTouchdown;
 }

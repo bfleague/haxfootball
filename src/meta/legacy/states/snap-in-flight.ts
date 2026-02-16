@@ -7,6 +7,7 @@ import { isBallOutOfBounds } from "@meta/legacy/shared/stadium";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import {
     findEligibleBallCatcher,
+    findTouchdownAwareBallCatcher,
     findOutOfBoundsBallCatcher,
 } from "@meta/legacy/shared/reception";
 import {
@@ -14,6 +15,7 @@ import {
     DownState,
     withLastBallYAtCenter,
 } from "@meta/legacy/shared/down";
+import { isTouchdown } from "@meta/legacy/shared/scoring";
 import {
     $setBallActive,
     $setBallInactive,
@@ -61,17 +63,26 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         const defensivePlayers = state.players.filter(
             (player) => player.team !== offensiveTeam,
         );
+        const offensiveCatcher = findTouchdownAwareBallCatcher(
+            state.ball,
+            offensivePlayers,
+            offensiveTeam,
+        );
+        const isTouchdownCatch =
+            offensiveCatcher !== null &&
+            isTouchdown({ player: offensiveCatcher, offensiveTeam });
 
         return {
             state,
-            outOfBoundsCatcher: findOutOfBoundsBallCatcher(
-                state.ball,
-                state.players,
-            ),
-            offensiveCatcher: findEligibleBallCatcher(
-                state.ball,
-                offensivePlayers,
-            ),
+            outOfBoundsCatcher: isTouchdownCatch
+                ? null
+                : findOutOfBoundsBallCatcher(
+                      state.ball,
+                      state.players.filter(
+                          (player) => player.id !== offensiveCatcher?.id,
+                      ),
+                  ),
+            offensiveCatcher,
             defensiveCatcher: findEligibleBallCatcher(
                 state.ball,
                 defensivePlayers,

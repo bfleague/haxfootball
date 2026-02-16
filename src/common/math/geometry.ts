@@ -349,3 +349,36 @@ export function intersectsRectangle(
 
     return dx * dx + dy * dy <= r * r;
 }
+
+export function isContainedInRectangle(
+    p: PointLike,
+    start: Coordinate,
+    direction: Direction,
+    extension: Extension,
+): boolean {
+    const [xStart, yMid] = start;
+    const [wRaw, hRaw] = extension;
+
+    const w = Math.abs(wRaw);
+    const h = Math.abs(hRaw);
+
+    if (!Number.isFinite(w) || w <= 0 || !Number.isFinite(h) || h <= 0) {
+        throw new Error(`extension must be positive. Got: [${wRaw}, ${hRaw}]`);
+    }
+
+    const xOpp = xStart + direction * w;
+    const xMin = Math.min(xStart, xOpp);
+    const xMax = Math.max(xStart, xOpp);
+
+    const yTop = yMid - h / 2;
+    const yBot = yMid + h / 2;
+    const yMin = Math.min(yTop, yBot);
+    const yMax = Math.max(yTop, yBot);
+
+    const r0 = p.radius ?? 0;
+    const r = Number.isFinite(r0) ? Math.max(0, r0) : 0;
+
+    return (
+        p.x - r >= xMin && p.x + r <= xMax && p.y - r >= yMin && p.y + r <= yMax
+    );
+}
