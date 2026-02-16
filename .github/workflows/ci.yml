@@ -103,10 +103,17 @@ jobs:
               if: always() && env.OPENAI_API_KEY != '' && steps.openai_prompt.outputs.params != ''
               id: openai
               continue-on-error: true
+              env:
+                  INPUT_OPENAI-API-KEY: ${{ env.OPENAI_API_KEY }}
+                  INPUT_OPENAI-MODE: chat
+                  INPUT_OPENAI-PARAMS: ${{ steps.openai_prompt.outputs.params }}
+                  INPUT_OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+                  INPUT_OPENAI_MODE: chat
+                  INPUT_OPENAI_PARAMS: ${{ steps.openai_prompt.outputs.params }}
               uses: Just-Moh-it/openai@v0.0.1
               with:
                   openai-api-key: ${{ env.OPENAI_API_KEY }}
-                  openai-mode: chat
+                  openai-mode: "chat"
                   openai-params: ${{ steps.openai_prompt.outputs.params }}
 
             - name: Normalize OpenAI summary
@@ -169,8 +176,6 @@ jobs:
               with:
                   webhook-url: ${{ env.DISCORD_WEBHOOK_URL }}
                   wait: true
-                  username: GitHub Actions
-                  avatar-url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
                   embed-title: ${{ steps.discord.outputs.title }}
                   embed-color: ${{ steps.discord.outputs.color }}
                   embed-description: |
