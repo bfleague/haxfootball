@@ -40,9 +40,9 @@ jobs:
             - name: Test
               run: npm test -- --run
 
-            - name: Summarize changes with OpenAI
+            - name: Build OpenAI prompt
               if: always() && env.OPENAI_API_KEY != ''
-              id: openai
+              id: openai_prompt
               continue-on-error: true
               env:
                   EVENT_NAME: ${{ github.event_name }}
@@ -77,32 +77,43 @@ jobs:
                   Patch snippet:
                   $(cat /tmp/changes.trim.patch)"
 
-                  RESPONSE="$(
-                    jq -n \
-                      --arg model "gpt-5-mini" \
+                  PARAMS="$(
+                    jq -nc \
+                      --arg model "gpt-4o-mini" \
                       --arg system "$SYSTEM_PROMPT" \
                       --arg user "$USER_PROMPT" \
                       '{
                         model: $model,
-                        input: [
+                        messages: [
                           { role: "system", content: $system },
                           { role: "user", content: $user }
                         ],
-                        max_output_tokens: 220
-                      }' \
-                    | curl -sS https://api.openai.com/v1/responses \
-                        -H "Authorization: Bearer $OPENAI_API_KEY" \
-                        -H "Content-Type: application/json" \
-                        -d @-
+                        temperature: 0.2,
+                        max_tokens: 220
+                      }'
                   )"
 
-                  SUMMARY="$(printf '%s' "$RESPONSE" | jq -r '.output_text // empty')"
-                  if [ -z "$SUMMARY" ]; then
-                    echo "OpenAI summary unavailable."
-                    exit 0
-                  fi
+                  {
+                    echo "params<<EOF"
+                    echo "$PARAMS"
+                    echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
 
-                  SUMMARY="$(printf '%s' "$SUMMARY" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g' | head -c 900)"
+            - name: Summarize changes with OpenAI
+              if: always() && env.OPENAI_API_KEY != '' && steps.openai_prompt.outputs.params != ''
+              id: openai
+              continue-on-error: true
+              uses: Just-Moh-it/openai@v0.0.1
+              with:
+                  openai-api-key: ${{ env.OPENAI_API_KEY }}
+                  openai-mode: chat
+                  openai-params: ${{ steps.openai_prompt.outputs.params }}
+
+            - name: Normalize OpenAI summary
+              if: always() && steps.openai.outputs.completion != ''
+              id: openai_summary
+              run: |
+                  SUMMARY="$(printf '%s' "${{ steps.openai.outputs.completion }}" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g' | head -c 900)"
                   echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
 
             - name: Prepare Discord metadata
@@ -113,7 +124,7 @@ jobs:
                   EVENT_NAME: ${{ github.event_name }}
                   PR_TITLE: ${{ github.event.pull_request.title }}
                   COMMIT_MSG: ${{ github.event.head_commit.message }}
-                  OPENAI_SUMMARY: ${{ steps.openai.outputs.summary }}
+                  OPENAI_SUMMARY: ${{ steps.openai_summary.outputs.summary }}
               run: |
                   case "$JOB_STATUS" in
                     success)
