@@ -114,9 +114,24 @@ jobs:
             - name: Normalize OpenAI summary
               if: always() && steps.openai.outputs.completion != ''
               id: openai_summary
+              env:
+                  OPENAI_COMPLETION: ${{ steps.openai.outputs.completion }}
               run: |
-                  SUMMARY="$(printf '%s' "${{ steps.openai.outputs.completion }}" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g' | head -c 900)"
-                  echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
+                  SUMMARY="$(python3 - <<'PY'
+                  import os
+
+                  text = os.environ.get("OPENAI_COMPLETION", "")
+                  text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+                  text = "\n".join(line.rstrip() for line in text.split("\n"))
+                  print(text[:900], end="")
+                  PY
+                  )"
+
+                  {
+                    echo "summary<<EOF"
+                    echo "$SUMMARY"
+                    echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
 
             - name: Prepare Discord metadata
               if: always() && env.DISCORD_WEBHOOK_URL != ''
@@ -162,7 +177,9 @@ jobs:
                   {
                     echo "title=$TITLE"
                     echo "color=$COLOR"
-                    echo "details=$DETAILS"
+                    echo "details<<EOF"
+                    echo "$DETAILS"
+                    echo "EOF"
                   } >> "$GITHUB_OUTPUT"
 
             - name: Notify Discord
@@ -181,7 +198,6 @@ jobs:
                       **Workflow:** `${{ github.workflow }}`
                       **Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
                       **Commit:** [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
-                      **Actor:** `${{ github.actor }}`
 
                       ${{ steps.discord.outputs.details }}
                   embed-footer-text: ${{ github.repository }} • CI Bot
