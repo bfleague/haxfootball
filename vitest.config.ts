@@ -1,5 +1,5 @@
 import path from "node:path";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 const resolvePath = (target: string) => path.resolve(__dirname, target);
 
@@ -18,5 +18,8 @@ export default defineConfig({
             "@i18n": resolvePath("src/i18n.ts"),
             "@stadium": resolvePath("src/stadium"),
         },
+    },
+    test: {
+        exclude: [...configDefaults.exclude, "dist/**"],
     },
 });
