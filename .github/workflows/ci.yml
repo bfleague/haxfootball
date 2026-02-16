@@ -1,0 +1,139 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    checks:
+        name: Build and Lint
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build
+              run: npm run build
+
+            - name: Lint (Prettier check)
+              run: npx prettier --check .
+
+            - name: Typecheck
+              run: npx tsc --noEmit
+
+            - name: Notify Discord
+              if: always()
+              env:
+                  DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+                  JOB_STATUS: ${{ job.status }}
+                  REPO: ${{ github.repository }}
+                  WORKFLOW: ${{ github.workflow }}
+                  EVENT_NAME: ${{ github.event_name }}
+                  BRANCH: ${{ github.ref_name }}
+                  SHA: ${{ github.sha }}
+                  RUN_ID: ${{ github.run_id }}
+                  RUN_NUMBER: ${{ github.run_number }}
+                  ACTOR: ${{ github.actor }}
+                  SERVER_URL: ${{ github.server_url }}
+                  PR_TITLE: ${{ github.event.pull_request.title }}
+                  COMMIT_MSG: ${{ github.event.head_commit.message }}
+              run: |
+                  python - <<'PY'
+                  from datetime import datetime, timezone
+                  import json
+                  import os
+                  import urllib.request
+
+                  webhook = os.getenv("DISCORD_WEBHOOK_URL", "").strip()
+                  if not webhook:
+                      print("DISCORD_WEBHOOK_URL is not set; skipping notification.")
+                      raise SystemExit(0)
+
+                  status = os.getenv("JOB_STATUS", "unknown")
+                  status_map = {
+                      "success": ("✅", "CI Passed", 0x57F287),
+                      "failure": ("❌", "CI Failed", 0xED4245),
+                      "cancelled": ("⚠️", "CI Cancelled", 0xFEE75C),
+                  }
+                  emoji, title, color = status_map.get(
+                      status,
+                      ("ℹ️", "CI Finished", 0x5865F2),
+                  )
+
+                  repo = os.getenv("REPO", "")
+                  branch = os.getenv("BRANCH", "")
+                  sha = os.getenv("SHA", "")
+                  run_id = os.getenv("RUN_ID", "")
+                  server_url = os.getenv("SERVER_URL", "https://github.com")
+                  actor = os.getenv("ACTOR", "")
+                  workflow = os.getenv("WORKFLOW", "")
+                  event_name = os.getenv("EVENT_NAME", "")
+                  run_number = os.getenv("RUN_NUMBER", "")
+                  pr_title = (os.getenv("PR_TITLE", "") or "").strip()
+                  commit_msg = (os.getenv("COMMIT_MSG", "") or "").strip()
+
+                  short_sha = sha[:7] if sha else "unknown"
+                  run_url = f"{server_url}/{repo}/actions/runs/{run_id}" if repo and run_id else server_url
+                  commit_url = f"{server_url}/{repo}/commit/{sha}" if repo and sha else server_url
+                  actor_avatar = f"https://github.com/{actor}.png" if actor else None
+
+                  fields = [
+                      {"name": "Repository", "value": repo or "N/A", "inline": True},
+                      {"name": "Branch", "value": branch or "N/A", "inline": True},
+                      {"name": "Status", "value": status.upper(), "inline": True},
+                      {"name": "Event", "value": event_name or "N/A", "inline": True},
+                      {"name": "Workflow", "value": workflow or "N/A", "inline": True},
+                      {"name": "Run", "value": f"#{run_number}" if run_number else "N/A", "inline": True},
+                      {"name": "Commit", "value": f"[`{short_sha}`]({commit_url})", "inline": False},
+                      {"name": "Run URL", "value": f"[Open workflow run]({run_url})", "inline": False},
+                  ]
+
+                  if pr_title:
+                      fields.insert(0, {"name": "Pull Request", "value": pr_title[:1024], "inline": False})
+
+                  if commit_msg:
+                      fields.append(
+                          {
+                              "name": "Commit Message",
+                              "value": commit_msg[:1024],
+                              "inline": False,
+                          }
+                      )
+
+                  embed = {
+                      "title": f"{emoji} {title}",
+                      "color": color,
+                      "fields": fields,
+                      "timestamp": datetime.now(timezone.utc).isoformat(),
+                      "footer": {"text": f"{repo} • CI Bot"},
+                  }
+
+                  if actor:
+                      embed["author"] = {
+                          "name": f"Triggered by {actor}",
+                          "icon_url": actor_avatar,
+                      }
+
+                  payload = {"embeds": [embed]}
+                  body = json.dumps(payload).encode("utf-8")
+
+                  req = urllib.request.Request(
+                      webhook,
+                      data=body,
+                      headers={"Content-Type": "application/json"},
+                      method="POST",
+                  )
+                  with urllib.request.urlopen(req) as response:
+                      print(f"Discord webhook sent: HTTP {response.status}")
+                  PY
