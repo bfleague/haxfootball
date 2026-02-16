@@ -294,6 +294,14 @@ msgstr "⚠️ Only the offense may call for a field goal."
 msgid "⚠️ Only the offense may punt."
 msgstr "⚠️ Only the offense may punt."
 
+#: src/room/manual/index.ts:111
+msgid "⚠️ Please provide a new password."
+msgstr "⚠️ Please provide a new password."
+
+#: src/room/manual/index.ts:267
+msgid "⚠️ The game has not been started yet."
+msgstr "⚠️ The game has not been started yet."
+
 #: src/meta/legacy/states/extra-point.ts:166
 msgid "⚠️ Two-point try is no longer available"
 msgstr "⚠️ Two-point try is no longer available"
@@ -332,6 +340,10 @@ msgstr "⚠️ You cannot punt while a teammate is past the LOS."
 msgid "⚠️ You cannot snap while a teammate is past the LOS."
 msgstr "⚠️ You cannot snap while a teammate is past the LOS."
 
+#: src/room/manual/index.ts:266
+msgid "⚠️ You cannot use that command right now."
+msgstr "⚠️ You cannot use that command right now."
+
 #: src/meta/legacy/states/presnap.ts:208
 msgid "⚠️ You must get back behind the line of scrimmage to allow the snap!"
 msgstr "⚠️ You must get back behind the line of scrimmage to allow the snap!"
@@ -339,6 +351,14 @@ msgstr "⚠️ You must get back behind the line of scrimmage to allow the snap!
 #: src/meta/legacy/states/field-goal-in-flight.ts:68
 #~ msgid "✅ Field goal is good!"
 #~ msgstr "✅ Field goal is good!"
+
+#: src/room/manual/index.ts:139
+msgid "✅ Password cleared successfully."
+msgstr "✅ Password cleared successfully."
+
+#: src/room/manual/index.ts:120
+msgid "✅ Password updated successfully."
+msgstr "✅ Password updated successfully."
 
 #: src/meta/legacy/states/extra-point-kick.ts:66
 #~ msgid "✅ PAT is good!"
@@ -348,6 +368,10 @@ msgstr "⚠️ You must get back behind the line of scrimmage to allow the snap!
 #: src/meta/legacy/states/extra-point-run.ts:114
 #~ msgid "✅ Two-point try is good!"
 #~ msgstr "✅ Two-point try is good!"
+
+#: src/room/manual/index.ts:82
+msgid "✅ You are now an admin."
+msgstr "✅ You are now an admin."
 
 #. placeholder {0}: frame.kicker.name
 #: src/meta/legacy/states/field-goal.ts:419
@@ -565,6 +589,10 @@ msgstr "❌ Illegal touch by {offenderNames} before the kick"
 #~ msgid "❌ Illegal touch by {offenderNames} before the kick • field goal is dead."
 #~ msgstr "❌ Illegal touch by {offenderNames} before the kick • field goal is dead."
 
+#: src/room/manual/index.ts:89
+msgid "❌ Incorrect password."
+msgstr "❌ Incorrect password."
+
 #: src/meta/legacy/states/kickoff-in-flight.ts:104
 msgid "❌ Kickoff out of bounds"
 msgstr "❌ Kickoff out of bounds"
@@ -594,7 +622,7 @@ msgstr "❌ Offensive foul"
 #~ msgstr "❌ Offensive foul • two-point try failed."
 
 #. placeholder {0}: frame.outOfBoundsCatcher.name
-#: src/meta/legacy/states/extra-point-snap-in-flight.ts:106
+#: src/meta/legacy/states/extra-point-snap-in-flight.ts:117
 #: src/meta/legacy/states/kickoff-in-flight.ts:93
 #: src/meta/legacy/states/safety-kick-in-flight.ts:103
 msgid "❌ Out-of-bounds reception by {0}"
@@ -634,8 +662,8 @@ msgstr "❌ Safety kick out of bounds"
 #: src/meta/legacy/states/extra-point-run.ts:158
 #: src/meta/legacy/states/extra-point-run.ts:178
 #: src/meta/legacy/states/extra-point-run.ts:199
-#: src/meta/legacy/states/extra-point-snap-in-flight.ts:115
-#: src/meta/legacy/states/extra-point-snap-in-flight.ts:158
+#: src/meta/legacy/states/extra-point-snap-in-flight.ts:126
+#: src/meta/legacy/states/extra-point-snap-in-flight.ts:169
 #: src/meta/legacy/states/extra-point-snap.ts:285
 #: src/meta/legacy/states/extra-point-snap.ts:619
 msgid "❌ Two-point try failed."
@@ -648,6 +676,11 @@ msgstr "❌ Two-point try failed."
 #: src/meta/legacy/states/run.ts:146
 #~ msgid "➖ No gain"
 #~ msgstr "➖ No gain"
+
+#: src/room/manual/index.ts:156
+#: src/room/manual/index.ts:180
+msgid "🎬 Watch the tutorial: {TUTORIAL_LINK}"
+msgstr "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 
 #. placeholder {0}: frame.kicker.name
 #: src/meta/legacy/states/field-goal.ts:401
@@ -716,9 +749,13 @@ msgstr "🏈 {0} snaps it"
 #~ msgid "🏈 Defense takes it back • TWO POINTS!"
 #~ msgstr "🏈 Defense takes it back • TWO POINTS!"
 
-#: src/room/manual/index.ts:16
+#: src/room/manual/index.ts:17
 msgid "🏈 HaxFootball - American Football 🏈"
 msgstr "🏈 HaxFootball - American Football 🏈"
+
+#: src/room/manual/index.ts:257
+msgid "🏈 HaxFootball 2026"
+msgstr "🏈 HaxFootball 2026"
 
 #. placeholder {0}: catcher.name
 #: src/meta/legacy/states/kickoff-in-flight.ts:116
@@ -726,7 +763,7 @@ msgid "🏈 Kickoff return by {0}!"
 msgstr "🏈 Kickoff return by {0}!"
 
 #. placeholder {0}: catcher.name
-#: src/meta/legacy/states/snap-in-flight.ts:182
+#: src/meta/legacy/states/snap-in-flight.ts:193
 msgid "🏈 Pass complete to {0}!"
 msgstr "🏈 Pass complete to {0}!"
 
@@ -741,11 +778,11 @@ msgid "🏈 Safety-kick return by {0}!"
 msgstr "🏈 Safety-kick return by {0}!"
 
 #. placeholder {0}: catcher.name
-#: src/meta/legacy/states/extra-point-snap-in-flight.ts:124
+#: src/meta/legacy/states/extra-point-snap-in-flight.ts:135
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Two-point pass complete to {0}!"
 
-#: src/room/manual/index.ts:150
+#: src/room/manual/index.ts:174
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Welcome to HaxFootball!"
 
@@ -846,6 +883,11 @@ msgstr "💥 {0} brought down by {catcherNames}!"
 #: src/meta/legacy/states/blitz.ts:360
 #~ msgid "💥 QB {0} sacked by {catcherNames} • TURNOVER ON DOWNS!"
 #~ msgstr "💥 QB {0} sacked by {catcherNames} • TURNOVER ON DOWNS!"
+
+#: src/room/manual/index.ts:148
+#: src/room/manual/index.ts:186
+msgid "💬 Join our Discord server: {DISCORD_LINK}"
+msgstr "💬 Join our Discord server: {DISCORD_LINK}"
 
 #: src/meta/legacy/states/blitz.ts:233
 #: src/meta/legacy/states/fake-field-goal.ts:133
@@ -1022,6 +1064,11 @@ msgstr "🚪 Punt out of bounds"
 #~ msgid "🚪 QB {0} went out in the end zone • SAFETY!"
 #~ msgstr "🚪 QB {0} went out in the end zone • SAFETY!"
 
+#: src/room/manual/index.ts:102
+#: src/room/manual/index.ts:130
+msgid "🚫 You must be an admin to use this command."
+msgstr "🚫 You must be an admin to use this command."
+
 #. placeholder {0}: frame.player.name
 #: src/meta/legacy/states/interception.ts:241
 #: src/meta/legacy/states/kickoff-return.ts:294
@@ -1070,7 +1117,7 @@ msgstr "automatic touchdown."
 msgid "ball is live!"
 msgstr "ball is live!"
 
-#: src/meta/legacy/states/snap-in-flight.ts:172
+#: src/meta/legacy/states/snap-in-flight.ts:183
 #: src/meta/legacy/states/snap.ts:749
 #: src/meta/legacy/states/snap.ts:763
 msgid "ball out of bounds"
@@ -1181,7 +1228,7 @@ msgstr "defensive offside"
 #: src/meta/legacy/states/extra-point-pass-deflection.ts:46
 #: src/meta/legacy/states/extra-point-quarterback-run.ts:212
 #: src/meta/legacy/states/extra-point-run.ts:226
-#: src/meta/legacy/states/extra-point-snap-in-flight.ts:51
+#: src/meta/legacy/states/extra-point-snap-in-flight.ts:53
 #: src/meta/legacy/states/extra-point-snap.ts:688
 #: src/meta/legacy/states/extra-point.ts:318
 msgid "Extra point"
@@ -1219,13 +1266,13 @@ msgstr "field goal is good!"
 #: src/meta/legacy/states/quarterback-run.ts:277
 #: src/meta/legacy/states/run.ts:141
 #: src/meta/legacy/states/run.ts:277
-#: src/meta/legacy/states/snap-in-flight.ts:95
+#: src/meta/legacy/states/snap-in-flight.ts:106
 msgid "FIRST DOWN!"
 msgstr "FIRST DOWN!"
 
 #: src/room/manual/index.ts:228
-msgid "HaxFootball 2026"
-msgstr "HaxFootball 2026"
+#~ msgid "HaxFootball 2026"
+#~ msgstr "HaxFootball 2026"
 
 #: src/meta/legacy/states/snap.ts:810
 #: src/meta/legacy/states/snap.ts:824
@@ -1257,8 +1304,8 @@ msgstr "Illegal touch by {offenderNames}"
 #~ msgstr "Illegal touch by {offenderNames} before the kick"
 
 #: src/room/manual/index.ts:76
-msgid "Incorrect password."
-msgstr "Incorrect password."
+#~ msgid "Incorrect password."
+#~ msgstr "Incorrect password."
 
 #: src/meta/legacy/states/interception.ts:352
 msgid "Interception"
@@ -1266,8 +1313,8 @@ msgstr "Interception"
 
 #: src/room/manual/index.ts:129
 #: src/room/manual/index.ts:158
-msgid "Join our Discord server: {DISCORD_LINK}"
-msgstr "Join our Discord server: {DISCORD_LINK}"
+#~ msgid "Join our Discord server: {DISCORD_LINK}"
+#~ msgstr "Join our Discord server: {DISCORD_LINK}"
 
 #: src/meta/legacy/states/extra-point.ts:167
 msgid "kick the PAT."
@@ -1348,12 +1395,12 @@ msgid "No gain"
 msgstr "No gain"
 
 #: src/meta/legacy/states/blocked-pass.ts:82
-#: src/meta/legacy/states/snap-in-flight.ts:107
+#: src/meta/legacy/states/snap-in-flight.ts:118
 msgid "no gain."
 msgstr "no gain."
 
 #. placeholder {0}: frame.outOfBoundsCatcher.name
-#: src/meta/legacy/states/snap-in-flight.ts:153
+#: src/meta/legacy/states/snap-in-flight.ts:164
 msgid "out-of-bounds reception by {0}"
 msgstr "out-of-bounds reception by {0}"
 
@@ -1369,12 +1416,12 @@ msgstr "pass batted by {0}"
 #~ msgstr "Pass batted by {0}"
 
 #: src/room/manual/index.ts:121
-msgid "Password cleared successfully."
-msgstr "Password cleared successfully."
+#~ msgid "Password cleared successfully."
+#~ msgstr "Password cleared successfully."
 
 #: src/room/manual/index.ts:104
-msgid "Password updated successfully."
-msgstr "Password updated successfully."
+#~ msgid "Password updated successfully."
+#~ msgstr "Password updated successfully."
 
 #: src/meta/legacy/states/extra-point-kick.ts:69
 msgid "PAT is good!"
@@ -1386,8 +1433,8 @@ msgid "PICK-SIX by {0}!"
 msgstr "PICK-SIX by {0}!"
 
 #: src/room/manual/index.ts:96
-msgid "Please provide a new password."
-msgstr "Please provide a new password."
+#~ msgid "Please provide a new password."
+#~ msgstr "Please provide a new password."
 
 #. placeholder {0}: catcher.name
 #: src/meta/legacy/states/punt-in-flight.ts:172
@@ -1505,8 +1552,8 @@ msgid "SAFETY!"
 msgstr "SAFETY!"
 
 #: src/room/manual/index.ts:237
-msgid "The game has not been started yet."
-msgstr "The game has not been started yet."
+#~ msgid "The game has not been started yet."
+#~ msgstr "The game has not been started yet."
 
 #: src/meta/legacy/states/interception.ts:242
 #: src/meta/legacy/states/kickoff-return.ts:83
@@ -1548,7 +1595,7 @@ msgstr "turnover at the {0}-yard line!"
 #: src/meta/legacy/states/quarterback-run.ts:334
 #: src/meta/legacy/states/run.ts:191
 #: src/meta/legacy/states/run.ts:334
-#: src/meta/legacy/states/snap-in-flight.ts:119
+#: src/meta/legacy/states/snap-in-flight.ts:130
 msgid "TURNOVER ON DOWNS!"
 msgstr "TURNOVER ON DOWNS!"
 
@@ -1573,7 +1620,7 @@ msgstr "two-point try awarded."
 
 #: src/meta/legacy/states/extra-point-blitz.ts:139
 #: src/meta/legacy/states/extra-point-blocked-pass.ts:58
-#: src/meta/legacy/states/extra-point-snap-in-flight.ts:107
+#: src/meta/legacy/states/extra-point-snap-in-flight.ts:118
 #: src/meta/legacy/states/extra-point-snap.ts:223
 #: src/meta/legacy/states/extra-point-snap.ts:606
 msgid "two-point try failed."
@@ -1591,18 +1638,18 @@ msgstr "two-point try is no longer available."
 
 #: src/room/manual/index.ts:136
 #: src/room/manual/index.ts:154
-msgid "Watch the tutorial: {TUTORIAL_LINK}"
-msgstr "Watch the tutorial: {TUTORIAL_LINK}"
+#~ msgid "Watch the tutorial: {TUTORIAL_LINK}"
+#~ msgstr "Watch the tutorial: {TUTORIAL_LINK}"
 
 #: src/room/manual/index.ts:70
-msgid "You are now an admin."
-msgstr "You are now an admin."
+#~ msgid "You are now an admin."
+#~ msgstr "You are now an admin."
 
 #: src/room/manual/index.ts:236
-msgid "You cannot use that command right now."
-msgstr "You cannot use that command right now."
+#~ msgid "You cannot use that command right now."
+#~ msgstr "You cannot use that command right now."
 
 #: src/room/manual/index.ts:88
 #: src/room/manual/index.ts:113
-msgid "You must be an admin to use this command."
-msgstr "You must be an admin to use this command."
+#~ msgid "You must be an admin to use this command."
+#~ msgstr "You must be an admin to use this command."

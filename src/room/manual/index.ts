@@ -8,6 +8,7 @@ import { legacyGlobalSchema } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
 import { randomBytes } from "node:crypto";
 import { Room } from "@core/room";
+import { COLOR } from "@common/general/color";
 
 const IS_DEBUG = process.env["DEBUG"] === "true";
 const PROXY = process.env["PROXY"];
@@ -21,8 +22,19 @@ const config: RoomConfigObject = {
 };
 
 const TUTORIAL_LINK = "youtube.com/watch?v=Z09dlI3MR28";
-const DISCORD_LINK = "https://discord.gg/q8ay8PmEkp";
+const DISCORD_LINK = "discord.gg/q8ay8PmEkp";
 const ADMIN_PASSWORD = randomBytes(4).toString("hex");
+
+const getPlayerNamePrefix = (team: number): string => {
+    switch (team) {
+        case Team.RED:
+            return "🟥";
+        case Team.BLUE:
+            return "🟦";
+        default:
+            return "⬜";
+    }
+};
 
 let engine: Engine<Config> | null = null;
 
@@ -67,13 +79,15 @@ const mainModule = createModule()
                 if (password === ADMIN_PASSWORD) {
                     room.setAdmin(player, true);
                     room.send({
-                        message: t`You are now an admin.`,
+                        message: t`✅ You are now an admin.`,
+                        color: COLOR.SUCCESS,
                         to: player.id,
                     });
                     admins.add(player.id);
                 } else {
                     room.send({
-                        message: t`Incorrect password.`,
+                        message: t`❌ Incorrect password.`,
+                        color: COLOR.ERROR,
                         to: player.id,
                     });
                 }
@@ -85,7 +99,8 @@ const mainModule = createModule()
 
                 if (!player.admin) {
                     room.send({
-                        message: t`You must be an admin to use this command.`,
+                        message: t`🚫 You must be an admin to use this command.`,
+                        color: COLOR.ERROR,
                         to: player.id,
                     });
                     return { hideMessage: true };
@@ -93,7 +108,8 @@ const mainModule = createModule()
 
                 if (!newPassword) {
                     room.send({
-                        message: t`Please provide a new password.`,
+                        message: t`⚠️ Please provide a new password.`,
+                        color: COLOR.WARNING,
                         to: player.id,
                     });
                     return { hideMessage: true };
@@ -101,7 +117,8 @@ const mainModule = createModule()
 
                 room.setPassword(newPassword);
                 room.send({
-                    message: t`Password updated successfully.`,
+                    message: t`✅ Password updated successfully.`,
+                    color: COLOR.SUCCESS,
                     to: player.id,
                 });
 
@@ -110,7 +127,8 @@ const mainModule = createModule()
             case "clearpassword": {
                 if (!player.admin) {
                     room.send({
-                        message: t`You must be an admin to use this command.`,
+                        message: t`🚫 You must be an admin to use this command.`,
+                        color: COLOR.ERROR,
                         to: player.id,
                     });
                     return { hideMessage: true };
@@ -118,7 +136,8 @@ const mainModule = createModule()
 
                 room.removePassword();
                 room.send({
-                    message: t`Password cleared successfully.`,
+                    message: t`✅ Password cleared successfully.`,
+                    color: COLOR.SUCCESS,
                     to: player.id,
                 });
 
@@ -126,14 +145,16 @@ const mainModule = createModule()
             }
             case "discord": {
                 room.send({
-                    message: t`Join our Discord server: ${DISCORD_LINK}`,
+                    message: t`💬 Join our Discord server: ${DISCORD_LINK}`,
+                    color: COLOR.ACTION,
                 });
 
                 return { hideMessage: false };
             }
             case "tutorial": {
                 room.send({
-                    message: t`Watch the tutorial: ${TUTORIAL_LINK}`,
+                    message: t`🎬 Watch the tutorial: ${TUTORIAL_LINK}`,
+                    color: COLOR.ACTION,
                 });
 
                 return { hideMessage: false };
@@ -146,21 +167,27 @@ const mainModule = createModule()
         if (IS_DEBUG) {
             room.setAdmin(player, true);
         } else {
-            room.send({
-                message: t`🏈 Welcome to HaxFootball!`,
-                to: player.id,
-            });
-            room.send({
-                message: t`Watch the tutorial: ${TUTORIAL_LINK}`,
-                to: player.id,
-            });
-            room.send({
-                message: t`Join our Discord server: ${DISCORD_LINK}`,
-                to: player.id,
-            });
-
             manageAdmin(room);
         }
+
+        room.send({
+            message: t`🏈 Welcome to HaxFootball!`,
+            color: COLOR.SYSTEM,
+            to: player.id,
+            sound: "notification",
+        });
+        room.send({
+            message: t`🎬 Watch the tutorial: ${TUTORIAL_LINK}`,
+            color: COLOR.HIGHLIGHT,
+            to: player.id,
+            sound: "none",
+        });
+        room.send({
+            message: t`💬 Join our Discord server: ${DISCORD_LINK}`,
+            color: COLOR.ACTION,
+            to: player.id,
+            sound: "none",
+        });
 
         console.log(`${player.name} has joined`);
     })
@@ -183,7 +210,9 @@ const mainModule = createModule()
         }
     })
     .onPlayerChat((_, player, message) => {
-        console.log(`${player.name}: ${message}`);
+        console.log(
+            `${getPlayerNamePrefix(player.team)} ${player.name}: ${message}`,
+        );
     });
 
 const matchModule = createModule()
@@ -225,7 +254,8 @@ const matchModule = createModule()
         switch (command.name) {
             case "version":
                 room.send({
-                    message: t`HaxFootball 2026`,
+                    message: t`🏈 HaxFootball 2026`,
+                    color: COLOR.SYSTEM,
                     to: player.id,
                 });
 
@@ -233,8 +263,9 @@ const matchModule = createModule()
             default:
                 room.send({
                     message: engine
-                        ? t`You cannot use that command right now.`
-                        : t`The game has not been started yet.`,
+                        ? t`⚠️ You cannot use that command right now.`
+                        : t`⚠️ The game has not been started yet.`,
+                    color: COLOR.WARNING,
                     to: player.id,
                 });
 
@@ -242,7 +273,8 @@ const matchModule = createModule()
         }
     })
     .onPlayerChat((room, player, rawMessage) => {
-        const message = `${player.name}: ${rawMessage}`;
+        const emoji = getPlayerNamePrefix(player.team);
+        const message = `${emoji} ${player.name}: ${rawMessage}`;
 
         const engineChatResult = engine?.handlePlayerChat(
             player,
