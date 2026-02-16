@@ -344,6 +344,9 @@ export function ExtraPointSnap({
                             t`two-point try awarded.`,
                         ),
                         color: COLOR.WARNING,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
                 });
             },
@@ -407,6 +410,9 @@ export function ExtraPointSnap({
                             t`two-point try awarded.`,
                         ),
                         color: COLOR.WARNING,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
                 });
             },
@@ -504,6 +510,9 @@ export function ExtraPointSnap({
                             t`two-point try awarded.`,
                         ),
                         color: COLOR.WARNING,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
                     setPlayerAvatars(
                         crowdingOffenderIds,

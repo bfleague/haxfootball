@@ -326,6 +326,9 @@ export function Blitz({
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
 
                 $.setAvatar(quarterbackId, AVATARS.CLOWN);

@@ -1,5 +1,17 @@
 import { StadiumObject } from "@haxball/stadium";
 
+type TeamTarget = "teams" | "red" | "blue";
+
+export type AnnouncementTarget = number | null | TeamTarget | "mixed";
+
+export type AnnouncementOptions = {
+    message: string;
+    to?: AnnouncementTarget;
+    color?: number | null;
+    style?: ChatStyle;
+    sound?: ChatSoundString;
+};
+
 export class Room {
     private playerListCache: PlayerObject[] | null = null;
     private discPropsCache = new Map<number, DiscPropertiesObject | null>();
@@ -46,16 +58,45 @@ export class Room {
         to,
         style = "normal",
         sound = "normal",
-    }: {
-        message: string;
-        to?: number | null;
-        color?: number | null;
-        style?: ChatStyle;
-        sound?: ChatSoundString;
-    }): void {
+    }: AnnouncementOptions): void {
+        if (to === "mixed") {
+            this.getPlayerList().forEach((player) => {
+                const isTeamPlayer = player.team === 1 || player.team === 2;
+
+                this.room.sendAnnouncement(
+                    message,
+                    player.id,
+                    color,
+                    isTeamPlayer ? style : "normal",
+                    toChatSound(isTeamPlayer ? sound : "normal"),
+                );
+            });
+
+            return;
+        }
+
+        if (to === "teams" || to === "red" || to === "blue") {
+            const teamIds: TeamID[] =
+                to === "teams" ? [1, 2] : to === "red" ? [1] : [2];
+
+            this.getPlayerList()
+                .filter((player) => teamIds.includes(player.team))
+                .forEach((player) => {
+                    this.room.sendAnnouncement(
+                        message,
+                        player.id,
+                        color,
+                        style,
+                        toChatSound(sound),
+                    );
+                });
+
+            return;
+        }
+
         this.room.sendAnnouncement(
             message,
-            to,
+            to ?? null,
             color,
             style,
             toChatSound(sound),

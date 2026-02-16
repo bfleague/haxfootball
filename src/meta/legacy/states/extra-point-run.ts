@@ -125,6 +125,9 @@ export function ExtraPointRun({
                         t`TWO POINTS!`,
                     ),
                     color: COLOR.MOMENTUM,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
             }
             $.setAvatar(playerId, AVATARS.FIRE);

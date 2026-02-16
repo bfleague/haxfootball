@@ -115,6 +115,9 @@ export function PuntReturn({
                                     t`SAFETY!`,
                                 ),
                                 color: COLOR.ALERT,
+                                to: "mixed",
+                                sound: "notification",
+                                style: "bold",
                             });
                         });
 
@@ -183,6 +186,9 @@ export function PuntReturn({
                     t`punt return touchdown by ${frame.player.name}!`,
                 ),
                 color: COLOR.SUCCESS,
+                to: "mixed",
+                sound: "notification",
+                style: "bold",
             });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -236,10 +242,7 @@ export function PuntReturn({
             });
         } else {
             $global((state) =>
-                state.incrementScore(
-                    opposite(receivingTeam),
-                    SCORES.SAFETY,
-                ),
+                state.incrementScore(opposite(receivingTeam), SCORES.SAFETY),
             );
 
             const { scores } = $global();
@@ -253,6 +256,9 @@ export function PuntReturn({
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
@@ -329,6 +335,9 @@ export function PuntReturn({
                                 t`SAFETY!`,
                             ),
                             color: COLOR.ALERT,
+                            to: "mixed",
+                            sound: "notification",
+                            style: "bold",
                         });
 
                         $.setAvatar(playerId, AVATARS.CLOWN);

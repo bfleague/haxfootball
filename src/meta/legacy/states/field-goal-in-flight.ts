@@ -70,6 +70,9 @@ export function FieldGoalInFlight({ downState }: { downState: DownState }) {
                     $.send({
                         message: cn("✅", scores, t`field goal is good!`),
                         color: COLOR.SUCCESS,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
                 });
 

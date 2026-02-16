@@ -10,6 +10,7 @@ import type {
 type DiscProps = Parameters<Room["setDiscProperties"]>[1];
 type CFType = Room["collisionFlags"];
 type SendOptions = Parameters<Room["send"]>[0];
+type SendTarget = SendOptions["to"];
 type ChatStyle = SendOptions["style"];
 type ChatSoundString = SendOptions["sound"];
 type TeamValue = Parameters<Room["setTeam"]>[1];
@@ -157,7 +158,7 @@ export function createMutationBuffer(room: Room) {
 export interface EffectApi extends RoomMethodApi {
     send(
         message: string,
-        to?: number | null,
+        to?: SendTarget,
         color?: number | null,
         style?: ChatStyle,
         sound?: ChatSoundString,
@@ -395,9 +396,7 @@ export function $global<Schema extends GlobalSchema<any, any>>(
     const store = RUNTIME.globalStore as GlobalStoreApi<Schema>;
 
     if (fn) {
-        $effect(() => {
-            fn(store.getState() as GlobalStore<Schema>);
-        });
+        fn(store.getState() as GlobalStore<Schema>);
 
         return;
     }
@@ -457,7 +456,7 @@ export function flushRuntime(): {
     const api = Object.assign(Object.create(room), {
         send: (
             messageOrOpts: string | SendOptions,
-            to?: number | null,
+            to?: SendTarget,
             color?: number | null,
             style?: ChatStyle,
             sound?: ChatSoundString,
@@ -469,7 +468,7 @@ export function flushRuntime(): {
 
             room.send({
                 message: messageOrOpts,
-                to: typeof to === "number" ? to : null,
+                to: to ?? null,
                 color: typeof color === "number" ? color : null,
                 style: style ?? "normal",
                 sound: sound ?? "normal",

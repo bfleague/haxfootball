@@ -68,6 +68,9 @@ export function ExtraPointKick({
                     $.send({
                         message: cn("✅", scores, t`PAT is good!`),
                         color: COLOR.SUCCESS,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
                 });
 

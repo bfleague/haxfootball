@@ -358,6 +358,9 @@ export function Snap({
                             t`automatic touchdown.`,
                         ),
                         color: COLOR.WARNING,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
                 });
 
@@ -472,6 +475,9 @@ export function Snap({
                             t`automatic touchdown.`,
                         ),
                         color: COLOR.WARNING,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
 
                     setPlayerAvatars(
@@ -598,6 +604,9 @@ export function Snap({
                             t`automatic touchdown.`,
                         ),
                         color: COLOR.WARNING,
+                        to: "mixed",
+                        sound: "notification",
+                        style: "bold",
                     });
                 });
 

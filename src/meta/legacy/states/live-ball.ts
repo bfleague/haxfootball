@@ -169,6 +169,9 @@ export function LiveBall({
                     t`TOUCHDOWN by ${frame.player.name}!`,
                 ),
                 color: COLOR.SUCCESS,
+                to: "mixed",
+                sound: "notification",
+                style: "bold",
             });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -299,6 +302,9 @@ export function LiveBall({
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);

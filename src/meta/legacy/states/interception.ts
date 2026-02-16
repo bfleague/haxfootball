@@ -133,6 +133,9 @@ export function Interception({
             $.send({
                 message: cn("🔥", scores, t`PICK-SIX by ${frame.player.name}!`),
                 color: COLOR.SUCCESS,
+                to: "mixed",
+                sound: "notification",
+                style: "bold",
             });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -186,10 +189,7 @@ export function Interception({
             });
         } else {
             $global((state) =>
-                state.incrementScore(
-                    opposite(playerTeam),
-                    SCORES.SAFETY,
-                ),
+                state.incrementScore(opposite(playerTeam), SCORES.SAFETY),
             );
 
             const { scores } = $global();
@@ -203,6 +203,9 @@ export function Interception({
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
@@ -279,6 +282,9 @@ export function Interception({
                                 t`SAFETY!`,
                             ),
                             color: COLOR.ALERT,
+                            to: "mixed",
+                            sound: "notification",
+                            style: "bold",
                         });
 
                         $.setAvatar(playerId, AVATARS.CLOWN);

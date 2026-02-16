@@ -115,6 +115,9 @@ export function KickoffReturn({
                                     t`SAFETY!`,
                                 ),
                                 color: COLOR.ALERT,
+                                to: "mixed",
+                                sound: "notification",
+                                style: "bold",
                             });
                         });
 
@@ -183,6 +186,9 @@ export function KickoffReturn({
                     t`kickoff return touchdown by ${frame.player.name}!`,
                 ),
                 color: COLOR.SUCCESS,
+                to: "mixed",
+                sound: "notification",
+                style: "bold",
             });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -236,10 +242,7 @@ export function KickoffReturn({
             });
         } else {
             $global((state) =>
-                state.incrementScore(
-                    opposite(receivingTeam),
-                    SCORES.SAFETY,
-                ),
+                state.incrementScore(opposite(receivingTeam), SCORES.SAFETY),
             );
 
             const { scores } = $global();
@@ -253,6 +256,9 @@ export function KickoffReturn({
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);
@@ -329,6 +335,9 @@ export function KickoffReturn({
                                 t`SAFETY!`,
                             ),
                             color: COLOR.ALERT,
+                            to: "mixed",
+                            sound: "notification",
+                            style: "bold",
                         });
 
                         $.setAvatar(playerId, AVATARS.CLOWN);

@@ -95,6 +95,9 @@ export function QuarterbackRun({
                     t`TOUCHDOWN by ${frame.player.name}!`,
                 ),
                 color: COLOR.SUCCESS,
+                to: "mixed",
+                sound: "notification",
+                style: "bold",
             });
             $.setAvatar(playerId, AVATARS.FIRE);
         });
@@ -225,6 +228,9 @@ export function QuarterbackRun({
                         t`SAFETY!`,
                     ),
                     color: COLOR.ALERT,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
 
                 $.setAvatar(playerId, AVATARS.CLOWN);

@@ -98,6 +98,9 @@ export function ExtraPointQuarterbackRun({
                 $.send({
                     message: cn("✅", scores, t`two-point try is good!`),
                     color: COLOR.SUCCESS,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
             } else {
                 $.send({
@@ -108,6 +111,9 @@ export function ExtraPointQuarterbackRun({
                         t`TWO POINTS!`,
                     ),
                     color: COLOR.MOMENTUM,
+                    to: "mixed",
+                    sound: "notification",
+                    style: "bold",
                 });
             }
             $.setAvatar(playerId, AVATARS.FIRE);
