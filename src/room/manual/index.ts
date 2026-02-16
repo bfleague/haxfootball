@@ -162,12 +162,12 @@ const mainModule = createModule()
             manageAdmin(room);
         }
 
-        console.log(`Player joined: ${player.name}`);
+        console.log(`${player.name} has joined`);
     })
     .onPlayerLeave((room, player) => {
         manageAdmin(room);
 
-        console.log(`Player left: ${player.name}`);
+        console.log(`${player.name} has left`);
     })
     .onPlayerAdminChange((room) => {
         manageAdmin(room);

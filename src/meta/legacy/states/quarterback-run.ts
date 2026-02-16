@@ -131,7 +131,12 @@ export function QuarterbackRun({
                 onFirstDown() {
                     $effect(($) => {
                         $.send({
-                            message: cn("🏁", nextDownState, t`FIRST DOWN!`),
+                            message: cn(
+                                "🏁",
+                                nextDownState,
+                                t`${frame.player.name} stepped out`,
+                                t`FIRST DOWN!`,
+                            ),
                             color: COLOR.READY,
                         });
                     });

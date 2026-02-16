@@ -236,7 +236,12 @@ export function Blitz({
                 onFirstDown() {
                     $effect(($) => {
                         $.send({
-                            message: cn("🏁", nextDownState, t`FIRST DOWN!`),
+                            message: cn(
+                                "🏁",
+                                nextDownState,
+                                t`${frame.quarterback.name} stepped out`,
+                                t`FIRST DOWN!`,
+                            ),
                             color: COLOR.READY,
                         });
                     });
