@@ -65,7 +65,7 @@ jobs:
                   git diff --unified=0 "$RANGE" > /tmp/changes.patch || true
                   head -c 50000 /tmp/changes.patch > /tmp/changes.trim.patch || true
 
-                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 2-4 concise bullets as plain text, max 700 chars. Mention what changed, likely impact, and risk/test notes."
+                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 2-4 concise bullets as plain text, max 700 chars. Mention what changed."
                   USER_PROMPT="$(cat <<'EOF'
                   Changed files:
                   EOF
