@@ -1,12 +1,7 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { $dispose, $effect, $global, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
-import {
-    AVATARS,
-    findBallCatchers,
-    findCatchers,
-    opposite,
-} from "@common/game/game";
+import { AVATARS, findCatchers, opposite } from "@common/game/game";
 import {
     advanceDownState,
     DownState,
@@ -27,6 +22,7 @@ import {
 } from "@meta/legacy/shared/stadium";
 import { t } from "@lingui/core/macro";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import { findEligibleBallCatchers } from "@meta/legacy/shared/reception";
 import {
     $setBallActive,
     $setBallInactive,
@@ -115,7 +111,7 @@ export function Blitz({
     }
 
     function $handleOffensiveIllegalTouching(frame: Frame) {
-        const offensiveTouchers = findBallCatchers(
+        const offensiveTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.state.players.filter(
                 (player) =>
@@ -176,7 +172,7 @@ export function Blitz({
     function $handleDefensiveTouching(frame: Frame) {
         if (ballIsDead) return;
 
-        const defensiveTouchers = findBallCatchers(
+        const defensiveTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.defenders,
         );

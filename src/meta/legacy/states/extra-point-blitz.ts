@@ -1,12 +1,13 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
-import { AVATARS, findBallCatchers, findCatchers } from "@common/game/game";
+import { AVATARS, findCatchers } from "@common/game/game";
 import { type FieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
 import { type FieldPosition } from "@common/game/game";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import { findEligibleBallCatchers } from "@meta/legacy/shared/reception";
 import {
     calculateDirectionalGain,
     getPositionFromFieldPosition,
@@ -122,7 +123,7 @@ export function ExtraPointBlitz({
     }
 
     function $handleOffensiveIllegalTouching(frame: Frame) {
-        const offensiveTouchers = findBallCatchers(
+        const offensiveTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.state.players.filter(
                 (player) =>
@@ -146,7 +147,7 @@ export function ExtraPointBlitz({
     function $handleDefensiveTouching(frame: Frame) {
         if (ballIsDead) return;
 
-        const defensiveTouchers = findBallCatchers(
+        const defensiveTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.defenders,
         );

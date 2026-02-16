@@ -1,11 +1,6 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { ticks } from "@common/general/time";
-import {
-    AVATARS,
-    findBallCatchers,
-    findCatchers,
-    setPlayerAvatars,
-} from "@common/game/game";
+import { AVATARS, setPlayerAvatars } from "@common/game/game";
 import { $setBallMoveable, $unlockBall } from "@meta/legacy/hooks/physics";
 import {
     $hideCrowdingBoxes,
@@ -38,6 +33,10 @@ import { unique } from "@common/general/helpers";
 import * as Crowding from "@meta/legacy/shared/crowding";
 import assert from "assert";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import {
+    findEligibleBallCatchers,
+    findEligibleCatchers,
+} from "@meta/legacy/shared/reception";
 import {
     DEFAULT_PUSHING_CONTACT_DISTANCE,
     DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
@@ -504,7 +503,7 @@ export function Snap({
     }
 
     function $handleDefensiveTouching(frame: Frame) {
-        const defensiveTouchers = findBallCatchers(
+        const defensiveTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.defenders,
         );
@@ -616,7 +615,7 @@ export function Snap({
     function $handleHandoff(frame: Frame) {
         if (frame.quarterback.isKickingBall) return;
 
-        const offensiveTouchers = findCatchers(
+        const offensiveTouchers = findEligibleCatchers(
             frame.quarterback,
             frame.offensivePlayers,
         );
@@ -644,7 +643,7 @@ export function Snap({
     function $handleIllegalTouchingBehindLine(frame: Frame) {
         if (!frame.ballBehindLineOfScrimmage) return;
 
-        const illegalTouchers = findBallCatchers(
+        const illegalTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.offensivePlayers,
         );

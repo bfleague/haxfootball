@@ -232,7 +232,6 @@ export function createEngine<Cfg>(
     let tickNumber = 0;
     let sharedTickMutations: MutationBuffer | null = null;
     let lastGameState: GameState | null = null;
-    // @ts-expect-error - Not being used directly for now.
     let isPaused = false;
     let resumePending = false;
     let isResumeTick = false;
@@ -362,6 +361,7 @@ export function createEngine<Cfg>(
             tickNumber,
             mutations: optsRun?.mutations ?? sharedTickMutations ?? undefined,
             globalStore,
+            isPaused,
             ...(optsRun?.disposals ? { disposals: optsRun.disposals } : {}),
             ...(optsRun?.checkpointDrafts
                 ? { checkpointDrafts: optsRun.checkpointDrafts }
@@ -746,6 +746,7 @@ export function createEngine<Cfg>(
                 beforeGameState: lastGameState,
                 resolveCheckpoint,
                 listCheckpoints,
+                isPaused,
             });
 
             setRuntimeRoom(room);
@@ -811,7 +812,7 @@ export function createEngine<Cfg>(
         message: string,
         onBeforeHooks?: () => void,
     ): ChatHandleResult {
-        if (!running || !current || !current.api.chat) {
+        if (!running || !current || !current.api.chat || isPaused) {
             onBeforeHooks?.();
             return {
                 allowBroadcast: true,

@@ -1,7 +1,7 @@
 import { $dispose, $effect, $next } from "@runtime/hooks";
 import { type FieldTeam } from "@runtime/models";
 import { ticks } from "@common/general/time";
-import { findBallCatcher, opposite } from "@common/game/game";
+import { opposite } from "@common/game/game";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
@@ -13,10 +13,22 @@ import { getInitialDownState } from "@meta/legacy/shared/down";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import {
+    findEligibleBallCatcher,
+    findOutOfBoundsBallCatcher,
+} from "@meta/legacy/shared/reception";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
+type Frame = {
+    state: GameState;
+    outOfBoundsCatcher: GameStatePlayer | null;
+    receivingCatcher: GameStatePlayer | null;
+};
+
 export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
+    const receivingTeam = opposite(kickingTeam);
+
     function join(player: GameStatePlayer) {
         $setBallMoveableByPlayer(player.id);
     }
@@ -32,56 +44,95 @@ export function KickoffInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         });
     }
 
-    function run(state: GameState) {
-        if (isBallOutOfBounds(state.ball)) {
-            $setBallInactive();
+    function buildFrame(state: GameState): Frame {
+        return {
+            state,
+            outOfBoundsCatcher: findOutOfBoundsBallCatcher(
+                state.ball,
+                state.players,
+            ),
+            receivingCatcher: findEligibleBallCatcher(
+                state.ball,
+                state.players.filter((player) => player.team === receivingTeam),
+            ),
+        };
+    }
 
-            $dispose(() => {
-                $setBallActive();
+    function $advanceToPresnapWithOutOfBounds(message: string) {
+        $setBallInactive();
+
+        $dispose(() => {
+            $setBallActive();
+        });
+
+        $effect(($) => {
+            $.send({
+                message,
+                color: COLOR.WARNING,
             });
+        });
 
-            $effect(($) => {
-                $.send({
-                    message: cn(
-                        t`❌ Kickoff out of bounds`,
-                        t`ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
-                    ),
-                    color: COLOR.WARNING,
-                });
-            });
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: getInitialDownState(receivingTeam, {
+                    yards: KICKOFF_OUT_OF_BOUNDS_YARD_LINE,
+                    side: receivingTeam,
+                }),
+            },
+            wait: ticks({ seconds: 2 }),
+        });
+    }
 
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: getInitialDownState(opposite(kickingTeam), {
-                        yards: KICKOFF_OUT_OF_BOUNDS_YARD_LINE,
-                        side: opposite(kickingTeam),
-                    }),
-                },
-                wait: ticks({ seconds: 2 }),
-            });
-        }
+    function $handleOutOfBoundsReception(frame: Frame) {
+        if (isBallOutOfBounds(frame.state.ball)) return;
+        if (!frame.outOfBoundsCatcher) return;
 
-        const receivingTeam = opposite(kickingTeam);
-
-        const catcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.team === receivingTeam),
+        $advanceToPresnapWithOutOfBounds(
+            cn(
+                t`❌ Out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
+                t`ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
+            ),
         );
+    }
 
-        if (catcher) {
-            $effect(($) => {
-                $.send({
-                    message: t`🏈 Kickoff return by ${catcher.name}!`,
-                    color: COLOR.MOMENTUM,
-                });
-            });
+    function $handleBallOutOfBounds(frame: Frame) {
+        if (!isBallOutOfBounds(frame.state.ball)) return;
 
-            $next({
-                to: "KICKOFF_RETURN",
-                params: { playerId: catcher.id, receivingTeam },
+        $advanceToPresnapWithOutOfBounds(
+            cn(
+                t`❌ Kickoff out of bounds`,
+                t`ball spotted at the ${KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line.`,
+            ),
+        );
+    }
+
+    function $handleKickoffReturn(frame: Frame) {
+        if (!frame.receivingCatcher) return;
+        const catcher = frame.receivingCatcher;
+
+        $effect(($) => {
+            $.send({
+                message: t`🏈 Kickoff return by ${catcher.name}!`,
+                color: COLOR.MOMENTUM,
             });
-        }
+        });
+
+        $next({
+            to: "KICKOFF_RETURN",
+            params: {
+                playerId: catcher.id,
+                receivingTeam,
+            },
+        });
+    }
+
+    function run(state: GameState) {
+        const frame = buildFrame(state);
+
+        $handleBallOutOfBounds(frame);
+        $handleOutOfBoundsReception(frame);
+        $handleKickoffReturn(frame);
     }
 
     return { run, join, command };

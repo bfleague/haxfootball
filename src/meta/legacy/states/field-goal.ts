@@ -11,7 +11,7 @@ import {
     verticalLine,
 } from "@common/math/geometry";
 import { ticks } from "@common/general/time";
-import { findBallCatchers, findCatchers, opposite } from "@common/game/game";
+import { findCatchers, opposite } from "@common/game/game";
 import { t } from "@lingui/core/macro";
 import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import {
@@ -43,6 +43,7 @@ import {
 } from "@meta/legacy/shared/stadium";
 import { sortBy } from "@common/general/helpers";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import { findEligibleBallCatchers } from "@meta/legacy/shared/reception";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
@@ -253,11 +254,14 @@ export function FieldGoal({
             (player) => player.team === offensiveTeam && player.id !== kickerId,
         );
 
-        const offensiveBallTouchers = findBallCatchers(
+        const offensiveBallTouchers = findEligibleBallCatchers(
             state.ball,
             offensiveTeammates,
         );
-        const defensiveBallTouchers = findBallCatchers(state.ball, defenders);
+        const defensiveBallTouchers = findEligibleBallCatchers(
+            state.ball,
+            defenders,
+        );
         const defensiveKickerTouchers = findCatchers(kicker, defenders);
 
         const kickerCrossedLine =

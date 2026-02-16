@@ -185,6 +185,7 @@ let RUNTIME: {
     checkpointDrafts: Array<CheckpointDraft>;
     resolveCheckpoint: ((args: CheckpointRestoreArgs) => Transition) | null;
     listCheckpoints: (() => Array<Checkpoint>) | null;
+    isPaused: boolean;
 } | null = null;
 
 const normalizeTransition = (args: {
@@ -231,6 +232,7 @@ export function installRuntime(ctx: {
     checkpointDrafts?: Array<CheckpointDraft>;
     resolveCheckpoint?: (args: CheckpointRestoreArgs) => Transition;
     listCheckpoints?: () => Array<Checkpoint>;
+    isPaused?: boolean;
 }) {
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
     const disposals = ctx.disposals ?? [];
@@ -252,11 +254,18 @@ export function installRuntime(ctx: {
         checkpointDrafts: ctx.checkpointDrafts ?? [],
         resolveCheckpoint: ctx.resolveCheckpoint ?? null,
         listCheckpoints: ctx.listCheckpoints ?? null,
+        isPaused: !!ctx.isPaused,
     };
 
     return function uninstall() {
         RUNTIME = null;
     };
+}
+
+export function $isGamePaused(): boolean {
+    if (!RUNTIME) throw new Error("$isGamePaused used outside of runtime");
+
+    return RUNTIME.isPaused;
 }
 
 /**

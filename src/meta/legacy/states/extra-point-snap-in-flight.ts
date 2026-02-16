@@ -1,10 +1,15 @@
-import type { GameState } from "@runtime/engine";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { $dispose, $effect, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
-import { findBallCatcher, type FieldPosition } from "@common/game/game";
+import { type FieldPosition } from "@common/game/game";
 import { t } from "@lingui/core/macro";
 import { type FieldTeam } from "@runtime/models";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import { cn } from "@meta/legacy/shared/message";
+import {
+    findEligibleBallCatcher,
+    findOutOfBoundsBallCatcher,
+} from "@meta/legacy/shared/reception";
 import {
     isInExtraPointZone,
     isBallOutOfBounds,
@@ -16,6 +21,13 @@ import {
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
+
+type Frame = {
+    state: GameState;
+    outOfBoundsCatcher: GameStatePlayer | null;
+    offensiveCatcher: GameStatePlayer | null;
+    defensiveCatcher: GameStatePlayer | null;
+};
 
 export function ExtraPointSnapInFlight({
     offensiveTeam,
@@ -43,82 +55,117 @@ export function ExtraPointSnapInFlight({
         });
     }
 
+    function buildFrame(state: GameState): Frame {
+        const offensivePlayers = state.players.filter(
+            (player) => player.team === offensiveTeam,
+        );
+        const defensivePlayers = state.players.filter(
+            (player) => player.team !== offensiveTeam,
+        );
+
+        return {
+            state,
+            outOfBoundsCatcher: findOutOfBoundsBallCatcher(
+                state.ball,
+                state.players,
+            ),
+            offensiveCatcher: findEligibleBallCatcher(
+                state.ball,
+                offensivePlayers,
+            ),
+            defensiveCatcher: findEligibleBallCatcher(
+                state.ball,
+                defensivePlayers,
+            ),
+        };
+    }
+
+    function $failTwoPointAttempt(message: string) {
+        $effect(($) => {
+            $.send({
+                message,
+                color: COLOR.WARNING,
+            });
+        });
+
+        $next({
+            to: "KICKOFF",
+            params: {
+                forTeam: offensiveTeam,
+            },
+            wait: ticks({ seconds: 2 }),
+        });
+    }
+
+    function $handleOutOfBoundsReception(frame: Frame) {
+        if (isBallOutOfBounds(frame.state.ball)) return;
+        if (!frame.outOfBoundsCatcher) return;
+
+        $failTwoPointAttempt(
+            cn(
+                t`❌ Out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
+                t`two-point try failed.`,
+            ),
+        );
+    }
+
+    function $handleBallOutOfBounds(frame: Frame) {
+        if (!isBallOutOfBounds(frame.state.ball)) return;
+
+        $failTwoPointAttempt(t`❌ Two-point try failed.`);
+    }
+
+    function $handleOffensiveReception(frame: Frame) {
+        if (!frame.offensiveCatcher) return;
+        const catcher = frame.offensiveCatcher;
+
+        $effect(($) => {
+            $.send({
+                message: t`🏈 Two-point pass complete to ${catcher.name}!`,
+                color: COLOR.MOMENTUM,
+            });
+        });
+
+        $next({
+            to: "EXTRA_POINT_RUN",
+            params: {
+                playerId: catcher.id,
+                ballTeam: offensiveTeam,
+                originalOffensiveTeam: offensiveTeam,
+                fieldPos,
+            },
+        });
+    }
+
+    function $handleDefensiveCatch(frame: Frame) {
+        if (!frame.defensiveCatcher) return;
+
+        $next({
+            to: "EXTRA_POINT_PASS_DEFLECTION",
+            params: {
+                blockTime: frame.state.tickNumber,
+                blockerId: frame.defensiveCatcher.id,
+                isKickingBall: frame.defensiveCatcher.isKickingBall,
+                offensiveTeam,
+                fieldPos,
+            },
+        });
+    }
+
+    function $handleBallLeftTwoPointZone(frame: Frame) {
+        if (isInExtraPointZone(frame.state.ball, offensiveTeam)) return;
+
+        $failTwoPointAttempt(t`❌ Two-point try failed.`);
+    }
+
     function run(state: GameState) {
-        if (isBallOutOfBounds(state.ball)) {
-            $effect(($) => {
-                $.send({
-                    message: t`❌ Two-point try failed.`,
-                    color: COLOR.WARNING,
-                });
-            });
+        const frame = buildFrame(state);
 
-            $next({
-                to: "KICKOFF",
-                params: {
-                    forTeam: offensiveTeam,
-                },
-                wait: ticks({ seconds: 2 }),
-            });
-        }
-
-        const offensiveCatcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.team === offensiveTeam),
-        );
-
-        if (offensiveCatcher) {
-            $effect(($) => {
-                $.send({
-                    message: t`🏈 Two-point pass complete to ${offensiveCatcher.name}!`,
-                    color: COLOR.MOMENTUM,
-                });
-            });
-
-            $next({
-                to: "EXTRA_POINT_RUN",
-                params: {
-                    playerId: offensiveCatcher.id,
-                    ballTeam: offensiveTeam,
-                    originalOffensiveTeam: offensiveTeam,
-                    fieldPos,
-                },
-            });
-        }
-
-        const defensiveCatcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.team !== offensiveTeam),
-        );
-
-        if (defensiveCatcher) {
-            $next({
-                to: "EXTRA_POINT_PASS_DEFLECTION",
-                params: {
-                    blockTime: state.tickNumber,
-                    blockerId: defensiveCatcher.id,
-                    isKickingBall: defensiveCatcher.isKickingBall,
-                    offensiveTeam,
-                    fieldPos,
-                },
-            });
-        }
-
-        if (!isInExtraPointZone(state.ball, offensiveTeam)) {
-            $effect(($) => {
-                $.send({
-                    message: t`❌ Two-point try failed.`,
-                    color: COLOR.WARNING,
-                });
-            });
-
-            $next({
-                to: "KICKOFF",
-                params: {
-                    forTeam: offensiveTeam,
-                },
-                wait: ticks({ seconds: 2 }),
-            });
-        }
+        $handleBallOutOfBounds(frame);
+        $handleOutOfBoundsReception(frame);
+        $handleOffensiveReception(frame);
+        $handleDefensiveCatch(frame);
+        $handleBallLeftTwoPointZone(frame);
     }
 
     return { run, command };

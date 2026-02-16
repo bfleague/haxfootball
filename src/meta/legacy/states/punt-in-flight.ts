@@ -1,7 +1,7 @@
 import { $dispose, $effect, $next } from "@runtime/hooks";
 import type { FieldTeam } from "@runtime/models";
 import { ticks } from "@common/general/time";
-import { AVATARS, findBallCatcher, opposite } from "@common/game/game";
+import { AVATARS, opposite } from "@common/game/game";
 import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
@@ -15,10 +15,23 @@ import { getInitialDownState } from "@meta/legacy/shared/down";
 import { $setBallMoveableByPlayer } from "@meta/legacy/hooks/physics";
 import { $setBallActive, $setBallInactive } from "@meta/legacy/hooks/game";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import {
+    findEligibleBallCatcher,
+    findOutOfBoundsBallCatcher,
+} from "@meta/legacy/shared/reception";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
+type Frame = {
+    state: GameState;
+    outOfBoundsCatcher: GameStatePlayer | null;
+    receivingCatcher: GameStatePlayer | null;
+    kickingTeamCatcher: GameStatePlayer | null;
+};
+
 export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
+    const receivingTeam = opposite(kickingTeam);
+
     function join(player: GameStatePlayer) {
         $setBallMoveableByPlayer(player.id);
     }
@@ -34,108 +47,155 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         });
     }
 
+    function buildFrame(state: GameState): Frame {
+        return {
+            state,
+            outOfBoundsCatcher: findOutOfBoundsBallCatcher(
+                state.ball,
+                state.players,
+            ),
+            receivingCatcher: findEligibleBallCatcher(
+                state.ball,
+                state.players.filter((player) => player.team === receivingTeam),
+            ),
+            kickingTeamCatcher: findEligibleBallCatcher(
+                state.ball,
+                state.players.filter((player) => player.team === kickingTeam),
+            ),
+        };
+    }
+
+    function $advancePuntOutOfBounds(args: {
+        isTouchback: boolean;
+        touchbackMessage: string;
+        spotMessage: string;
+        fieldPosX: number;
+    }) {
+        $setBallInactive();
+
+        $dispose(() => {
+            $setBallActive();
+        });
+
+        if (args.isTouchback) {
+            $effect(($) => {
+                $.send({
+                    message: args.touchbackMessage,
+                    color: COLOR.ALERT,
+                });
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: getInitialDownState(receivingTeam, {
+                        yards: TOUCHBACK_YARD_LINE,
+                        side: receivingTeam,
+                    }),
+                },
+                wait: ticks({ seconds: 2 }),
+            });
+        }
+
+        const fieldPos = getFieldPosition(args.fieldPosX);
+
+        $effect(($) => {
+            $.send({
+                message: cn(
+                    args.spotMessage,
+                    t`ball spotted at the ${fieldPos.yards}-yard line.`,
+                ),
+                color: COLOR.WARNING,
+            });
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: getInitialDownState(receivingTeam, fieldPos),
+            },
+            wait: ticks({ seconds: 2 }),
+        });
+    }
+
+    function $handleOutOfBoundsReception(frame: Frame) {
+        if (isBallOutOfBounds(frame.state.ball)) return;
+        if (!frame.outOfBoundsCatcher) return;
+
+        $advancePuntOutOfBounds({
+            isTouchback: intersectsEndZone(frame.state.ball, receivingTeam),
+            touchbackMessage: cn(
+                t`🚪 Out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
+                t`touchback.`,
+            ),
+            spotMessage: t`🚪 Out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
+            fieldPosX: frame.state.ball.x,
+        });
+    }
+
+    function $handleBallOutOfBounds(frame: Frame) {
+        if (!isBallOutOfBounds(frame.state.ball)) return;
+
+        $advancePuntOutOfBounds({
+            isTouchback: intersectsEndZone(frame.state.ball, receivingTeam),
+            touchbackMessage: cn(t`Punt out in the end zone`, t`touchback.`),
+            spotMessage: t`🚪 Punt out of bounds`,
+            fieldPosX: frame.state.ball.x,
+        });
+    }
+
+    function $handlePuntReturn(frame: Frame) {
+        if (!frame.receivingCatcher) return;
+        const catcher = frame.receivingCatcher;
+
+        $effect(($) => {
+            $.send({
+                message: t`🏈 Punt return by ${catcher.name}!`,
+                color: COLOR.MOMENTUM,
+            });
+        });
+
+        $next({
+            to: "PUNT_RETURN",
+            params: { playerId: catcher.id, receivingTeam },
+        });
+    }
+
+    function $handleIllegalTouch(frame: Frame) {
+        if (!frame.kickingTeamCatcher) return;
+        const catcher = frame.kickingTeamCatcher;
+
+        $effect(($) => {
+            $.send({
+                message: cn(
+                    t`❌ Illegal touch`,
+                    t`punt caught first by the kicking team (${catcher.name}).`,
+                ),
+                color: COLOR.WARNING,
+            });
+            $.setAvatar(catcher.id, AVATARS.CANCEL);
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: getInitialDownState(
+                    receivingTeam,
+                    getFieldPosition(catcher.x),
+                    catcher.y,
+                ),
+            },
+            wait: ticks({ seconds: 2 }),
+        });
+    }
+
     function run(state: GameState) {
-        if (isBallOutOfBounds(state.ball)) {
-            const receivingTeam = opposite(kickingTeam);
-            const isTouchback = intersectsEndZone(state.ball, receivingTeam);
+        const frame = buildFrame(state);
 
-            $setBallInactive();
-
-            $dispose(() => {
-                $setBallActive();
-            });
-
-            if (isTouchback) {
-                $effect(($) => {
-                    $.send({
-                        message: cn(t`Punt out in the end zone`, t`touchback.`),
-                        color: COLOR.ALERT,
-                    });
-                });
-
-                $next({
-                    to: "PRESNAP",
-                    params: {
-                        downState: getInitialDownState(receivingTeam, {
-                            yards: TOUCHBACK_YARD_LINE,
-                            side: receivingTeam,
-                        }),
-                    },
-                    wait: ticks({ seconds: 2 }),
-                });
-            }
-
-            const fieldPos = getFieldPosition(state.ball.x);
-
-            $effect(($) => {
-                $.send({
-                    message: cn(
-                        t`🚪 Punt out of bounds`,
-                        t`ball spotted at the ${fieldPos.yards}-yard line.`,
-                    ),
-                    color: COLOR.WARNING,
-                });
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: getInitialDownState(receivingTeam, fieldPos),
-                },
-                wait: ticks({ seconds: 2 }),
-            });
-        }
-
-        const receivingTeam = opposite(kickingTeam);
-
-        const catcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.team === receivingTeam),
-        );
-
-        if (catcher) {
-            $effect(($) => {
-                $.send({
-                    message: t`🏈 Punt return by ${catcher.name}!`,
-                    color: COLOR.MOMENTUM,
-                });
-            });
-
-            $next({
-                to: "PUNT_RETURN",
-                params: { playerId: catcher.id, receivingTeam },
-            });
-        }
-
-        const kickingTeamCatcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.team === kickingTeam),
-        );
-
-        if (kickingTeamCatcher) {
-            $effect(($) => {
-                $.send({
-                    message: cn(
-                        t`❌ Illegal touch`,
-                        t`punt caught first by the kicking team (${kickingTeamCatcher.name}).`,
-                    ),
-                    color: COLOR.WARNING,
-                });
-                $.setAvatar(kickingTeamCatcher.id, AVATARS.CANCEL);
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: getInitialDownState(
-                        receivingTeam,
-                        getFieldPosition(kickingTeamCatcher.x),
-                        kickingTeamCatcher.y,
-                    ),
-                },
-                wait: ticks({ seconds: 2 }),
-            });
-        }
+        $handleBallOutOfBounds(frame);
+        $handleOutOfBoundsReception(frame);
+        $handlePuntReturn(frame);
+        $handleIllegalTouch(frame);
     }
 
     return { run, join, command };

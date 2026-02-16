@@ -3,8 +3,6 @@ import { $before, $dispose, $effect, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import {
     AVATARS,
-    findBallCatchers,
-    findCatchers,
     setPlayerAvatars,
     type FieldPosition,
 } from "@common/game/game";
@@ -39,6 +37,10 @@ import { $global } from "@meta/legacy/hooks/global";
 import * as Crowding from "@meta/legacy/shared/crowding";
 import { unique } from "@common/general/helpers";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import {
+    findEligibleBallCatchers,
+    findEligibleCatchers,
+} from "@meta/legacy/shared/reception";
 import {
     DEFAULT_PUSHING_CONTACT_DISTANCE,
     DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
@@ -349,7 +351,7 @@ export function ExtraPointSnap({
     }
 
     function $handleDefensiveTouching(frame: Frame) {
-        const defensiveTouchers = findBallCatchers(
+        const defensiveTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.defenders,
         );
@@ -552,7 +554,7 @@ export function ExtraPointSnap({
     function $handleHandoff(frame: Frame) {
         if (frame.quarterback.isKickingBall) return;
 
-        const offensiveTouchers = findCatchers(
+        const offensiveTouchers = findEligibleCatchers(
             frame.quarterback,
             frame.offensivePlayers,
         );
@@ -583,7 +585,7 @@ export function ExtraPointSnap({
     function $handleOffensiveIllegalTouching(frame: Frame) {
         if (!frame.ballBehindLineOfScrimmage) return;
 
-        const offensiveTouchers = findBallCatchers(
+        const offensiveTouchers = findEligibleBallCatchers(
             frame.state.ball,
             frame.offensivePlayers,
         );

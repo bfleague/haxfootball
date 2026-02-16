@@ -1,11 +1,14 @@
 import { $dispose, $effect, $next } from "@runtime/hooks";
 import { ticks } from "@common/general/time";
-import { findBallCatcher } from "@common/game/game";
-import type { GameState } from "@runtime/engine";
+import type { GameState, GameStatePlayer } from "@runtime/engine";
 import { t } from "@lingui/core/macro";
 import { cn } from "@meta/legacy/shared/message";
 import { isBallOutOfBounds } from "@meta/legacy/shared/stadium";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import {
+    findEligibleBallCatcher,
+    findOutOfBoundsBallCatcher,
+} from "@meta/legacy/shared/reception";
 import {
     advanceDownState,
     DownState,
@@ -21,6 +24,13 @@ import {
 } from "@meta/legacy/hooks/game";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
+
+type Frame = {
+    state: GameState;
+    outOfBoundsCatcher: GameStatePlayer | null;
+    offensiveCatcher: GameStatePlayer | null;
+    defensiveCatcher: GameStatePlayer | null;
+};
 
 export function SnapInFlight({ downState }: { downState: DownState }) {
     const { offensiveTeam, fieldPos, downAndDistance } = downState;
@@ -44,103 +54,163 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         });
     }
 
+    function buildFrame(state: GameState): Frame {
+        const offensivePlayers = state.players.filter(
+            (player) => player.team === offensiveTeam,
+        );
+        const defensivePlayers = state.players.filter(
+            (player) => player.team !== offensiveTeam,
+        );
+
+        return {
+            state,
+            outOfBoundsCatcher: findOutOfBoundsBallCatcher(
+                state.ball,
+                state.players,
+            ),
+            offensiveCatcher: findEligibleBallCatcher(
+                state.ball,
+                offensivePlayers,
+            ),
+            defensiveCatcher: findEligibleBallCatcher(
+                state.ball,
+                defensivePlayers,
+            ),
+        };
+    }
+
+    function $advanceToPresnapWithDownMessage(args: {
+        nextDownState: DownState;
+        event: ReturnType<typeof advanceDownState>["event"];
+        middleMessage: string;
+    }) {
+        $effect(($) => {
+            switch (args.event.type) {
+                case "FIRST_DOWN":
+                    $.send({
+                        message: cn(
+                            "🏁",
+                            args.nextDownState,
+                            args.middleMessage,
+                            t`FIRST DOWN!`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+
+                    break;
+                case "NEXT_DOWN":
+                    $.send({
+                        message: cn(
+                            "🚪",
+                            args.nextDownState,
+                            args.middleMessage,
+                            t`no gain.`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+
+                    break;
+                case "TURNOVER_ON_DOWNS":
+                    $.send({
+                        message: cn(
+                            "❌",
+                            args.nextDownState,
+                            args.middleMessage,
+                            t`TURNOVER ON DOWNS!`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+
+                    break;
+            }
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: args.nextDownState,
+            },
+            wait: ticks({ seconds: 2 }),
+        });
+    }
+
+    function $handleOutOfBoundsReception(frame: Frame) {
+        if (isBallOutOfBounds(frame.state.ball)) return;
+        if (!frame.outOfBoundsCatcher) return;
+
+        const { downState: baseDownState, event } = advanceDownState(downState);
+        const nextDownState = withLastBallYAtCenter(baseDownState);
+
+        $setBallInactive();
+
+        $dispose(() => {
+            $setBallActive();
+        });
+
+        $advanceToPresnapWithDownMessage({
+            nextDownState,
+            event,
+            middleMessage: t`out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
+        });
+    }
+
+    function $handleBallOutOfBounds(frame: Frame) {
+        if (!isBallOutOfBounds(frame.state.ball)) return;
+
+        const { downState: baseDownState, event } = advanceDownState(downState);
+        const nextDownState = withLastBallYAtCenter(baseDownState);
+
+        $setBallInactive();
+
+        $dispose(() => {
+            $setBallActive();
+        });
+
+        $advanceToPresnapWithDownMessage({
+            nextDownState,
+            event,
+            middleMessage: t`ball out of bounds`,
+        });
+    }
+
+    function $handleOffensiveReception(frame: Frame) {
+        if (!frame.offensiveCatcher) return;
+        const catcher = frame.offensiveCatcher;
+
+        $effect(($) => {
+            $.send({
+                message: t`🏈 Pass complete to ${catcher.name}!`,
+                color: COLOR.MOMENTUM,
+            });
+        });
+
+        $next({
+            to: "LIVE_BALL",
+            params: { playerId: catcher.id, downState },
+        });
+    }
+
+    function $handleDefensiveCatch(frame: Frame) {
+        if (!frame.defensiveCatcher) return;
+
+        $next({
+            to: "PASS_DEFLECTION",
+            params: {
+                blockTime: frame.state.tickNumber,
+                blockerId: frame.defensiveCatcher.id,
+                isKickingBall: frame.defensiveCatcher.isKickingBall,
+                downState,
+            },
+        });
+    }
+
     function run(state: GameState) {
-        if (isBallOutOfBounds(state.ball)) {
-            const { downState: baseDownState, event } =
-                advanceDownState(downState);
-            const nextDownState = withLastBallYAtCenter(baseDownState);
+        const frame = buildFrame(state);
 
-            $setBallInactive();
-
-            $dispose(() => {
-                $setBallActive();
-            });
-
-            $effect(($) => {
-                switch (event.type) {
-                    case "FIRST_DOWN":
-                        $.send({
-                            message: cn(
-                                "🏁",
-                                nextDownState,
-                                t`ball out of bounds`,
-                                t`FIRST DOWN!`,
-                            ),
-                            color: COLOR.WARNING,
-                        });
-
-                        break;
-                    case "NEXT_DOWN":
-                        $.send({
-                            message: cn(
-                                "🚪",
-                                nextDownState,
-                                t`ball out of bounds`,
-                                t`no gain.`,
-                            ),
-                            color: COLOR.WARNING,
-                        });
-
-                        break;
-                    case "TURNOVER_ON_DOWNS":
-                        $.send({
-                            message: cn(
-                                "❌",
-                                nextDownState,
-                                t`ball out of bounds`,
-                                t`TURNOVER ON DOWNS!`,
-                            ),
-                            color: COLOR.WARNING,
-                        });
-
-                        break;
-                }
-            });
-
-            $next({
-                to: "PRESNAP",
-                params: {
-                    downState: nextDownState,
-                },
-                wait: ticks({ seconds: 2 }),
-            });
-        }
-
-        const offensiveCatcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.team === offensiveTeam),
-        );
-
-        if (offensiveCatcher) {
-            $effect(($) => {
-                $.send({
-                    message: t`🏈 Pass complete to ${offensiveCatcher.name}!`,
-                    color: COLOR.MOMENTUM,
-                });
-            });
-
-            $next({
-                to: "LIVE_BALL",
-                params: { playerId: offensiveCatcher.id, downState },
-            });
-        }
-
-        const defensiveCatcher = findBallCatcher(
-            state.ball,
-            state.players.filter((p) => p.team !== offensiveTeam),
-        );
-
-        if (defensiveCatcher) {
-            $next({
-                to: "PASS_DEFLECTION",
-                params: {
-                    blockTime: state.tickNumber,
-                    blockerId: defensiveCatcher.id,
-                    isKickingBall: defensiveCatcher.isKickingBall,
-                    downState,
-                },
-            });
-        }
+        $handleBallOutOfBounds(frame);
+        $handleOutOfBoundsReception(frame);
+        $handleOffensiveReception(frame);
+        $handleDefensiveCatch(frame);
     }
 
     return { run, command };
