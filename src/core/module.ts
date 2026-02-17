@@ -333,19 +333,16 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
                 );
 
                 if (!hideMessage) {
-                    const allowDefaultEcho = modules.reduce(
-                        (allow, module) => {
-                            const moduleAllows = module.call(
-                                "onPlayerChat",
-                                room,
-                                player,
-                                message,
-                            );
+                    const allowDefaultEcho = modules.reduce((allow, module) => {
+                        const moduleAllows = module.call(
+                            "onPlayerChat",
+                            room,
+                            player,
+                            message,
+                        );
 
-                            return allow && moduleAllows;
-                        },
-                        true,
-                    );
+                        return allow && moduleAllows;
+                    }, true);
 
                     if (allowDefaultEcho) {
                         room.send({
