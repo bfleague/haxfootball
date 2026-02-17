@@ -37,6 +37,7 @@ import {
 } from "@meta/legacy/shared/initial-positioning";
 import { $global } from "@meta/legacy/hooks/global";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
+import { SCORES } from "@meta/legacy/shared/scoring";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
@@ -109,6 +110,7 @@ type Frame = {
     attemptElapsedTicks: number;
     stateElapsedTicks: number;
     kicker: GameStatePlayer | undefined;
+    defensiveKicker: GameStatePlayer | undefined;
 };
 
 export function ExtraPoint({
@@ -225,6 +227,10 @@ export function ExtraPoint({
         const kicker = state.players.find(
             (player) => player.team === offensiveTeam && player.isKickingBall,
         );
+        const defensiveKicker = state.players.find(
+            (player) =>
+                player.team === opposite(offensiveTeam) && player.isKickingBall,
+        );
 
         return {
             state,
@@ -232,6 +238,7 @@ export function ExtraPoint({
             attemptElapsedTicks,
             stateElapsedTicks,
             kicker,
+            defensiveKicker,
         };
     }
 
@@ -254,6 +261,41 @@ export function ExtraPoint({
                 forTeam: offensiveTeam,
             },
             wait: ticks({ seconds: 2 }),
+        });
+    }
+
+    function $handleDefensiveKick(frame: Frame) {
+        if (!frame.defensiveKicker) return;
+
+        $setBallInactive();
+
+        $global((state) =>
+            state.incrementScore(offensiveTeam, SCORES.EXTRA_POINT),
+        );
+
+        const { scores } = $global();
+
+        $effect(($) => {
+            $.send({
+                message: cn(
+                    "🚫",
+                    scores,
+                    t`Defensive kick foul`,
+                    t`PAT is good!`,
+                ),
+                color: COLOR.WARNING,
+                to: "mixed",
+                sound: "notification",
+                style: "bold",
+            });
+        });
+
+        $next({
+            to: "KICKOFF",
+            params: {
+                forTeam: offensiveTeam,
+            },
+            wait: ticks({ seconds: 3 }),
         });
     }
 
@@ -325,6 +367,7 @@ export function ExtraPoint({
         const frame = buildFrame(state);
 
         $handleAttemptExpired(frame);
+        $handleDefensiveKick(frame);
         $handleKick(frame);
         $handleOffenseCrossedLine(frame);
     }

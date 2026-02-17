@@ -1,11 +1,5 @@
 import type { GameState } from "@runtime/engine";
-import {
-    $before,
-    $checkpoint,
-    $dispose,
-    $effect,
-    $next,
-} from "@runtime/runtime";
+import { $checkpoint, $dispose, $effect, $next, $tick } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import { opposite, type FieldPosition } from "@common/game/game";
 import { getDistance } from "@common/math/geometry";
@@ -106,12 +100,10 @@ export function ExtraPointRetry({
     offensiveTeam,
     fieldPos: fieldPosParam,
     defensiveFouls = 0,
-    startedAt,
 }: {
     offensiveTeam: FieldTeam;
     fieldPos?: FieldPosition;
     defensiveFouls?: number;
-    startedAt?: number;
 }) {
     const fieldPos: FieldPosition = fieldPosParam ?? {
         yards: EXTRA_POINT_YARD_LINE,
@@ -123,8 +115,6 @@ export function ExtraPointRetry({
         BALL_OFFSET_YARDS,
     );
     const formationBallPos = calculateSnapBallPosition(offensiveTeam, fieldPos);
-    const startTick =
-        typeof startedAt === "number" ? startedAt : $before().tickNumber;
 
     $setLineOfScrimmage(fieldPos);
     $unsetFirstDownLine();
@@ -149,7 +139,6 @@ export function ExtraPointRetry({
             offensiveTeam,
             fieldPos,
             defensiveFouls,
-            startedAt: startTick,
         },
     });
 
@@ -189,8 +178,8 @@ export function ExtraPointRetry({
         });
     }
 
-    function buildFrame(state: GameState): ExtraPointRetryFrame {
-        const elapsedTicks = state.tickNumber - startTick;
+    function buildFrame(): ExtraPointRetryFrame {
+        const { self: elapsedTicks } = $tick();
 
         return { elapsedTicks };
     }
@@ -224,8 +213,8 @@ export function ExtraPointRetry({
         });
     }
 
-    function run(state: GameState) {
-        const frame = buildFrame(state);
+    function run(_state: GameState) {
+        const frame = buildFrame();
         $handleAttemptExpired(frame);
     }
 
