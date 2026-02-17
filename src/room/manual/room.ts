@@ -204,7 +204,8 @@ const mainModule = createModule()
         }
     })
     .onPlayerChat((_, player, message) => {
-        console.log(`${player.name}: ${message}`);
+        const time = new Date().toLocaleTimeString();
+        console.log(`[${time}] ${player.name}: ${message}`);
     });
 
 export const modules = [mainModule];
