@@ -36,6 +36,29 @@ const getPlayerNamePrefix = (team: number): string => {
     }
 };
 
+const getMentionedPlayerIds = (
+    message: string,
+    players: PlayerObject[],
+): Set<number> => {
+    const mentions = message.match(/@\S+/g);
+
+    if (!mentions) return new Set();
+
+    const mentionedIds = new Set<number>();
+
+    for (const mention of mentions) {
+        const mentionName = mention.slice(1).replace(/_/g, " ").toLowerCase();
+
+        for (const player of players) {
+            if (player.name.toLowerCase() === mentionName) {
+                mentionedIds.add(player.id);
+            }
+        }
+    }
+
+    return mentionedIds;
+};
+
 let engine: Engine<Config> | null = null;
 
 const admins = new Set<number>();
@@ -275,11 +298,33 @@ const matchModule = createModule()
     .onPlayerChat((room, player, rawMessage) => {
         const emoji = getPlayerNamePrefix(player.team);
         const message = `${emoji} ${player.name}: ${rawMessage}`;
+        const players = room.getPlayerList();
+        const mentionedIds = getMentionedPlayerIds(rawMessage, players);
+
+        const broadcast = () => {
+            if (mentionedIds.size === 0) {
+                room.send({ message });
+                return;
+            }
+
+            for (const p of players) {
+                if (mentionedIds.has(p.id)) {
+                    room.send({
+                        message,
+                        to: p.id,
+                        style: "bold",
+                        sound: "notification",
+                    });
+                } else {
+                    room.send({ message, to: p.id });
+                }
+            }
+        };
 
         const engineChatResult = engine?.handlePlayerChat(
             player,
             rawMessage,
-            () => room.send({ message }),
+            broadcast,
         );
 
         const defaultResult = {
@@ -290,7 +335,7 @@ const matchModule = createModule()
         const chatResult = engineChatResult ?? defaultResult;
 
         if (chatResult.allowBroadcast && !chatResult.sentBeforeHooks) {
-            room.send({ message });
+            broadcast();
         }
 
         return false;
