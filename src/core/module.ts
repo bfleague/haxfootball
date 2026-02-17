@@ -332,9 +332,22 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
                 );
 
                 if (!hideMessage) {
-                    room.send({
-                        message: `${player.name}: ${message}`,
-                    });
+                    const allowDefaultEcho = modules.reduce((allow, module) => {
+                        const moduleAllows = module.call(
+                            "onPlayerChat",
+                            room,
+                            player,
+                            message,
+                        );
+
+                        return allow && moduleAllows;
+                    }, true);
+
+                    if (allowDefaultEcho) {
+                        room.send({
+                            message: `${player.name}: ${message}`,
+                        });
+                    }
                 }
 
                 bufferedMessages.forEach((entry) => {
