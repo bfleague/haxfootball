@@ -362,11 +362,11 @@ export function createEngine<Cfg>(
         const stateStartedTick =
             typeof optsRun?.stateStartedTick === "number"
                 ? optsRun.stateStartedTick
-                : current?.stateStartedTick ?? tickNumber;
+                : (current?.stateStartedTick ?? tickNumber);
         const selfStartedTick =
             typeof optsRun?.selfStartedTick === "number"
                 ? optsRun.selfStartedTick
-                : current?.selfStartedTick ?? stateStartedTick;
+                : (current?.selfStartedTick ?? stateStartedTick);
         const uninstall = installRuntime({
             room,
             config: opts.config,
