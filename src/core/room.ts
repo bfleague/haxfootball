@@ -1,8 +1,16 @@
 import { StadiumObject } from "@haxball/stadium";
 
 type TeamTarget = "teams" | "red" | "blue";
+type ObjectWithId = { id: number };
 
-export type AnnouncementTarget = number | null | TeamTarget | "mixed";
+export type AnnouncementTarget =
+    | number
+    | null
+    | TeamTarget
+    | "mixed"
+    | ObjectWithId
+    | number[]
+    | ObjectWithId[];
 
 export type AnnouncementOptions = {
     message: string;
@@ -90,6 +98,36 @@ export class Room {
                         toChatSound(sound),
                     );
                 });
+
+            return;
+        }
+
+        if (Array.isArray(to)) {
+            const ids = to.map((entry) =>
+                typeof entry === "number" ? entry : entry.id,
+            );
+
+            for (const id of ids) {
+                this.room.sendAnnouncement(
+                    message,
+                    id,
+                    color,
+                    style,
+                    toChatSound(sound),
+                );
+            }
+
+            return;
+        }
+
+        if (typeof to === "object" && to !== null) {
+            this.room.sendAnnouncement(
+                message,
+                to.id,
+                color,
+                style,
+                toChatSound(sound),
+            );
 
             return;
         }

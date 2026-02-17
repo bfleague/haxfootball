@@ -200,18 +200,14 @@ export function Presnap({ downState }: { downState: DownState }) {
                         to: player.id,
                         color: COLOR.CRITICAL,
                     });
-                });
 
-                for (const teammate of offensivePlayersPastLine) {
-                    $effect(($) => {
-                        $.send({
-                            message: t`⚠️ You must get back behind the line of scrimmage to allow the snap!`,
-                            to: teammate.id,
-                            sound: "notification",
-                            color: COLOR.CRITICAL,
-                        });
+                    $.send({
+                        message: t`⚠️ You must get back behind the line of scrimmage to allow the snap!`,
+                        to: offensivePlayersPastLine,
+                        sound: "notification",
+                        color: COLOR.CRITICAL,
                     });
-                }
+                });
 
                 return false;
             }

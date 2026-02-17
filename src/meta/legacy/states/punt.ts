@@ -121,6 +121,13 @@ export function Punt({ downState }: { downState: DownState }) {
                     to: kicker.id,
                     color: COLOR.CRITICAL,
                 });
+
+                $.send({
+                    message: t`⚠️ You must get back behind the ball line to allow the punt!`,
+                    to: playersPastBall,
+                    sound: "notification",
+                    color: COLOR.CRITICAL,
+                });
             });
 
             return;

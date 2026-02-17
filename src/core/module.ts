@@ -1,8 +1,13 @@
-import { CommandConfig, CommandResponse, CommandSpec } from "@runtime/commands";
+import {
+    CommandConfig,
+    CommandParseSpec,
+    CommandResponse,
+    CommandSpec,
+} from "@runtime/commands";
 import { Room } from "@core/room";
 
 type NormalizedCommandConfig = {
-    spec: CommandConfig["spec"];
+    spec: CommandParseSpec;
     commands: Set<string>;
 };
 
