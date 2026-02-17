@@ -38,6 +38,13 @@ import {
     findEligibleCatchers,
 } from "@meta/legacy/shared/reception";
 import {
+    BLITZ_BASE_DELAY_TICKS,
+    BLITZ_EARLY_DELAY_TICKS,
+    BLITZ_EARLY_NOTICE_DELAY_TICKS,
+    BLITZ_EARLY_NOTICE_REMAINING_SECONDS,
+    BLITZ_EARLY_MOVE_THRESHOLD_PX,
+} from "@meta/legacy/shared/blitz";
+import {
     DEFAULT_PUSHING_CONTACT_DISTANCE,
     DEFAULT_PUSHING_MIN_BACKFIELD_STEP,
     detectPushingFoul,
@@ -59,14 +66,12 @@ type Frame = {
     ballBehindLineOfScrimmage: boolean;
     isBlitzAllowed: boolean;
     nextBallMoveTick?: number | undefined;
+    shouldAnnounceEarlyBlitzNotice: boolean;
 };
 
 const DEFENSIVE_OFFSIDE_PENALTY_YARDS = 5;
 const DEFENSIVE_TOUCHING_PENALTY_YARDS = 5;
 const OFFENSIVE_FOUL_PENALTY_YARDS = 5;
-const BLITZ_BASE_DELAY_TICKS = ticks({ seconds: 12 });
-const BLITZ_EARLY_DELAY_TICKS = ticks({ seconds: 3 });
-const BLITZ_EARLY_MOVE_THRESHOLD_PX = 2;
 
 export function Snap({
     quarterbackId,
@@ -131,6 +136,20 @@ export function Snap({
 
         const isBlitzAllowed = state.tickNumber >= blitzAllowedTick;
 
+        const earlyBlitzAllowedTick =
+            nextBallMoveTick === undefined
+                ? undefined
+                : nextBallMoveTick + BLITZ_EARLY_DELAY_TICKS;
+        const earlyBlitzNoticeTick =
+            nextBallMoveTick === undefined
+                ? undefined
+                : nextBallMoveTick + BLITZ_EARLY_NOTICE_DELAY_TICKS;
+        const shouldAnnounceEarlyBlitzNotice =
+            earlyBlitzAllowedTick !== undefined &&
+            earlyBlitzAllowedTick < defaultBlitzAllowedTick &&
+            earlyBlitzNoticeTick !== undefined &&
+            state.tickNumber === earlyBlitzNoticeTick;
+
         const lineOfScrimmageX = getPositionFromFieldPosition(fieldPos);
 
         const defenders = state.players.filter(
@@ -178,6 +197,7 @@ export function Snap({
             ballBehindLineOfScrimmage,
             isBlitzAllowed,
             nextBallMoveTick,
+            shouldAnnounceEarlyBlitzNotice,
         };
     }
 
@@ -899,6 +919,18 @@ export function Snap({
         });
     }
 
+    function $handleEarlyBlitzNotice(frame: Frame) {
+        if (!frame.shouldAnnounceEarlyBlitzNotice) return;
+
+        $effect(($) => {
+            $.send({
+                message: t`⚡ Early blitz will be available in ${BLITZ_EARLY_NOTICE_REMAINING_SECONDS}s.`,
+                color: COLOR.MUTED,
+                sound: "none",
+            });
+        });
+    }
+
     function $handleBlitz(frame: Frame) {
         if (!frame.isBlitzAllowed || !frame.defenseCrossedLineOfScrimmage) {
             return;
@@ -971,6 +1003,7 @@ export function Snap({
         $handleBallOutOfBounds(frame);
         $handleBallBeyondLineOfScrimmage(frame);
         $handleQuarterbackBeyondLineOfScrimmage(frame);
+        $handleEarlyBlitzNotice(frame);
         $handleSnapKick(frame);
         $handleBlitz(frame);
         $refreshSnapState(frame, crowdingResult);

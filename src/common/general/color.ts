@@ -16,6 +16,7 @@ export const PALETTE = {
     NEON_GREEN: 0x4efca2,
     ICE_BLUE: 0x88ddff,
     AMBER: 0xf2cc00,
+    GRAY: 0x808080,
 } as const;
 
 export const COLOR = {
@@ -36,6 +37,7 @@ export const COLOR = {
     IN_PLAY: PALETTE.NEON_GREEN,
     METRIC: PALETTE.ICE_BLUE,
     MILESTONE: PALETTE.AMBER,
+    MUTED: PALETTE.GRAY,
 } as const;
 
 export function hexColorToNumber(hex: string): number {
