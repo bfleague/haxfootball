@@ -40,6 +40,7 @@ export type Transition = {
     params: any;
     wait?: number;
     disposal?: TransitionDisposal;
+    isRestore?: boolean;
 };
 
 export type Checkpoint = {
@@ -377,6 +378,7 @@ export function $restore(args: CheckpointRestoreArgs = {}): never {
         to: checkpointTransition.to,
         params: checkpointTransition.params,
         disposal: "IMMEDIATE",
+        isRestore: true,
     };
 
     // eslint-disable-next-line no-throw-literal

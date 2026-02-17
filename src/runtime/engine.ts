@@ -112,6 +112,7 @@ type DelayedTransition = {
     params: any;
     remainingTicks: number;
     disposal: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
+    isRestore?: boolean;
 };
 
 type CommittedCheckpoint = Checkpoint;
@@ -140,6 +141,7 @@ const cloneTransition = (transition: Transition): Transition => ({
     params: cloneTransitionParams(transition.params),
     ...(typeof transition.wait === "number" ? { wait: transition.wait } : {}),
     ...(transition.disposal ? { disposal: transition.disposal } : {}),
+    ...(transition.isRestore ? { isRestore: true } : {}),
 });
 
 function getBallSnapshot(room: Room): GameStateBall {
@@ -543,6 +545,7 @@ export function createEngine<Cfg>(
         if (!pendingTransition) return;
         const next = pendingTransition;
         const previous = current;
+        const isRestoreTransition = next.isRestore === true;
         pendingTransition = null;
 
         const isSameState = previous && previous.name === next.to;
@@ -593,10 +596,11 @@ export function createEngine<Cfg>(
             selfStartedTick: created.selfStartedTick,
         };
 
-        if (previous && previous.name !== next.to) {
+        if (!isRestoreTransition && previous && previous.name !== next.to) {
             commitStateCheckpointDrafts(previous);
         }
         if (
+            !isRestoreTransition &&
             pendingCheckpointDrafts &&
             pendingCheckpointDrafts.sourceState !== next.to
         ) {
@@ -636,6 +640,7 @@ export function createEngine<Cfg>(
                 params: transition.params,
                 remainingTicks: wait,
                 disposal,
+                ...(transition.isRestore ? { isRestore: true } : {}),
             };
 
             if (disposal === "IMMEDIATE") {
@@ -747,6 +752,9 @@ export function createEngine<Cfg>(
                 to: delayedTransition.to,
                 params: delayedTransition.params,
                 disposal: delayedTransition.disposal,
+                ...(delayedTransition.isRestore
+                    ? { isRestore: true as const }
+                    : {}),
             };
             delayedTransition = null;
             if (completedTransition.disposal === "AFTER_RESUME") {
