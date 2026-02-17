@@ -133,6 +133,26 @@ const mainModule = createModule()
 
                 return { hideMessage: false };
             }
+            case "clearbans": {
+                if (!player.admin) {
+                    room.send({
+                        message: t`🚫 You must be an admin to use this command.`,
+                        color: COLOR.ERROR,
+                        to: player.id,
+                    });
+                    return { hideMessage: true };
+                }
+
+                room.clearBans();
+
+                room.send({
+                    message: t`✅ All bans cleared successfully.`,
+                    color: COLOR.SUCCESS,
+                    to: player.id,
+                });
+
+                return { hideMessage: true };
+            }
             default:
                 return { hideMessage: false };
         }
