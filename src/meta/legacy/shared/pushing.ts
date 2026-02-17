@@ -1,4 +1,4 @@
-import type { GameState, GameStatePlayer } from "@runtime/engine";
+import type { GameStatePlayer } from "@runtime/engine";
 import { findCatchers } from "@common/game/game";
 import { type FieldTeam } from "@runtime/models";
 import { calculateDirectionalGain } from "@meta/legacy/shared/stadium";
@@ -12,8 +12,8 @@ export type PushingFoul = {
 };
 
 type PushingDetectionArgs = {
-    currentState: GameState;
-    previousState: GameState;
+    currentPlayers: GameStatePlayer[];
+    previousPlayers: GameStatePlayer[];
     offensiveTeam: FieldTeam;
     quarterbackId: number;
     lineOfScrimmageX: number;
@@ -139,8 +139,8 @@ const getPushingForDefender = ({
 };
 
 export function detectPushingFoul({
-    currentState,
-    previousState,
+    currentPlayers,
+    previousPlayers,
     offensiveTeam,
     quarterbackId,
     lineOfScrimmageX,
@@ -150,12 +150,10 @@ export function detectPushingFoul({
 }: PushingDetectionArgs): PushingFoul | null {
     if (isBlitzAllowed) return null;
 
-    const quarterback = currentState.players.find(
-        (p) => p.id === quarterbackId,
-    );
+    const quarterback = currentPlayers.find((p) => p.id === quarterbackId);
     if (!quarterback || quarterback.isKickingBall) return null;
 
-    const defenders = currentState.players.filter(
+    const defenders = currentPlayers.filter(
         (player) => player.team !== offensiveTeam,
     );
 
@@ -169,13 +167,13 @@ export function detectPushingFoul({
 
     if (offsideDefenders.length === 0) return null;
 
-    const offensivePlayers = currentState.players.filter(
+    const offensivePlayers = currentPlayers.filter(
         (player) =>
             player.team === offensiveTeam && player.id !== quarterbackId,
     );
 
     const previousPlayersById = new Map(
-        previousState.players.map((player) => [player.id, player]),
+        previousPlayers.map((player) => [player.id, player]),
     );
 
     return (

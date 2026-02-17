@@ -1,5 +1,5 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
-import { $before, $dispose, $effect, $next } from "@runtime/runtime";
+import { $before, $dispose, $effect, $next, $tick } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import {
     AVATARS,
@@ -50,10 +50,7 @@ import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
 const DEFENSIVE_FOUL_PENALTY_YARDS = 5;
-const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });
-const BLITZ_BASE_DELAY_TICKS = ticks({ seconds: 12 });
-const BLITZ_EARLY_DELAY_TICKS = ticks({ seconds: 3 });
-const BLITZ_EARLY_MOVE_THRESHOLD_PX = 2;
+const EXTRA_POINT_RUN_AND_BLITZ_DELAY = ticks({ seconds: 12 });
 
 type Frame = {
     state: GameState;
@@ -67,7 +64,6 @@ type Frame = {
     ballBehindLineOfScrimmage: boolean;
     isQuarterbackEligibleToRun: boolean;
     isBlitzAllowed: boolean;
-    nextBallMoveTick: number | null;
 };
 
 export function ExtraPointSnap({
@@ -76,31 +72,18 @@ export function ExtraPointSnap({
     fieldPos,
     defensiveFouls = 0,
     crowdingData = { outer: [], inner: [] },
-    ballMovedAt: _ballMovedAt,
-    startedAt,
 }: {
     quarterbackId: number;
     offensiveTeam: FieldTeam;
     fieldPos: FieldPosition;
     defensiveFouls?: number;
     crowdingData?: Crowding.CrowdingData;
-    ballMovedAt?: number | null;
-    startedAt?: number;
 }) {
-    const beforeState = $before();
-    const startTick =
-        typeof startedAt === "number" ? startedAt : beforeState.tickNumber;
-    const defaultBlitzAllowedTick = startTick + BLITZ_BASE_DELAY_TICKS;
-    const ballMovedAt = typeof _ballMovedAt === "number" ? _ballMovedAt : null;
-    const ballSpawnPosition = {
-        x: beforeState.ball.x,
-        y: beforeState.ball.y,
-    };
+    const { now: currentTickNumber, self: selfStateElapsedTicks } = $tick();
+    const snapStartedTick = currentTickNumber - selfStateElapsedTicks;
+    const defaultBlitzAllowedTick =
+        snapStartedTick + EXTRA_POINT_RUN_AND_BLITZ_DELAY;
     const lineOfScrimmageX = getPositionFromFieldPosition(fieldPos);
-
-    const isBallBeyondMoveThreshold = (ball: { x: number; y: number }) =>
-        Math.hypot(ball.x - ballSpawnPosition.x, ball.y - ballSpawnPosition.y) >
-        BLITZ_EARLY_MOVE_THRESHOLD_PX;
 
     $setBallMoveable();
     $unlockBall();
@@ -158,30 +141,9 @@ export function ExtraPointSnap({
         );
         const ballBehindLineOfScrimmage = ballDirectionalGain < 0;
 
-        const shouldRecordBallMoveTick =
-            !quarterback.isKickingBall &&
-            ballMovedAt === null &&
-            state.tickNumber < defaultBlitzAllowedTick;
+        const isBlitzAllowed = state.tickNumber >= defaultBlitzAllowedTick;
 
-        const didBallExceedMoveThreshold =
-            shouldRecordBallMoveTick && isBallBeyondMoveThreshold(state.ball);
-
-        const nextBallMoveTick = didBallExceedMoveThreshold
-            ? state.tickNumber
-            : ballMovedAt;
-
-        const blitzAllowedTick =
-            nextBallMoveTick === null
-                ? defaultBlitzAllowedTick
-                : Math.min(
-                      defaultBlitzAllowedTick,
-                      nextBallMoveTick + BLITZ_EARLY_DELAY_TICKS,
-                  );
-
-        const isBlitzAllowed = state.tickNumber >= blitzAllowedTick;
-
-        const isQuarterbackEligibleToRun =
-            state.tickNumber - startTick >= EXTRA_POINT_QB_RUN_DELAY;
+        const isQuarterbackEligibleToRun = isBlitzAllowed;
 
         return {
             state,
@@ -195,14 +157,13 @@ export function ExtraPointSnap({
             ballBehindLineOfScrimmage,
             isQuarterbackEligibleToRun,
             isBlitzAllowed,
-            nextBallMoveTick,
         };
     }
 
     function $handlePushingFoul(frame: Frame) {
         const pushingFoul = detectPushingFoul({
-            currentState: frame.state,
-            previousState: frame.previousState,
+            currentPlayers: frame.state.players,
+            previousPlayers: frame.previousState.players,
             offensiveTeam,
             quarterbackId,
             lineOfScrimmageX: frame.lineOfScrimmageX,
@@ -535,12 +496,9 @@ export function ExtraPointSnap({
     }
 
     function $refreshExtraPointSnap(
-        frame: Frame,
         crowdingResult: Crowding.CrowdingEvaluation | null,
     ) {
-        const shouldRefreshExtraPointSnap =
-            crowdingResult?.shouldUpdate ||
-            frame.nextBallMoveTick !== ballMovedAt;
+        const shouldRefreshExtraPointSnap = crowdingResult?.shouldUpdate;
 
         if (!shouldRefreshExtraPointSnap) return;
 
@@ -554,8 +512,6 @@ export function ExtraPointSnap({
                 crowdingData: crowdingResult
                     ? crowdingResult.updatedCrowdingData
                     : crowdingData,
-                ballMovedAt: frame.nextBallMoveTick,
-                startedAt: startTick,
             },
         });
     }
@@ -658,6 +614,25 @@ export function ExtraPointSnap({
         });
     }
 
+    function $handleIllegalQuarterbackAdvance(frame: Frame) {
+        if (frame.quarterback.isKickingBall) return;
+        if (frame.isQuarterbackEligibleToRun) return;
+        if (!frame.quarterbackCrossedLineOfScrimmage) return;
+
+        $effect(($) => {
+            $.send({
+                message: cn(
+                    t`❌ Offensive foul`,
+                    t`illegal advance beyond the LOS`,
+                    t`two-point try failed.`,
+                ),
+                color: COLOR.WARNING,
+            });
+        });
+
+        $failTwoPointAttempt();
+    }
+
     function $handleBlitz(frame: Frame) {
         if (!frame.isBlitzAllowed || !frame.defenseCrossedLineOfScrimmage) {
             return;
@@ -676,7 +651,6 @@ export function ExtraPointSnap({
                 quarterbackId,
                 offensiveTeam,
                 fieldPos,
-                startedAt: startTick,
             },
         });
     }
@@ -707,9 +681,10 @@ export function ExtraPointSnap({
         $handleOffensiveIllegalTouching(frame);
         $handleBallOutOfBounds(frame);
         $handleSnapKick(frame);
-        $handleQuarterbackRun(frame);
+        $handleIllegalQuarterbackAdvance(frame);
         $handleBlitz(frame);
-        $refreshExtraPointSnap(frame, crowdingResult);
+        $handleQuarterbackRun(frame);
+        $refreshExtraPointSnap(crowdingResult);
     }
 
     return { run, command };

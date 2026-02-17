@@ -48,8 +48,8 @@ import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
 const FIELD_GOAL_LINE_HEIGHT = 200;
-const OFFENSE_LINE_OFFSET_YARDS = 20;
-const DEFENSE_LINE_OFFSET_YARDS = 15;
+const OFFENSE_LINE_OFFSET_YARDS = 15;
+const DEFENSE_LINE_OFFSET_YARDS = 10;
 const CENTER_OFFSET_YARDS = 10;
 const KICKER_OFFSET_YARDS = -6;
 const KICKER_Y_OFFSET_YARDS = 0.5;

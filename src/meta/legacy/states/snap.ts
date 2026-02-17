@@ -58,7 +58,7 @@ type Frame = {
     ballBeyondLineOfScrimmage: boolean;
     ballBehindLineOfScrimmage: boolean;
     isBlitzAllowed: boolean;
-    nextBallMoveTick: number | null;
+    nextBallMoveTick?: number | undefined;
 };
 
 const DEFENSIVE_OFFSIDE_PENALTY_YARDS = 5;
@@ -72,19 +72,18 @@ export function Snap({
     quarterbackId,
     downState,
     crowdingData = { outer: [], inner: [] },
-    ballMovedAt: _ballMovedAt,
+    ballMovedAt,
 }: {
     quarterbackId: number;
     downState: DownState;
     crowdingData?: Crowding.CrowdingData;
-    ballMovedAt?: number | null;
+    ballMovedAt?: number;
 }) {
     const { fieldPos, offensiveTeam, downAndDistance } = downState;
 
     const beforeState = $before();
     const downStartTick = beforeState.tickNumber;
     const defaultBlitzAllowedTick = downStartTick + BLITZ_BASE_DELAY_TICKS;
-    const ballMovedAt = typeof _ballMovedAt === "number" ? _ballMovedAt : null;
     const ballSpawnPosition = {
         x: beforeState.ball.x,
         y: beforeState.ball.y,
@@ -112,7 +111,7 @@ export function Snap({
 
         const shouldRecordBallMoveTick =
             !quarterback.isKickingBall &&
-            ballMovedAt === null &&
+            ballMovedAt === undefined &&
             state.tickNumber < defaultBlitzAllowedTick;
 
         const didBallExceedMoveThreshold =
@@ -123,7 +122,7 @@ export function Snap({
             : ballMovedAt;
 
         const blitzAllowedTick =
-            nextBallMoveTick === null
+            nextBallMoveTick === undefined
                 ? defaultBlitzAllowedTick
                 : Math.min(
                       defaultBlitzAllowedTick,
@@ -184,8 +183,8 @@ export function Snap({
 
     function $handlePushingFoul(frame: Frame) {
         const pushing = detectPushingFoul({
-            currentState: frame.state,
-            previousState: frame.previousState,
+            currentPlayers: frame.state.players,
+            previousPlayers: frame.previousState.players,
             offensiveTeam,
             quarterbackId,
             lineOfScrimmageX: frame.lineOfScrimmageX,

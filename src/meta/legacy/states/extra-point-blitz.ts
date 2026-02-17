@@ -1,5 +1,5 @@
 import type { GameState, GameStatePlayer } from "@runtime/engine";
-import { $before, $dispose, $effect, $next } from "@runtime/runtime";
+import { $dispose, $effect, $next } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import { AVATARS, findCatchers } from "@common/game/game";
 import { type FieldTeam } from "@runtime/models";
@@ -24,14 +24,11 @@ import {
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
-const EXTRA_POINT_QB_RUN_DELAY = ticks({ seconds: 12 });
-
 type Frame = {
     state: GameState;
     quarterback: GameStatePlayer;
     defenders: GameStatePlayer[];
     quarterbackCrossedLineOfScrimmage: boolean;
-    isQuarterbackEligibleToRun: boolean;
 };
 
 export function ExtraPointBlitz({
@@ -39,17 +36,13 @@ export function ExtraPointBlitz({
     fieldPos,
     quarterbackId,
     ballIsDead = false,
-    startedAt,
 }: {
     offensiveTeam: FieldTeam;
     fieldPos: FieldPosition;
     quarterbackId: number;
     ballIsDead?: boolean;
-    startedAt?: number;
 }) {
     const lineOfScrimmageX = getPositionFromFieldPosition(fieldPos);
-    const startTick =
-        typeof startedAt === "number" ? startedAt : $before().tickNumber;
 
     $setLineOfScrimmage(fieldPos);
     $unsetFirstDownLine();
@@ -88,15 +81,11 @@ export function ExtraPointBlitz({
                 quarterback.x - lineOfScrimmageX,
             ) > 0;
 
-        const isQuarterbackEligibleToRun =
-            state.tickNumber - startTick >= EXTRA_POINT_QB_RUN_DELAY;
-
         return {
             state,
             quarterback,
             defenders,
             quarterbackCrossedLineOfScrimmage,
-            isQuarterbackEligibleToRun,
         };
     }
 
@@ -162,14 +151,12 @@ export function ExtraPointBlitz({
                 fieldPos,
                 quarterbackId,
                 ballIsDead: true,
-                startedAt: startTick,
             },
         });
     }
 
     function $handleQuarterbackCrossedLine(frame: Frame) {
         if (!frame.quarterbackCrossedLineOfScrimmage) return;
-        if (!frame.isQuarterbackEligibleToRun) return;
 
         $effect(($) => {
             $.send({
