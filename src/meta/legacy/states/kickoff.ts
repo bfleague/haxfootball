@@ -1,4 +1,4 @@
-import { $dispose, $effect, $next } from "@runtime/hooks";
+import { $checkpoint, $dispose, $effect, $next } from "@runtime/hooks";
 import { Team, type FieldTeam } from "@runtime/models";
 import { distributeOnLine, getMidpoint } from "@common/math/geometry";
 import { opposite } from "@common/game/game";
@@ -56,6 +56,11 @@ export function Kickoff({ forTeam = Team.RED }: { forTeam?: FieldTeam }) {
         $untrapAllTeams();
         $setBallMoveable();
         $setBallKickForce("normal");
+    });
+
+    $checkpoint({
+        to: "KICKOFF",
+        params: { forTeam },
     });
 
     function join(player: GameStatePlayer) {

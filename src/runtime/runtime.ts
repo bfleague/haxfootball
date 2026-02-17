@@ -59,6 +59,12 @@ export type CheckpointRestoreArgs = {
     consume?: boolean;
 };
 
+export type TickState = {
+    now: number;
+    current: number;
+    self: number;
+};
+
 const BALL_DEFAULT_INDEX = 0;
 
 const mergeProps =
@@ -187,6 +193,8 @@ let RUNTIME: {
     resolveCheckpoint: ((args: CheckpointRestoreArgs) => Transition) | null;
     listCheckpoints: (() => Array<Checkpoint>) | null;
     isPaused: boolean;
+    stateStartedTick: number;
+    selfStartedTick: number;
 } | null = null;
 
 const normalizeTransition = (args: {
@@ -234,9 +242,20 @@ export function installRuntime(ctx: {
     resolveCheckpoint?: (args: CheckpointRestoreArgs) => Transition;
     listCheckpoints?: () => Array<Checkpoint>;
     isPaused?: boolean;
+    stateStartedTick?: number;
+    selfStartedTick?: number;
 }) {
     const mutations = ctx.mutations ?? createMutationBuffer(ctx.room);
     const disposals = ctx.disposals ?? [];
+    const tickNumber = typeof ctx.tickNumber === "number" ? ctx.tickNumber : 0;
+    const stateStartedTick =
+        typeof ctx.stateStartedTick === "number"
+            ? ctx.stateStartedTick
+            : tickNumber;
+    const selfStartedTick =
+        typeof ctx.selfStartedTick === "number"
+            ? ctx.selfStartedTick
+            : stateStartedTick;
 
     RUNTIME = {
         room: ctx.room,
@@ -244,7 +263,7 @@ export function installRuntime(ctx: {
         effects: [],
         disposals,
         transition: null,
-        tickNumber: typeof ctx.tickNumber === "number" ? ctx.tickNumber : 0,
+        tickNumber,
         mutations,
         ownsMutations: !ctx.mutations,
         stopRequested: false,
@@ -256,6 +275,8 @@ export function installRuntime(ctx: {
         resolveCheckpoint: ctx.resolveCheckpoint ?? null,
         listCheckpoints: ctx.listCheckpoints ?? null,
         isPaused: !!ctx.isPaused,
+        stateStartedTick,
+        selfStartedTick,
     };
 
     return function uninstall() {
@@ -431,6 +452,31 @@ export function $before(): GameState {
     }
 
     return RUNTIME.beforeGameState;
+}
+
+/**
+ * Access the current engine tick number inside factory/run/hook code.
+ */
+export function $tickNumber(): number {
+    if (!RUNTIME) throw new Error("$tickNumber used outside of runtime");
+
+    return RUNTIME.tickNumber;
+}
+
+/**
+ * Access current tick counters:
+ * - now: absolute engine tick.
+ * - current: ticks since this state instance started.
+ * - self: ticks since entering this state name (persists across self-transitions).
+ */
+export function $tick(): TickState {
+    if (!RUNTIME) throw new Error("$tick used outside of runtime");
+
+    return {
+        now: RUNTIME.tickNumber,
+        current: RUNTIME.tickNumber - RUNTIME.stateStartedTick,
+        self: RUNTIME.tickNumber - RUNTIME.selfStartedTick,
+    };
 }
 
 /**

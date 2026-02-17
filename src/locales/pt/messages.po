@@ -197,7 +197,8 @@ msgid "{yardsLost}-yard loss"
 msgstr "perda de {yardsLost} jardas"
 
 #. placeholder {0}: player.name
-#: src/meta/legacy/states/extra-point.ts:218
+#: src/meta/legacy/states/extra-point-retry.ts:176
+#: src/meta/legacy/states/extra-point.ts:193
 msgid "*️⃣ {0} starts the two-point try!"
 msgstr "*️⃣ Tentativa de 2 pontos do {0}!"
 
@@ -270,7 +271,8 @@ msgstr "•"
 msgid "⏪ {0} calls for an undo! Rewinding to the last checkpoint..."
 msgstr "⏪ {0} pediu um undo! Voltando para o último checkpoint..."
 
-#: src/meta/legacy/states/extra-point.ts:255
+#: src/meta/legacy/states/extra-point-retry.ts:204
+#: src/meta/legacy/states/extra-point.ts:248
 msgid "⏱️ PAT window expired."
 msgstr "⏱️ Tempo do extra point esgotado."
 
@@ -294,7 +296,7 @@ msgstr "⚠️ Apenas o ataque pode pedir field goal."
 msgid "⚠️ Only the offense may punt."
 msgstr "⚠️ Apenas o ataque pode pedir punt."
 
-#: src/room/manual/room.ts:83
+#: src/room/manual/room.ts:85
 msgid "⚠️ Please provide a new password."
 msgstr "⚠️ Informe uma nova senha."
 
@@ -302,7 +304,7 @@ msgstr "⚠️ Informe uma nova senha."
 msgid "⚠️ The game has not been started yet."
 msgstr "⚠️ A partida ainda não foi iniciada."
 
-#: src/meta/legacy/states/extra-point.ts:166
+#: src/meta/legacy/states/extra-point.ts:168
 msgid "⚠️ Two-point try is no longer available"
 msgstr "⚠️ Tentativa de 2 pontos não está mais disponível"
 
@@ -318,7 +320,8 @@ msgstr "⚠️ Você está longe demais da bola para tentar o field goal."
 msgid "⚠️ You are too far from the ball to punt."
 msgstr "⚠️ Você está longe demais da bola para chutar o punt."
 
-#: src/meta/legacy/states/extra-point.ts:207
+#: src/meta/legacy/states/extra-point-retry.ts:165
+#: src/meta/legacy/states/extra-point.ts:182
 #: src/meta/legacy/states/presnap.ts:184
 msgid "⚠️ You are too far from the ball to snap it."
 msgstr "⚠️ Você está longe demais da bola para dar hike."
@@ -352,11 +355,11 @@ msgstr "⚠️ Você deve voltar para trás da linha de scrimmage para permitir 
 #~ msgid "✅ Field goal is good!"
 #~ msgstr "✅ Field goal convertido!"
 
-#: src/room/manual/room.ts:111
+#: src/room/manual/room.ts:113
 msgid "✅ Password cleared successfully."
 msgstr "✅ Senha removida com sucesso."
 
-#: src/room/manual/room.ts:92
+#: src/room/manual/room.ts:94
 msgid "✅ Password updated successfully."
 msgstr "✅ Senha atualizada com sucesso."
 
@@ -369,7 +372,7 @@ msgstr "✅ Senha atualizada com sucesso."
 #~ msgid "✅ Two-point try is good!"
 #~ msgstr "✅ Conversão de 2 pontos convertida!"
 
-#: src/room/manual/room.ts:54
+#: src/room/manual/room.ts:56
 msgid "✅ You are now an admin."
 msgstr "✅ Você agora é admin."
 
@@ -607,7 +610,7 @@ msgstr "❌ Toque ilegal por {offenderNames} antes do chute"
 #~ msgid "❌ Illegal touch by {offenderNames} before the kick • field goal is dead."
 #~ msgstr "❌ Toque ilegal por {offenderNames} antes do chute • field goal anulado."
 
-#: src/room/manual/room.ts:61
+#: src/room/manual/room.ts:63
 msgid "❌ Incorrect password."
 msgstr "❌ Senha incorreta."
 
@@ -619,8 +622,7 @@ msgstr "❌ Kickoff fora de campo"
 #~ msgid "❌ Kickoff out of bounds • ball spotted at the {KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line."
 #~ msgstr "❌ Kickoff fora de campo • bola posicionada na linha de {KICKOFF_OUT_OF_BOUNDS_YARD_LINE} jardas."
 
-#: src/meta/legacy/states/extra-point.ts:184
-#: src/meta/legacy/states/extra-point.ts:295
+#: src/meta/legacy/states/extra-point.ts:303
 msgid "❌ Offense crossed the LOS"
 msgstr "❌ O ataque cruzou a linha de scrimmage"
 
@@ -695,8 +697,8 @@ msgstr "❌ Conversão de 2 pontos falhou."
 #~ msgid "➖ No gain"
 #~ msgstr "➖ Sem ganho"
 
-#: src/room/manual/room.ts:128
-#: src/room/manual/room.ts:152
+#: src/room/manual/room.ts:130
+#: src/room/manual/room.ts:154
 msgid "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "🎬 Assista ao tutorial: {TUTORIAL_LINK}"
 
@@ -800,7 +802,7 @@ msgstr "🏈 Retorno de chute de safety de {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Passe completo na conversão para {0}!"
 
-#: src/room/manual/room.ts:146
+#: src/room/manual/room.ts:148
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Seja bem-vindo à Brazilian HaxFootball League (BFL)!"
 
@@ -902,8 +904,8 @@ msgstr "💥 {0} derrubado por {catcherNames}!"
 #~ msgid "💥 QB {0} sacked by {catcherNames} • TURNOVER ON DOWNS!"
 #~ msgstr "💥 Sack do QB {0} por {catcherNames} • TURNOVER ON DOWNS!"
 
-#: src/room/manual/room.ts:120
-#: src/room/manual/room.ts:158
+#: src/room/manual/room.ts:122
+#: src/room/manual/room.ts:160
 msgid "💬 Join our Discord server: {DISCORD_LINK}"
 msgstr "💬 Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
@@ -1082,8 +1084,8 @@ msgstr "🚪 Punt fora de campo"
 #~ msgid "🚪 QB {0} went out in the end zone • SAFETY!"
 #~ msgstr "🚪 QB {0} saiu na end zone • SAFETY!"
 
-#: src/room/manual/room.ts:74
-#: src/room/manual/room.ts:102
+#: src/room/manual/room.ts:76
+#: src/room/manual/room.ts:104
 msgid "🚫 You must be an admin to use this command."
 msgstr "🚫 Você precisa ser admin para usar este comando."
 
@@ -1245,10 +1247,11 @@ msgstr "offside da defesa"
 #: src/meta/legacy/states/extra-point-kick.ts:47
 #: src/meta/legacy/states/extra-point-pass-deflection.ts:46
 #: src/meta/legacy/states/extra-point-quarterback-run.ts:212
+#: src/meta/legacy/states/extra-point-retry.ts:220
 #: src/meta/legacy/states/extra-point-run.ts:226
 #: src/meta/legacy/states/extra-point-snap-in-flight.ts:53
 #: src/meta/legacy/states/extra-point-snap.ts:688
-#: src/meta/legacy/states/extra-point.ts:318
+#: src/meta/legacy/states/extra-point.ts:317
 msgid "Extra point"
 msgstr "Extra point"
 
@@ -1334,11 +1337,11 @@ msgstr "Interceptação"
 #~ msgid "Join our Discord server: {DISCORD_LINK}"
 #~ msgstr "Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
-#: src/meta/legacy/states/extra-point.ts:167
+#: src/meta/legacy/states/extra-point.ts:169
 msgid "kick the PAT."
 msgstr "chute o extra point."
 
-#: src/meta/legacy/states/kickoff.ts:87
+#: src/meta/legacy/states/kickoff.ts:92
 msgid "Kickoff"
 msgstr "Kickoff"
 
@@ -1649,8 +1652,7 @@ msgstr "tentativa de 2 pontos falhou."
 msgid "two-point try is good!"
 msgstr "tentativa de 2 pontos é boa!"
 
-#: src/meta/legacy/states/extra-point.ts:185
-#: src/meta/legacy/states/extra-point.ts:296
+#: src/meta/legacy/states/extra-point.ts:304
 msgid "two-point try is no longer available."
 msgstr "tentativa de 2 pontos não está mais disponível."
 

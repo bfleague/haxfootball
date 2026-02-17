@@ -38,6 +38,7 @@ Do:
 - Register cleanup with `$dispose` near the effect you need to undo.
 - Call `$before()` directly when you know a snapshot exists.
 - Keep durations as named constants and compute them via `ticks`.
+- For same-state `$next`, use `disposal: "IMMEDIATE"` when you need full teardown/setup; default self-transitions only refresh params/API and do not run disposal.
 
 Don't:
 

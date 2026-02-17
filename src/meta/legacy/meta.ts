@@ -22,6 +22,7 @@ import { FieldGoal } from "./states/field-goal";
 import { FakeFieldGoal } from "./states/fake-field-goal";
 import { FieldGoalInFlight } from "./states/field-goal-in-flight";
 import { ExtraPoint } from "./states/extra-point";
+import { ExtraPointRetry } from "./states/extra-point-retry";
 import { ExtraPointKick } from "./states/extra-point-kick";
 import { ExtraPointBlockedPass } from "./states/extra-point-blocked-pass";
 import { ExtraPointPassDeflection } from "./states/extra-point-pass-deflection";
@@ -59,6 +60,7 @@ export const registry = {
     FAKE_FIELD_GOAL: FakeFieldGoal,
     FIELD_GOAL_IN_FLIGHT: FieldGoalInFlight,
     EXTRA_POINT: ExtraPoint,
+    EXTRA_POINT_RETRY: ExtraPointRetry,
     EXTRA_POINT_KICK: ExtraPointKick,
     EXTRA_POINT_BLOCKED_PASS: ExtraPointBlockedPass,
     EXTRA_POINT_PASS_DEFLECTION: ExtraPointPassDeflection,

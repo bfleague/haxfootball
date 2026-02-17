@@ -1,24 +1,20 @@
-import type { GameState, GameStatePlayer } from "@runtime/engine";
+import type { GameState } from "@runtime/engine";
 import {
     $before,
     $checkpoint,
     $dispose,
     $effect,
     $next,
-    $tick,
 } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
-import { opposite } from "@common/game/game";
+import { opposite, type FieldPosition } from "@common/game/game";
 import { getDistance } from "@common/math/geometry";
 import { type FieldTeam, isFieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
-import { cn } from "@meta/legacy/shared/message";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
-    calculateDirectionalGain,
     calculateSnapBallPosition,
-    getPositionFromFieldPosition,
 } from "@meta/legacy/shared/stadium";
 import {
     $setBallActive,
@@ -28,8 +24,8 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import {
-    $setBallUnmoveable,
     $setBallMoveable,
+    $setBallUnmoveable,
 } from "@meta/legacy/hooks/physics";
 import {
     buildInitialPlayerPositions,
@@ -40,7 +36,6 @@ import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
-const LOADING_DURATION = ticks({ seconds: 0.5 });
 const EXTRA_POINT_DECISION_WINDOW = ticks({ seconds: 10 });
 const EXTRA_POINT_YARD_LINE = 10;
 const HIKING_DISTANCE_LIMIT = 30;
@@ -103,32 +98,33 @@ function $setInitialPlayerPositions(
     });
 }
 
-type Frame = {
-    state: GameState;
-    previousState: GameState;
-    attemptElapsedTicks: number;
-    stateElapsedTicks: number;
-    kicker: GameStatePlayer | undefined;
+type ExtraPointRetryFrame = {
+    elapsedTicks: number;
 };
 
-export function ExtraPoint({
+export function ExtraPointRetry({
     offensiveTeam,
-    twoPointLocked = false,
+    fieldPos: fieldPosParam,
+    defensiveFouls = 0,
+    startedAt,
 }: {
     offensiveTeam: FieldTeam;
-    twoPointLocked?: boolean;
+    fieldPos?: FieldPosition;
+    defensiveFouls?: number;
+    startedAt?: number;
 }) {
-    const fieldPos = {
+    const fieldPos: FieldPosition = fieldPosParam ?? {
         yards: EXTRA_POINT_YARD_LINE,
         side: opposite(offensiveTeam),
     };
-    const lineOfScrimmageX = getPositionFromFieldPosition(fieldPos);
     const ballPosWithOffset = calculateSnapBallPosition(
         offensiveTeam,
         fieldPos,
         BALL_OFFSET_YARDS,
     );
     const formationBallPos = calculateSnapBallPosition(offensiveTeam, fieldPos);
+    const startTick =
+        typeof startedAt === "number" ? startedAt : $before().tickNumber;
 
     $setLineOfScrimmage(fieldPos);
     $unsetFirstDownLine();
@@ -148,10 +144,12 @@ export function ExtraPoint({
     });
 
     $checkpoint({
-        to: "EXTRA_POINT",
+        to: "EXTRA_POINT_RETRY",
         params: {
             offensiveTeam,
-            twoPointLocked,
+            fieldPos,
+            defensiveFouls,
+            startedAt: startTick,
         },
     });
 
@@ -160,21 +158,6 @@ export function ExtraPoint({
         const isHikeCommand = normalizedMessage.includes("hike");
 
         if (!isHikeCommand || player.team !== offensiveTeam) return;
-
-        if (twoPointLocked) {
-            $effect(($) => {
-                $.send({
-                    message: cn(
-                        t`⚠️ Two-point try is no longer available`,
-                        t`kick the PAT.`,
-                    ),
-                    to: player.id,
-                    color: COLOR.CRITICAL,
-                });
-            });
-
-            return;
-        }
 
         if (isTooFarFromBall(player.position, ballPosWithOffset)) {
             $effect(($) => {
@@ -201,46 +184,19 @@ export function ExtraPoint({
                 offensiveTeam,
                 quarterbackId: player.id,
                 fieldPos,
+                defensiveFouls,
             },
         });
     }
 
-    function $lockTwoPointAttempt() {
-        $next({
-            to: "EXTRA_POINT",
-            params: {
-                offensiveTeam,
-                twoPointLocked: true,
-            },
-        });
+    function buildFrame(state: GameState): ExtraPointRetryFrame {
+        const elapsedTicks = state.tickNumber - startTick;
+
+        return { elapsedTicks };
     }
 
-    function buildFrame(state: GameState): Frame {
-        const previousState = $before();
-        const tick = $tick();
-        const stateStartTick = tick.now - tick.current;
-        const attemptStartTick = tick.now - tick.self;
-        const attemptElapsedTicks = state.tickNumber - attemptStartTick;
-        const stateElapsedTicks = state.tickNumber - stateStartTick;
-        const kicker = state.players.find(
-            (player) => player.team === offensiveTeam && player.isKickingBall,
-        );
-
-        return {
-            state,
-            previousState,
-            attemptElapsedTicks,
-            stateElapsedTicks,
-            kicker,
-        };
-    }
-
-    const isBeyondLineOfScrimmage = (player: GameStatePlayer) =>
-        calculateDirectionalGain(offensiveTeam, player.x - lineOfScrimmageX) >
-        0;
-
-    function $handleAttemptExpired(frame: Frame) {
-        if (frame.attemptElapsedTicks < EXTRA_POINT_DECISION_WINDOW) return;
+    function $handleAttemptExpired(frame: ExtraPointRetryFrame) {
+        if (frame.elapsedTicks < EXTRA_POINT_DECISION_WINDOW) return;
 
         $setBallInactive();
 
@@ -257,59 +213,6 @@ export function ExtraPoint({
         });
     }
 
-    function $handleKick(frame: Frame) {
-        if (!frame.kicker) return;
-
-        $next({
-            to: "EXTRA_POINT_KICK",
-            params: {
-                offensiveTeam,
-            },
-        });
-    }
-
-    function $handleOffenseCrossedLine(frame: Frame) {
-        if (twoPointLocked || frame.stateElapsedTicks < LOADING_DURATION) {
-            return;
-        }
-
-        const offensivePlayersBeyondLine = frame.state.players.filter(
-            (player) =>
-                player.team === offensiveTeam &&
-                isBeyondLineOfScrimmage(player),
-        );
-
-        if (offensivePlayersBeyondLine.length === 0) return;
-
-        const offensivePlayersBeyondLineBefore = new Set(
-            frame.previousState.players
-                .filter(
-                    (player) =>
-                        player.team === offensiveTeam &&
-                        isBeyondLineOfScrimmage(player),
-                )
-                .map((player) => player.id),
-        );
-
-        const hasNewOffensivePlayerBeyondLine = offensivePlayersBeyondLine.some(
-            (player) => !offensivePlayersBeyondLineBefore.has(player.id),
-        );
-
-        if (!hasNewOffensivePlayerBeyondLine) return;
-
-        $effect(($) => {
-            $.send({
-                message: cn(
-                    t`❌ Offense crossed the LOS`,
-                    t`two-point try is no longer available.`,
-                ),
-                color: COLOR.WARNING,
-            });
-        });
-
-        $lockTwoPointAttempt();
-    }
-
     function command(player: PlayerObject, spec: CommandSpec) {
         return $createSharedCommandHandler({
             options: {
@@ -323,10 +226,7 @@ export function ExtraPoint({
 
     function run(state: GameState) {
         const frame = buildFrame(state);
-
         $handleAttemptExpired(frame);
-        $handleKick(frame);
-        $handleOffenseCrossedLine(frame);
     }
 
     return { run, chat, command };

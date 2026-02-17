@@ -42,7 +42,7 @@ export function MyState({ someParam }: { someParam: number }) {
 
 ## State Lifecycle
 
-- Construction: the state factory runs once on entry. Do setup here and register cleanup with `$dispose`.
+- Construction: the state factory runs on entry. Do setup here and register cleanup with `$dispose`.
 - Handlers: `run` executes each tick; `join`/`leave`/`chat`/`command` execute on events. All handlers can use hooks.
 - Cleanup: when the state ends, all `$dispose` callbacks run; register undo work close to where the change is made so nothing leaks to the next state.
 
@@ -62,10 +62,17 @@ Hooks are runtime primitives you call inside state handlers; they schedule effec
 - `$effect(fn)`: queue side effects like announcements, disc updates, and stats.
 - `$next(...)`: transition to another state and stop the current handler.
 - `$before()`: get the snapshot from before the current state took place.
+- `$tick()`: get `{ now, current, self }` tick counters for timing logic.
 - `$dispose(fn)`: register cleanup to run when the state ends (can be called during setup or in handlers).
 - `$config<T>()`: access the engine configuration object.
 
 Metas can expose additional hooks (for example, game/physics hooks that set LOS lines, ball active state, or traps); use those instead of rewriting low-level disc logic.
+
+Tick counter semantics:
+
+- `now`: absolute engine tick (same value as `$tickNumber()`).
+- `current`: ticks since this state instance started.
+- `self`: ticks since entering this state name (does not reset on self-transitions).
 
 ## Transitions with $next
 
@@ -82,6 +89,13 @@ $next({
 ```
 
 Notes: `$next` stops execution for the current handler, so code after it will not run; place side effects before it or register cleanup via `$dispose`; only call `$next` from state handlers (`run`, `chat`, `command`, etc.), not during state construction or inside `$dispose`.
+
+Same-state transition behavior (`to` equals current state name):
+
+- Default (`disposal` is omitted / `"DELAYED"` / `"AFTER_RESUME"`): the engine re-runs the target state factory with new params and swaps the state API/disposers, but setup effects are muted and current disposers are not executed.
+- `"IMMEDIATE"`: the current state is fully disposed and the factory runs normally (setup effects are applied), even if the target state name is the same.
+
+Use this distinction intentionally when deciding whether a self-transition should be a parameter refresh or a full reset.
 
 ## Side Effects with $effect
 

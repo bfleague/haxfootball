@@ -103,6 +103,8 @@ type StateInstance = {
     api: StateApi;
     disposals: Array<() => void>;
     checkpointDrafts: Array<CheckpointDraft>;
+    stateStartedTick: number;
+    selfStartedTick: number;
 };
 
 type DelayedTransition = {
@@ -352,9 +354,19 @@ export function createEngine<Cfg>(
             beforeGameState?: GameState | null;
             muteEffects?: boolean;
             mutations?: MutationBuffer;
+            stateStartedTick?: number;
+            selfStartedTick?: number;
         },
     ): T {
         room.invalidateCaches();
+        const stateStartedTick =
+            typeof optsRun?.stateStartedTick === "number"
+                ? optsRun.stateStartedTick
+                : current?.stateStartedTick ?? tickNumber;
+        const selfStartedTick =
+            typeof optsRun?.selfStartedTick === "number"
+                ? optsRun.selfStartedTick
+                : current?.selfStartedTick ?? stateStartedTick;
         const uninstall = installRuntime({
             room,
             config: opts.config,
@@ -375,6 +387,8 @@ export function createEngine<Cfg>(
                 : {}),
             resolveCheckpoint,
             listCheckpoints,
+            stateStartedTick,
+            selfStartedTick,
         });
 
         setRuntimeRoom(room);
@@ -425,24 +439,45 @@ export function createEngine<Cfg>(
         name: string,
         params?: any,
         factory?: StateFactory<any>,
-        options?: { muteEffects?: boolean; mutations?: MutationBuffer },
+        options?: {
+            muteEffects?: boolean;
+            mutations?: MutationBuffer;
+            stateStartedTick?: number;
+            selfStartedTick?: number;
+        },
     ): Omit<StateInstance, "name"> {
         const resolved = factory ?? ensureFactory(name);
 
         const disposals: Array<() => void> = [];
         const checkpointDrafts: Array<CheckpointDraft> = [];
+        const stateStartedTick =
+            typeof options?.stateStartedTick === "number"
+                ? options.stateStartedTick
+                : tickNumber;
+        const selfStartedTick =
+            typeof options?.selfStartedTick === "number"
+                ? options.selfStartedTick
+                : stateStartedTick;
 
         const api = runOutsideTick(() => resolved(params ?? {}), {
             disposals,
             checkpointDrafts,
             beforeGameState: lastGameState,
+            stateStartedTick,
+            selfStartedTick,
             ...(options?.muteEffects !== undefined
                 ? { muteEffects: options.muteEffects }
                 : {}),
             ...(options?.mutations ? { mutations: options.mutations } : {}),
         });
 
-        return { api, disposals, checkpointDrafts };
+        return {
+            api,
+            disposals,
+            checkpointDrafts,
+            stateStartedTick,
+            selfStartedTick,
+        };
     }
 
     function collectDisposers(target: StateInstance | null): Array<() => void> {
@@ -516,11 +551,15 @@ export function createEngine<Cfg>(
             const factory = ensureFactory(next.to);
             const created = createState(next.to, next.params, factory, {
                 muteEffects: true,
+                stateStartedTick: tickNumber,
+                selfStartedTick: previous.selfStartedTick,
             });
 
             previous.api = created.api;
             previous.disposals = created.disposals;
             previous.checkpointDrafts = created.checkpointDrafts;
+            previous.stateStartedTick = created.stateStartedTick;
+            previous.selfStartedTick = created.selfStartedTick;
             return;
         }
 
@@ -537,6 +576,11 @@ export function createEngine<Cfg>(
         }
 
         const created = createState(next.to, next.params, factory, {
+            stateStartedTick: tickNumber,
+            selfStartedTick:
+                previous && previous.name === next.to
+                    ? previous.selfStartedTick
+                    : tickNumber,
             ...(transitionMutations ? { mutations: transitionMutations } : {}),
         });
 
@@ -545,6 +589,8 @@ export function createEngine<Cfg>(
             api: created.api,
             disposals: created.disposals,
             checkpointDrafts: created.checkpointDrafts,
+            stateStartedTick: created.stateStartedTick,
+            selfStartedTick: created.selfStartedTick,
         };
 
         if (previous && previous.name !== next.to) {
@@ -641,6 +687,8 @@ export function createEngine<Cfg>(
             api: created.api,
             disposals: created.disposals,
             checkpointDrafts: created.checkpointDrafts,
+            stateStartedTick: created.stateStartedTick,
+            selfStartedTick: created.selfStartedTick,
         };
 
         running = true;
@@ -747,6 +795,8 @@ export function createEngine<Cfg>(
                 resolveCheckpoint,
                 listCheckpoints,
                 isPaused,
+                stateStartedTick: current.stateStartedTick,
+                selfStartedTick: current.selfStartedTick,
             });
 
             setRuntimeRoom(room);

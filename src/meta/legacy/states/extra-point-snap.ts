@@ -253,7 +253,7 @@ export function ExtraPointSnap({
         options?: { disposal?: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME" },
     ) {
         $next({
-            to: "EXTRA_POINT",
+            to: "EXTRA_POINT_RETRY",
             params: {
                 offensiveTeam,
                 fieldPos: nextFieldPos,
