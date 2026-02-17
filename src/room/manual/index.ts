@@ -36,6 +36,9 @@ const getPlayerNamePrefix = (team: number): string => {
     }
 };
 
+const formatChatMessage = (player: PlayerObject, rawMessage: string): string =>
+    `${getPlayerNamePrefix(player.team)} ${player.name}: ${rawMessage}`;
+
 const getMentionedPlayerIds = (
     message: string,
     players: PlayerObject[],
@@ -57,6 +60,34 @@ const getMentionedPlayerIds = (
     }
 
     return mentionedIds;
+};
+
+const broadcastChat = (
+    room: Room,
+    rawMessage: string,
+    formatMessage: (rawMessage: string) => string,
+): void => {
+    const message = formatMessage(rawMessage);
+    const players = room.getPlayerList();
+    const mentionedIds = getMentionedPlayerIds(rawMessage, players);
+
+    if (mentionedIds.size === 0) {
+        room.send({ message });
+        return;
+    }
+
+    for (const p of players) {
+        if (mentionedIds.has(p.id)) {
+            room.send({
+                message,
+                to: p.id,
+                style: "bold",
+                sound: "notification",
+            });
+        } else {
+            room.send({ message, to: p.id });
+        }
+    }
 };
 
 let engine: Engine<Config> | null = null;
@@ -233,12 +264,10 @@ const mainModule = createModule()
         }
     })
     .onPlayerChat((_, player, message) => {
-        console.log(
-            `${getPlayerNamePrefix(player.team)} ${player.name}: ${message}`,
-        );
+        console.log(formatChatMessage(player, message));
     });
 
-const matchModule = createModule()
+const gameModule = createModule()
     .setCommands({
         spec: { prefix: COMMAND_PREFIX },
         commands: [
@@ -296,43 +325,54 @@ const matchModule = createModule()
         }
     })
     .onPlayerChat((room, player, rawMessage) => {
-        const emoji = getPlayerNamePrefix(player.team);
-        const message = `${emoji} ${player.name}: ${rawMessage}`;
-        const players = room.getPlayerList();
-        const mentionedIds = getMentionedPlayerIds(rawMessage, players);
+        const isTeamPlayer =
+            player.team === Team.RED || player.team === Team.BLUE;
+        const isTeamChat =
+            isTeamPlayer &&
+            (rawMessage.startsWith(";") || rawMessage.startsWith("t "));
 
-        const broadcast = () => {
-            if (mentionedIds.size === 0) {
-                room.send({ message });
-                return;
-            }
+        if (!isTeamChat) {
+            return;
+        }
 
-            for (const p of players) {
-                if (mentionedIds.has(p.id)) {
-                    room.send({
-                        message,
-                        to: p.id,
-                        style: "bold",
-                        sound: "notification",
-                    });
-                } else {
-                    room.send({ message, to: p.id });
-                }
-            }
-        };
+        const teamMessage = rawMessage.startsWith(";")
+            ? rawMessage.slice(1)
+            : rawMessage.slice(2);
+        const teamTarget = player.team === Team.RED ? "red" : "blue";
 
-        const engineChatResult = engine?.handlePlayerChat(
+        room.send({
+            message: `☎️ ${player.name}: ${teamMessage}`,
+            color: COLOR.ALERT,
+            to: teamTarget,
+            sound: "notification",
+        });
+
+        return false;
+    })
+
+    .onPlayerChat((room, player, rawMessage) => {
+        if (engine) {
+            return;
+        }
+
+        const format = (raw: string) => formatChatMessage(player, raw);
+        broadcastChat(room, rawMessage, format);
+
+        return false;
+    })
+    .onPlayerChat((room, player, rawMessage) => {
+        const format = (raw: string) => formatChatMessage(player, raw);
+        const broadcast = () => broadcastChat(room, rawMessage, format);
+
+        if (!engine) {
+            return;
+        }
+
+        const chatResult = engine.handlePlayerChat(
             player,
             rawMessage,
             broadcast,
         );
-
-        const defaultResult = {
-            allowBroadcast: true,
-            sentBeforeHooks: false,
-        };
-
-        const chatResult = engineChatResult ?? defaultResult;
 
         if (chatResult.allowBroadcast && !chatResult.sentBeforeHooks) {
             broadcast();
@@ -361,4 +401,4 @@ const matchModule = createModule()
     });
 
 export const getConfig = () => config;
-export const modules = [mainModule, matchModule];
+export const modules = [mainModule, gameModule];

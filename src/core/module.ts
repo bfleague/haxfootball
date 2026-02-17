@@ -192,16 +192,17 @@ export class Module {
     }
 
     call(eventName: string, ...args: any[]): boolean {
-        const responses: boolean[] = [];
-
         for (const [name, handler] of this.events) {
             if (name === eventName) {
                 const response = handler(...args);
-                responses.push(response !== false);
+
+                if (response === false) {
+                    return false;
+                }
             }
         }
 
-        return responses.every((response) => response);
+        return true;
     }
 
     callCommand(room: Room, player: PlayerObject, command: CommandSpec) {
@@ -332,16 +333,19 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
                 );
 
                 if (!hideMessage) {
-                    const allowDefaultEcho = modules.reduce((allow, module) => {
-                        const moduleAllows = module.call(
-                            "onPlayerChat",
-                            room,
-                            player,
-                            message,
-                        );
+                    const allowDefaultEcho = modules.reduce(
+                        (allow, module) => {
+                            const moduleAllows = module.call(
+                                "onPlayerChat",
+                                room,
+                                player,
+                                message,
+                            );
 
-                        return allow && moduleAllows;
-                    }, true);
+                            return allow && moduleAllows;
+                        },
+                        true,
+                    );
 
                     if (allowDefaultEcho) {
                         room.send({
