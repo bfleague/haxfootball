@@ -84,7 +84,7 @@ export function findOutOfBoundsBallCatcher<
 
     for (const player of outOfBoundsPlayers) {
         const distance = getDistance(player, ball);
-        if (distance <= maxDistance) return player;
+        if (player.isKickingBall || distance <= maxDistance) return player;
     }
 
     return null;
