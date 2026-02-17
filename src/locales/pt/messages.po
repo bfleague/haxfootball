@@ -294,11 +294,11 @@ msgstr "⚠️ Apenas o ataque pode pedir field goal."
 msgid "⚠️ Only the offense may punt."
 msgstr "⚠️ Apenas o ataque pode pedir punt."
 
-#: src/room/manual/index.ts:111
+#: src/room/manual/room.ts:83
 msgid "⚠️ Please provide a new password."
 msgstr "⚠️ Informe uma nova senha."
 
-#: src/room/manual/index.ts:267
+#: src/room/manual/game.ts:128
 msgid "⚠️ The game has not been started yet."
 msgstr "⚠️ A partida ainda não foi iniciada."
 
@@ -340,7 +340,7 @@ msgstr "⚠️ Você não pode chutar punt enquanto um companheiro estiver além
 msgid "⚠️ You cannot snap while a teammate is past the LOS."
 msgstr "⚠️ Você não pode dar hike enquanto um companheiro estiver além da linha de scrimmage."
 
-#: src/room/manual/index.ts:266
+#: src/room/manual/game.ts:127
 msgid "⚠️ You cannot use that command right now."
 msgstr "⚠️ Você não pode usar esse comando agora."
 
@@ -352,11 +352,11 @@ msgstr "⚠️ Você deve voltar para trás da linha de scrimmage para permitir 
 #~ msgid "✅ Field goal is good!"
 #~ msgstr "✅ Field goal convertido!"
 
-#: src/room/manual/index.ts:139
+#: src/room/manual/room.ts:111
 msgid "✅ Password cleared successfully."
 msgstr "✅ Senha removida com sucesso."
 
-#: src/room/manual/index.ts:120
+#: src/room/manual/room.ts:92
 msgid "✅ Password updated successfully."
 msgstr "✅ Senha atualizada com sucesso."
 
@@ -369,7 +369,7 @@ msgstr "✅ Senha atualizada com sucesso."
 #~ msgid "✅ Two-point try is good!"
 #~ msgstr "✅ Conversão de 2 pontos convertida!"
 
-#: src/room/manual/index.ts:82
+#: src/room/manual/room.ts:54
 msgid "✅ You are now an admin."
 msgstr "✅ Você agora é admin."
 
@@ -607,7 +607,7 @@ msgstr "❌ Toque ilegal por {offenderNames} antes do chute"
 #~ msgid "❌ Illegal touch by {offenderNames} before the kick • field goal is dead."
 #~ msgstr "❌ Toque ilegal por {offenderNames} antes do chute • field goal anulado."
 
-#: src/room/manual/index.ts:89
+#: src/room/manual/room.ts:61
 msgid "❌ Incorrect password."
 msgstr "❌ Senha incorreta."
 
@@ -695,8 +695,8 @@ msgstr "❌ Conversão de 2 pontos falhou."
 #~ msgid "➖ No gain"
 #~ msgstr "➖ Sem ganho"
 
-#: src/room/manual/index.ts:156
-#: src/room/manual/index.ts:180
+#: src/room/manual/room.ts:128
+#: src/room/manual/room.ts:152
 msgid "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "🎬 Assista ao tutorial: {TUTORIAL_LINK}"
 
@@ -767,11 +767,11 @@ msgstr "🏈 {0} deu o hike"
 #~ msgid "🏈 Defense takes it back • TWO POINTS!"
 #~ msgstr "🏈 Defesa retornou • DOIS PONTOS!"
 
-#: src/room/manual/index.ts:17
+#: src/room/manual/index.ts:9
 msgid "🏈 HaxFootball - American Football 🏈"
 msgstr "🏈 HaxFootball - Futebol Americano 🏈"
 
-#: src/room/manual/index.ts:257
+#: src/room/manual/game.ts:118
 msgid "🏈 HaxFootball 2026"
 msgstr "🏈 HaxFootball 2026"
 
@@ -800,7 +800,7 @@ msgstr "🏈 Retorno de chute de safety de {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Passe completo na conversão para {0}!"
 
-#: src/room/manual/index.ts:174
+#: src/room/manual/room.ts:146
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Seja bem-vindo à Brazilian HaxFootball League (BFL)!"
 
@@ -902,8 +902,8 @@ msgstr "💥 {0} derrubado por {catcherNames}!"
 #~ msgid "💥 QB {0} sacked by {catcherNames} • TURNOVER ON DOWNS!"
 #~ msgstr "💥 Sack do QB {0} por {catcherNames} • TURNOVER ON DOWNS!"
 
-#: src/room/manual/index.ts:148
-#: src/room/manual/index.ts:186
+#: src/room/manual/room.ts:120
+#: src/room/manual/room.ts:158
 msgid "💬 Join our Discord server: {DISCORD_LINK}"
 msgstr "💬 Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
@@ -1082,8 +1082,8 @@ msgstr "🚪 Punt fora de campo"
 #~ msgid "🚪 QB {0} went out in the end zone • SAFETY!"
 #~ msgstr "🚪 QB {0} saiu na end zone • SAFETY!"
 
-#: src/room/manual/index.ts:102
-#: src/room/manual/index.ts:130
+#: src/room/manual/room.ts:74
+#: src/room/manual/room.ts:102
 msgid "🚫 You must be an admin to use this command."
 msgstr "🚫 Você precisa ser admin para usar este comando."
 
