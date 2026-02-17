@@ -9,6 +9,8 @@
         "i18n:extract": "lingui extract",
         "i18n:compile": "lingui compile",
         "i18n": "npm run i18n:extract && npm run i18n:compile",
+        "format": "prettier --write .",
+        "format:ci": "prettier --check .",
         "test": "vitest"
     },
     "keywords": [],

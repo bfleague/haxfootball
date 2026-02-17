@@ -32,7 +32,7 @@ jobs:
               run: npm run build
 
             - name: Lint (Prettier check)
-              run: npx prettier --check .
+              run: npm run format:ci
 
             - name: Typecheck
               run: npx tsc --noEmit
@@ -109,7 +109,7 @@ jobs:
                   )
                   PY
 
-                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 1-4 concise bullets as plain text, max 700 chars. Mention what changed from a user-facing, gameplay standpoint, not a technical one. Use the file-area context to avoid vague summaries."
+                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 1-4 concise bullets as plain text, max 700 chars. Mention what changed from a user-facing, gameplay standpoint, not a technical one. Use the file-area context to avoid vague summaries. Do not use marketing terms or language, just clear descriptions, we are not trying to hype the changes, just summarize them.'"
                   USER_PROMPT="$(cat <<'EOF'
                   Changed files:
                   EOF
