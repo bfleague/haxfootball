@@ -12,6 +12,7 @@ import {
 } from "@meta/legacy/shared/reception";
 import {
     advanceDownState,
+    DownEvent,
     DownState,
     withLastBallYAtCenter,
 } from "@meta/legacy/shared/down";
@@ -90,19 +91,23 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         };
     }
 
-    function $advanceToPresnapWithDownMessage(args: {
+    function $advanceToPresnapWithDownMessage({
+        nextDownState,
+        event,
+        message,
+    }: {
         nextDownState: DownState;
-        event: ReturnType<typeof advanceDownState>["event"];
-        middleMessage: string;
+        event: DownEvent;
+        message: string;
     }) {
         $effect(($) => {
-            switch (args.event.type) {
+            switch (event.type) {
                 case "FIRST_DOWN":
                     $.send({
                         message: cn(
                             "🏁",
-                            args.nextDownState,
-                            args.middleMessage,
+                            nextDownState,
+                            message,
                             t`FIRST DOWN!`,
                         ),
                         color: COLOR.WARNING,
@@ -111,12 +116,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                     break;
                 case "NEXT_DOWN":
                     $.send({
-                        message: cn(
-                            "🚪",
-                            args.nextDownState,
-                            args.middleMessage,
-                            t`no gain.`,
-                        ),
+                        message: cn("🚪", nextDownState, message, t`no gain.`),
                         color: COLOR.WARNING,
                     });
 
@@ -125,8 +125,8 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                     $.send({
                         message: cn(
                             "❌",
-                            args.nextDownState,
-                            args.middleMessage,
+                            nextDownState,
+                            message,
                             t`TURNOVER ON DOWNS!`,
                         ),
                         color: COLOR.WARNING,
@@ -139,7 +139,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         $next({
             to: "PRESNAP",
             params: {
-                downState: args.nextDownState,
+                downState: nextDownState,
             },
             wait: ticks({ seconds: 2 }),
         });
@@ -161,7 +161,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         $advanceToPresnapWithDownMessage({
             nextDownState,
             event,
-            middleMessage: t`out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
+            message: t`out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
         });
     }
 
@@ -180,7 +180,7 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         $advanceToPresnapWithDownMessage({
             nextDownState,
             event,
-            middleMessage: t`ball out of bounds`,
+            message: t`ball out of bounds`,
         });
     }
 
