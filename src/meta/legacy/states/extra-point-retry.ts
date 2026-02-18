@@ -18,8 +18,10 @@ import {
     $unsetLineOfScrimmage,
 } from "@meta/legacy/hooks/game";
 import {
+    $lockBall,
     $setBallMoveable,
     $setBallUnmoveable,
+    $unlockBall,
 } from "@meta/legacy/hooks/physics";
 import {
     buildInitialPlayerPositions,
@@ -119,6 +121,7 @@ export function ExtraPointRetry({
     $setLineOfScrimmage(fieldPos);
     $unsetFirstDownLine();
     $setBallActive();
+    $lockBall();
     $setBallUnmoveable();
 
     $effect(($) => {
@@ -131,6 +134,7 @@ export function ExtraPointRetry({
         $unsetFirstDownLine();
         $setBallActive();
         $setBallMoveable();
+        $unlockBall();
     });
 
     $checkpoint({
