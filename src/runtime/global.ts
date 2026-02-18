@@ -54,9 +54,7 @@ const cloneStateSnapshot = <State extends Record<string, any>>(
 export function createGlobalStore<Schema extends GlobalSchema<any, any>>(
     schema: Schema,
 ): GlobalStoreApi<Schema> {
-    let state = cloneStateSnapshot(
-        schema.state as GlobalSchemaState<Schema>,
-    );
+    let state = cloneStateSnapshot(schema.state as GlobalSchemaState<Schema>);
 
     const actions = {} as GlobalSchemaActions<Schema>;
 
