@@ -143,25 +143,17 @@ const toFlagState = (value: boolean): "ON" | "OFF" => {
     return value ? "ON" : "OFF";
 };
 
-const getFinalScoreAnnouncement = (
-    finalScoreState: ScoreState | null | undefined,
-): string | null => {
-    if (!finalScoreState) {
-        return null;
-    }
-
-    if (finalScoreState[Team.RED] === finalScoreState[Team.BLUE]) {
-        return cn("🏁", finalScoreState, t`Game ended in a tie!`);
+const getFinalScoreAnnouncement = (score: ScoreState): string => {
+    if (score[Team.RED] === score[Team.BLUE]) {
+        return cn("🏁", score, t`Game ended in a tie!`);
     }
 
     const winnerTeam =
-        finalScoreState[Team.RED] > finalScoreState[Team.BLUE]
-            ? Team.RED
-            : Team.BLUE;
+        score[Team.RED] > score[Team.BLUE] ? Team.RED : Team.BLUE;
 
     return cn(
         "🏁",
-        finalScoreState,
+        score,
         t`Victory for the ${formatTeamName(winnerTeam)} team!`,
     );
 };
@@ -441,9 +433,12 @@ const gameModule = createModule()
         const snapshot = engine?.getGlobalStateSnapshot<LegacyGlobalSnapshot>();
         const score = snapshot?.scores ?? null;
 
-        const announcement = getFinalScoreAnnouncement(score);
+        const shouldShowScore =
+            score && score[Team.RED] !== 0 && score[Team.BLUE] !== 0;
 
-        if (announcement && score) {
+        if (shouldShowScore) {
+            const announcement = getFinalScoreAnnouncement(score);
+
             room.send({
                 message: announcement,
                 color:
