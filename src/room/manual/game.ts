@@ -433,8 +433,7 @@ const gameModule = createModule()
         const snapshot = engine?.getGlobalStateSnapshot<LegacyGlobalSnapshot>();
         const score = snapshot?.scores ?? null;
 
-        const shouldShowScore =
-            score && score[Team.RED] !== 0 && score[Team.BLUE] !== 0;
+        const shouldShowScore = score && score[Team.RED] + score[Team.BLUE] > 0;
 
         if (shouldShowScore) {
             const announcement = getFinalScoreAnnouncement(score);
