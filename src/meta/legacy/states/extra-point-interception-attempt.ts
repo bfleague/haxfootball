@@ -20,12 +20,19 @@ import {
     getProjectedInterceptionPoint,
     getTravelInterceptionPoint,
 } from "@meta/legacy/shared/interception";
-import { PointLike } from "@common/math/geometry";
+import { type PointLike } from "@common/math/geometry";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
 const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 200 });
+
+type Frame = {
+    state: GameState;
+    blocker: GameStatePlayer;
+    intersectionFromTravel: PointLike | null;
+    projectedIntersection: PointLike | null;
+};
 
 export function ExtraPointInterceptionAttempt({
     kickTime,
@@ -54,13 +61,35 @@ export function ExtraPointInterceptionAttempt({
         $setBallActive();
     });
 
-    function $advanceToInterception(args: {
-        blocker: GameStatePlayer;
-        intersectionPoint: PointLike;
-    }) {
+    function buildFrame(state: GameState): Frame | null {
+        const blocker = state.players.find((player) => player.id === playerId);
+        if (!blocker) return null;
+
+        const intersectionFromTravel = getTravelInterceptionPoint({
+            previousBall: $before().ball,
+            currentBall: state.ball,
+            goals,
+        });
+
+        const projectedIntersection =
+            state.tickNumber - kickTime >= TIME_TO_CHECK_INTERCEPTION
+                ? getProjectedInterceptionPoint({ ball: state.ball, goals })
+                : null;
+
+        return {
+            state,
+            blocker,
+            intersectionFromTravel,
+            projectedIntersection,
+        };
+    }
+
+    function $handleTravelInterception(frame: Frame) {
+        if (!frame.intersectionFromTravel) return;
+
         $effect(($) => {
             $.send({
-                message: t`🛡️ INTERCEPTION by ${args.blocker.name}!`,
+                message: t`🛡️ INTERCEPTION by ${frame.blocker.name}!`,
                 color: COLOR.SPECIAL,
             });
         });
@@ -68,8 +97,8 @@ export function ExtraPointInterceptionAttempt({
         $next({
             to: "EXTRA_POINT_RUN",
             params: {
-                playerId: args.blocker.id,
-                ballTeam: args.blocker.team,
+                playerId: frame.blocker.id,
+                ballTeam: frame.blocker.team,
                 originalOffensiveTeam: offensiveTeam,
                 fieldPos,
                 interceptionPath: {
@@ -78,10 +107,55 @@ export function ExtraPointInterceptionAttempt({
                         y: kickBallState.y,
                     },
                     end: {
-                        x: args.intersectionPoint.x,
-                        y: args.intersectionPoint.y,
+                        x: frame.intersectionFromTravel.x,
+                        y: frame.intersectionFromTravel.y,
                     },
                 },
+            },
+        });
+    }
+
+    function $handleProjectedInterception(frame: Frame) {
+        if (!frame.projectedIntersection) return;
+
+        $effect(($) => {
+            $.send({
+                message: t`🛡️ INTERCEPTION by ${frame.blocker.name}!`,
+                color: COLOR.SPECIAL,
+            });
+        });
+
+        $next({
+            to: "EXTRA_POINT_RUN",
+            params: {
+                playerId: frame.blocker.id,
+                ballTeam: frame.blocker.team,
+                originalOffensiveTeam: offensiveTeam,
+                fieldPos,
+                interceptionPath: {
+                    start: {
+                        x: kickBallState.x,
+                        y: kickBallState.y,
+                    },
+                    end: {
+                        x: frame.projectedIntersection.x,
+                        y: frame.projectedIntersection.y,
+                    },
+                },
+            },
+        });
+    }
+
+    function $handleBlockedPass(frame: Frame) {
+        if (frame.state.tickNumber - kickTime < TIME_TO_CHECK_INTERCEPTION)
+            return;
+
+        $next({
+            to: "EXTRA_POINT_BLOCKED_PASS",
+            params: {
+                blockerId: frame.blocker.id,
+                offensiveTeam,
+                fieldPos,
             },
         });
     }
@@ -98,44 +172,12 @@ export function ExtraPointInterceptionAttempt({
     }
 
     function run(state: GameState) {
-        const blocker = state.players.find((player) => player.id === playerId);
-        if (!blocker) return;
+        const frame = buildFrame(state);
+        if (!frame) return;
 
-        const intersectionFromTravel = getTravelInterceptionPoint({
-            previousBall: $before().ball,
-            currentBall: state.ball,
-            goals,
-        });
-
-        if (intersectionFromTravel) {
-            $advanceToInterception({
-                blocker,
-                intersectionPoint: intersectionFromTravel,
-            });
-        }
-
-        if (state.tickNumber - kickTime < TIME_TO_CHECK_INTERCEPTION) return;
-
-        const projectedIntersection = getProjectedInterceptionPoint({
-            ball: state.ball,
-            goals,
-        });
-
-        if (projectedIntersection) {
-            $advanceToInterception({
-                blocker,
-                intersectionPoint: projectedIntersection,
-            });
-        }
-
-        $next({
-            to: "EXTRA_POINT_BLOCKED_PASS",
-            params: {
-                blockerId: blocker.id,
-                offensiveTeam,
-                fieldPos,
-            },
-        });
+        $handleTravelInterception(frame);
+        $handleProjectedInterception(frame);
+        $handleBlockedPass(frame);
     }
 
     return { run, command };

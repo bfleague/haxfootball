@@ -12,7 +12,6 @@ import {
 } from "@meta/legacy/shared/reception";
 import {
     advanceDownState,
-    DownEvent,
     DownState,
     withLastBallYAtCenter,
 } from "@meta/legacy/shared/down";
@@ -45,17 +44,6 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         $unsetLineOfScrimmage();
         $unsetFirstDownLine();
     });
-
-    function command(player: PlayerObject, spec: CommandSpec) {
-        return $createSharedCommandHandler({
-            options: {
-                undo: true,
-                info: { downState },
-            },
-            player,
-            spec,
-        });
-    }
 
     function buildFrame(state: GameState): Frame {
         const offensivePlayers = state.players.filter(
@@ -91,60 +79,6 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
         };
     }
 
-    function $advanceToPresnapWithDownMessage({
-        nextDownState,
-        event,
-        message,
-    }: {
-        nextDownState: DownState;
-        event: DownEvent;
-        message: string;
-    }) {
-        $effect(($) => {
-            switch (event.type) {
-                case "FIRST_DOWN":
-                    $.send({
-                        message: cn(
-                            "🏁",
-                            nextDownState,
-                            message,
-                            t`FIRST DOWN!`,
-                        ),
-                        color: COLOR.WARNING,
-                    });
-
-                    break;
-                case "NEXT_DOWN":
-                    $.send({
-                        message: cn("🚪", nextDownState, message, t`no gain.`),
-                        color: COLOR.WARNING,
-                    });
-
-                    break;
-                case "TURNOVER_ON_DOWNS":
-                    $.send({
-                        message: cn(
-                            "❌",
-                            nextDownState,
-                            message,
-                            t`TURNOVER ON DOWNS!`,
-                        ),
-                        color: COLOR.WARNING,
-                    });
-
-                    break;
-            }
-        });
-
-        $next({
-            to: "PRESNAP",
-            params: {
-                downState: nextDownState,
-            },
-            wait: ticks({ seconds: 2 }),
-        });
-    }
-
     function $handleOutOfBoundsReception(frame: Frame) {
         if (isBallOutOfBounds(frame.state.ball)) return;
         if (!frame.outOfBoundsCatcher) return;
@@ -158,10 +92,48 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
             $setBallActive();
         });
 
-        $advanceToPresnapWithDownMessage({
-            nextDownState,
-            event,
-            message: t`out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
+        $effect(($) => {
+            switch (event.type) {
+                case "FIRST_DOWN":
+                    $.send({
+                        message: cn(
+                            "🏁",
+                            nextDownState,
+                            t`out-of-bounds reception by ${frame.outOfBoundsCatcher!.name}`,
+                            t`FIRST DOWN!`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+                    break;
+                case "NEXT_DOWN":
+                    $.send({
+                        message: cn(
+                            "🚪",
+                            nextDownState,
+                            t`out-of-bounds reception by ${frame.outOfBoundsCatcher!.name}`,
+                            t`no gain.`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+                    break;
+                case "TURNOVER_ON_DOWNS":
+                    $.send({
+                        message: cn(
+                            "❌",
+                            nextDownState,
+                            t`out-of-bounds reception by ${frame.outOfBoundsCatcher!.name}`,
+                            t`TURNOVER ON DOWNS!`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+                    break;
+            }
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: { downState: nextDownState },
+            wait: ticks({ seconds: 2 }),
         });
     }
 
@@ -177,10 +149,48 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
             $setBallActive();
         });
 
-        $advanceToPresnapWithDownMessage({
-            nextDownState,
-            event,
-            message: t`ball out of bounds`,
+        $effect(($) => {
+            switch (event.type) {
+                case "FIRST_DOWN":
+                    $.send({
+                        message: cn(
+                            "🏁",
+                            nextDownState,
+                            t`ball out of bounds`,
+                            t`FIRST DOWN!`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+                    break;
+                case "NEXT_DOWN":
+                    $.send({
+                        message: cn(
+                            "🚪",
+                            nextDownState,
+                            t`ball out of bounds`,
+                            t`no gain.`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+                    break;
+                case "TURNOVER_ON_DOWNS":
+                    $.send({
+                        message: cn(
+                            "❌",
+                            nextDownState,
+                            t`ball out of bounds`,
+                            t`TURNOVER ON DOWNS!`,
+                        ),
+                        color: COLOR.WARNING,
+                    });
+                    break;
+            }
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: { downState: nextDownState },
+            wait: ticks({ seconds: 2 }),
         });
     }
 
@@ -212,6 +222,17 @@ export function SnapInFlight({ downState }: { downState: DownState }) {
                 isKickingBall: frame.defensiveCatcher.isKickingBall,
                 downState,
             },
+        });
+    }
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { downState },
+            },
+            player,
+            spec,
         });
     }
 

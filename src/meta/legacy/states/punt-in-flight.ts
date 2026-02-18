@@ -32,21 +32,6 @@ type Frame = {
 export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
     const receivingTeam = opposite(kickingTeam);
 
-    function join(player: GameStatePlayer) {
-        $setBallMoveableByPlayer(player.id);
-    }
-
-    function command(player: PlayerObject, spec: CommandSpec) {
-        return $createSharedCommandHandler({
-            options: {
-                undo: true,
-                info: { stateMessage: t`Punt in flight` },
-            },
-            player,
-            spec,
-        });
-    }
-
     function buildFrame(state: GameState): Frame {
         return {
             state,
@@ -65,22 +50,23 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         };
     }
 
-    function $advancePuntOutOfBounds(args: {
-        isTouchback: boolean;
-        touchbackMessage: string;
-        spotMessage: string;
-        fieldPosX: number;
-    }) {
+    function $handleOutOfBoundsReception(frame: Frame) {
+        if (isBallOutOfBounds(frame.state.ball)) return;
+        if (!frame.outOfBoundsCatcher) return;
+
         $setBallInactive();
 
         $dispose(() => {
             $setBallActive();
         });
 
-        if (args.isTouchback) {
+        if (intersectsEndZone(frame.state.ball, receivingTeam)) {
             $effect(($) => {
                 $.send({
-                    message: args.touchbackMessage,
+                    message: cn(
+                        t`🚪 Out-of-bounds reception by ${frame.outOfBoundsCatcher!.name}`,
+                        t`touchback.`,
+                    ),
                     color: COLOR.ALERT,
                 });
             });
@@ -97,12 +83,12 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
             });
         }
 
-        const fieldPos = getFieldPosition(args.fieldPosX);
+        const fieldPos = getFieldPosition(frame.state.ball.x);
 
         $effect(($) => {
             $.send({
                 message: cn(
-                    args.spotMessage,
+                    t`🚪 Out-of-bounds reception by ${frame.outOfBoundsCatcher!.name}`,
                     t`ball spotted at the ${fieldPos.yards}-yard line.`,
                 ),
                 color: COLOR.WARNING,
@@ -118,29 +104,53 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
         });
     }
 
-    function $handleOutOfBoundsReception(frame: Frame) {
-        if (isBallOutOfBounds(frame.state.ball)) return;
-        if (!frame.outOfBoundsCatcher) return;
-
-        $advancePuntOutOfBounds({
-            isTouchback: intersectsEndZone(frame.state.ball, receivingTeam),
-            touchbackMessage: cn(
-                t`🚪 Out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
-                t`touchback.`,
-            ),
-            spotMessage: t`🚪 Out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
-            fieldPosX: frame.state.ball.x,
-        });
-    }
-
     function $handleBallOutOfBounds(frame: Frame) {
         if (!isBallOutOfBounds(frame.state.ball)) return;
 
-        $advancePuntOutOfBounds({
-            isTouchback: intersectsEndZone(frame.state.ball, receivingTeam),
-            touchbackMessage: cn(t`Punt out in the end zone`, t`touchback.`),
-            spotMessage: t`🚪 Punt out of bounds`,
-            fieldPosX: frame.state.ball.x,
+        $setBallInactive();
+
+        $dispose(() => {
+            $setBallActive();
+        });
+
+        if (intersectsEndZone(frame.state.ball, receivingTeam)) {
+            $effect(($) => {
+                $.send({
+                    message: cn(t`Punt out in the end zone`, t`touchback.`),
+                    color: COLOR.ALERT,
+                });
+            });
+
+            $next({
+                to: "PRESNAP",
+                params: {
+                    downState: getInitialDownState(receivingTeam, {
+                        yards: TOUCHBACK_YARD_LINE,
+                        side: receivingTeam,
+                    }),
+                },
+                wait: ticks({ seconds: 2 }),
+            });
+        }
+
+        const fieldPos = getFieldPosition(frame.state.ball.x);
+
+        $effect(($) => {
+            $.send({
+                message: cn(
+                    t`🚪 Punt out of bounds`,
+                    t`ball spotted at the ${fieldPos.yards}-yard line.`,
+                ),
+                color: COLOR.WARNING,
+            });
+        });
+
+        $next({
+            to: "PRESNAP",
+            params: {
+                downState: getInitialDownState(receivingTeam, fieldPos),
+            },
+            wait: ticks({ seconds: 2 }),
         });
     }
 
@@ -186,6 +196,21 @@ export function PuntInFlight({ kickingTeam }: { kickingTeam: FieldTeam }) {
                 ),
             },
             wait: ticks({ seconds: 2 }),
+        });
+    }
+
+    function join(player: GameStatePlayer) {
+        $setBallMoveableByPlayer(player.id);
+    }
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Punt in flight` },
+            },
+            player,
+            spec,
         });
     }
 

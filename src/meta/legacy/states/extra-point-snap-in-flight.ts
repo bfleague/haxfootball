@@ -46,17 +46,6 @@ export function ExtraPointSnapInFlight({
         $unsetFirstDownLine();
     });
 
-    function command(player: PlayerObject, spec: CommandSpec) {
-        return $createSharedCommandHandler({
-            options: {
-                undo: true,
-                info: { stateMessage: t`Extra point` },
-            },
-            player,
-            spec,
-        });
-    }
-
     function buildFrame(state: GameState): Frame {
         const offensivePlayers = state.players.filter(
             (player) => player.team === offensiveTeam,
@@ -91,39 +80,42 @@ export function ExtraPointSnapInFlight({
         };
     }
 
-    function $failTwoPointAttempt(message: string) {
+    function $handleOutOfBoundsReception(frame: Frame) {
+        if (isBallOutOfBounds(frame.state.ball)) return;
+        if (!frame.outOfBoundsCatcher) return;
+
         $effect(($) => {
             $.send({
-                message,
+                message: cn(
+                    t`❌ Out-of-bounds reception by ${frame.outOfBoundsCatcher!.name}`,
+                    t`two-point try failed.`,
+                ),
                 color: COLOR.WARNING,
             });
         });
 
         $next({
             to: "KICKOFF",
-            params: {
-                forTeam: offensiveTeam,
-            },
+            params: { forTeam: offensiveTeam },
             wait: ticks({ seconds: 2 }),
         });
-    }
-
-    function $handleOutOfBoundsReception(frame: Frame) {
-        if (isBallOutOfBounds(frame.state.ball)) return;
-        if (!frame.outOfBoundsCatcher) return;
-
-        $failTwoPointAttempt(
-            cn(
-                t`❌ Out-of-bounds reception by ${frame.outOfBoundsCatcher.name}`,
-                t`two-point try failed.`,
-            ),
-        );
     }
 
     function $handleBallOutOfBounds(frame: Frame) {
         if (!isBallOutOfBounds(frame.state.ball)) return;
 
-        $failTwoPointAttempt(t`❌ Two-point try failed.`);
+        $effect(($) => {
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
+        });
+
+        $next({
+            to: "KICKOFF",
+            params: { forTeam: offensiveTeam },
+            wait: ticks({ seconds: 2 }),
+        });
     }
 
     function $handleOffensiveReception(frame: Frame) {
@@ -166,7 +158,29 @@ export function ExtraPointSnapInFlight({
     function $handleBallLeftTwoPointZone(frame: Frame) {
         if (isInExtraPointZone(frame.state.ball, offensiveTeam)) return;
 
-        $failTwoPointAttempt(t`❌ Two-point try failed.`);
+        $effect(($) => {
+            $.send({
+                message: t`❌ Two-point try failed.`,
+                color: COLOR.WARNING,
+            });
+        });
+
+        $next({
+            to: "KICKOFF",
+            params: { forTeam: offensiveTeam },
+            wait: ticks({ seconds: 2 }),
+        });
+    }
+
+    function command(player: PlayerObject, spec: CommandSpec) {
+        return $createSharedCommandHandler({
+            options: {
+                undo: true,
+                info: { stateMessage: t`Extra point` },
+            },
+            player,
+            spec,
+        });
     }
 
     function run(state: GameState) {

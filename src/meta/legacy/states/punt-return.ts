@@ -50,89 +50,6 @@ export function PuntReturn({
 
     $setBallInactive();
 
-    function leave(player: GameStatePlayer) {
-        if (player.id === playerId) {
-            if (isInMainField(player)) {
-                const fieldPos = getFieldPosition(player.x);
-
-                $effect(($) => {
-                    $.send({
-                        message: t`🚪 ${player.name} left during the punt return!`,
-                        color: COLOR.WARNING,
-                    });
-                });
-
-                $next({
-                    to: "PRESNAP",
-                    params: {
-                        downState: getInitialDownState(
-                            receivingTeam,
-                            fieldPos,
-                            player.y,
-                        ),
-                    },
-                    wait: ticks({ seconds: 1 }),
-                });
-            } else {
-                switch (endzoneState) {
-                    case "TOUCHBACK":
-                        $effect(($) => {
-                            $.send({
-                                message: cn(
-                                    t`🚪 ${player.name} left from the end zone`,
-                                    t`touchback.`,
-                                ),
-                                color: COLOR.WARNING,
-                            });
-                        });
-
-                        $next({
-                            to: "PRESNAP",
-                            params: {
-                                downState: getInitialDownState(receivingTeam, {
-                                    yards: TOUCHBACK_YARD_LINE,
-                                    side: receivingTeam,
-                                }),
-                            },
-                            wait: ticks({ seconds: 1 }),
-                        });
-                    case "Safety":
-                        $global((state) =>
-                            state.incrementScore(
-                                opposite(receivingTeam),
-                                SCORES.SAFETY,
-                            ),
-                        );
-
-                        const { scores } = $global();
-
-                        $effect(($) => {
-                            $.send({
-                                message: cn(
-                                    "🚪",
-                                    scores,
-                                    t`${player.name} left from the end zone`,
-                                    t`SAFETY!`,
-                                ),
-                                color: COLOR.ALERT,
-                                to: "mixed",
-                                sound: "notification",
-                                style: "bold",
-                            });
-                        });
-
-                        $next({
-                            to: "SAFETY",
-                            params: {
-                                kickingTeam: opposite(receivingTeam),
-                            },
-                            wait: ticks({ seconds: 2 }),
-                        });
-                }
-            }
-        }
-    }
-
     function buildFrame(state: GameState): Frame | null {
         const player = state.players.find((p) => p.id === playerId);
         if (!player) return null;
@@ -395,6 +312,89 @@ export function PuntReturn({
                 },
                 wait: ticks({ seconds: 1 }),
             });
+        }
+    }
+
+    function leave(player: GameStatePlayer) {
+        if (player.id === playerId) {
+            if (isInMainField(player)) {
+                const fieldPos = getFieldPosition(player.x);
+
+                $effect(($) => {
+                    $.send({
+                        message: t`🚪 ${player.name} left during the punt return!`,
+                        color: COLOR.WARNING,
+                    });
+                });
+
+                $next({
+                    to: "PRESNAP",
+                    params: {
+                        downState: getInitialDownState(
+                            receivingTeam,
+                            fieldPos,
+                            player.y,
+                        ),
+                    },
+                    wait: ticks({ seconds: 1 }),
+                });
+            } else {
+                switch (endzoneState) {
+                    case "TOUCHBACK":
+                        $effect(($) => {
+                            $.send({
+                                message: cn(
+                                    t`🚪 ${player.name} left from the end zone`,
+                                    t`touchback.`,
+                                ),
+                                color: COLOR.WARNING,
+                            });
+                        });
+
+                        $next({
+                            to: "PRESNAP",
+                            params: {
+                                downState: getInitialDownState(receivingTeam, {
+                                    yards: TOUCHBACK_YARD_LINE,
+                                    side: receivingTeam,
+                                }),
+                            },
+                            wait: ticks({ seconds: 1 }),
+                        });
+                    case "Safety":
+                        $global((state) =>
+                            state.incrementScore(
+                                opposite(receivingTeam),
+                                SCORES.SAFETY,
+                            ),
+                        );
+
+                        const { scores } = $global();
+
+                        $effect(($) => {
+                            $.send({
+                                message: cn(
+                                    "🚪",
+                                    scores,
+                                    t`${player.name} left from the end zone`,
+                                    t`SAFETY!`,
+                                ),
+                                color: COLOR.ALERT,
+                                to: "mixed",
+                                sound: "notification",
+                                style: "bold",
+                            });
+                        });
+
+                        $next({
+                            to: "SAFETY",
+                            params: {
+                                kickingTeam: opposite(receivingTeam),
+                            },
+                            wait: ticks({ seconds: 2 }),
+                        });
+                }
+            }
         }
     }
 

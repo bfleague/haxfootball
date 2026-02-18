@@ -89,16 +89,6 @@ export function ExtraPointBlitz({
         };
     }
 
-    function $failTwoPointAttempt() {
-        $next({
-            to: "KICKOFF",
-            params: {
-                forTeam: offensiveTeam,
-            },
-            wait: ticks({ seconds: 2 }),
-        });
-    }
-
     function $handleQuarterbackKick(frame: Frame) {
         if (ballIsDead || !frame.quarterback.isKickingBall) return;
 
@@ -130,7 +120,11 @@ export function ExtraPointBlitz({
             });
         });
 
-        $failTwoPointAttempt();
+        $next({
+            to: "KICKOFF",
+            params: { forTeam: offensiveTeam },
+            wait: ticks({ seconds: 2 }),
+        });
     }
 
     function $handleDefensiveTouching(frame: Frame) {
@@ -193,7 +187,11 @@ export function ExtraPointBlitz({
             });
         });
 
-        $failTwoPointAttempt();
+        $next({
+            to: "KICKOFF",
+            params: { forTeam: offensiveTeam },
+            wait: ticks({ seconds: 2 }),
+        });
     }
 
     function $handleQuarterbackOutOfBounds(frame: Frame) {
@@ -213,7 +211,11 @@ export function ExtraPointBlitz({
             });
         });
 
-        $failTwoPointAttempt();
+        $next({
+            to: "KICKOFF",
+            params: { forTeam: offensiveTeam },
+            wait: ticks({ seconds: 2 }),
+        });
     }
 
     function $handleQuarterbackSacked(frame: Frame) {
@@ -242,7 +244,11 @@ export function ExtraPointBlitz({
             });
         });
 
-        $failTwoPointAttempt();
+        $next({
+            to: "KICKOFF",
+            params: { forTeam: offensiveTeam },
+            wait: ticks({ seconds: 2 }),
+        });
     }
 
     function command(player: PlayerObject, spec: CommandSpec) {
