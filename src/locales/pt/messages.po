@@ -233,12 +233,12 @@ msgstr "•"
 #. placeholder {0}: disabledFlags.join(", ") || t`none`
 #: src/room/manual/game.ts:222
 msgid "• Disabled: {0}"
-msgstr ""
+msgstr "• Desativadas: {0}"
 
 #. placeholder {0}: enabledFlags.join(", ") || t`none`
 #: src/room/manual/game.ts:216
 msgid "• Enabled: {0}"
-msgstr ""
+msgstr "• Ativas: {0}"
 
 #: src/meta/legacy/states/blitz.ts:217
 #: src/meta/legacy/states/fake-field-goal.ts:122
@@ -286,32 +286,43 @@ msgstr "⏪ {0} anulou a jogada! Voltando para o último checkpoint..."
 msgid "⏱️ PAT window expired."
 msgstr "⏱️ Tempo do extra point esgotado."
 
-#. placeholder {0}: toFlagState( parsedFlagValue, )
 #: src/room/manual/game.ts:313
-msgid "⚙️ {requestedFlagName} set to {0}."
-msgstr ""
+#~ msgid "⚙️ {0} set {requestedFlagName} to {1}."
+#~ msgstr ""
 
-#. placeholder {0}: toFlagState( getConfigFlagValue(gameConfig, requestedFlagName), )
+#. placeholder {0}: player.name
+#: src/room/manual/game.ts:318
+msgid "⚙️ {0} set {requestedFlagName} to {newFlagState}."
+msgstr "⚙️ {0} definiu {requestedFlagName} como {newFlagState}."
+
+#: src/room/manual/game.ts:313
+#~ msgid "⚙️ {requestedFlagName} set to {0}."
+#~ msgstr "⚙️ {requestedFlagName} definida como {0}."
+
 #: src/room/manual/game.ts:256
-msgid "⚙️ {requestedFlagName}: {0}."
-msgstr ""
+#~ msgid "⚙️ {requestedFlagName}: {0}."
+#~ msgstr "⚙️ {requestedFlagName}: {0}."
+
+#: src/room/manual/game.ts:263
+msgid "⚙️ {requestedFlagName}: {flagState}."
+msgstr "⚙️ {requestedFlagName}: {flagState}."
 
 #: src/room/manual/game.ts:210
 msgid "⚙️ Available flags:"
-msgstr ""
+msgstr "⚙️ Flags disponíveis:"
 
 #. placeholder {0}: flagNames.join(", ") || t`none`
 #: src/room/manual/game.ts:201
 msgid "⚙️ Available flags: {0}."
-msgstr ""
+msgstr "⚙️ Flags disponíveis: {0}."
 
-#: src/room/manual/game.ts:286
+#: src/room/manual/game.ts:289
 msgid "⚠️ Flags cannot be changed while a game is in progress."
-msgstr ""
+msgstr "⚠️ As flags não podem ser alteradas com o jogo em andamento."
 
-#: src/room/manual/game.ts:298
+#: src/room/manual/game.ts:301
 msgid "⚠️ Invalid value. Use true/false, on/off, 1/0, yes/no."
-msgstr ""
+msgstr "⚠️ Valor inválido. Use true/false, on/off, 1/0, yes/no."
 
 #: src/meta/legacy/shared/commands.ts:126
 msgid "⚠️ No checkpoints available to undo."
@@ -325,9 +336,9 @@ msgstr "⚠️ Apenas admins podem pedir anulação."
 msgid "⚠️ Only admins can call for repositioning."
 msgstr "⚠️ Apenas admins podem pedir reposicionamento."
 
-#: src/room/manual/game.ts:276
+#: src/room/manual/game.ts:279
 msgid "⚠️ Only admins can modify flags."
-msgstr ""
+msgstr "⚠️ Apenas admins podem alterar flags."
 
 #: src/meta/legacy/states/presnap.ts:255
 msgid "⚠️ Only the offense may call for a field goal."
@@ -341,7 +352,7 @@ msgstr "⚠️ Apenas o ataque pode pedir punt."
 msgid "⚠️ Please provide a new password."
 msgstr "⚠️ Informe uma nova senha."
 
-#: src/room/manual/game.ts:334
+#: src/room/manual/game.ts:341
 msgid "⚠️ The game has not been started yet."
 msgstr "⚠️ A partida ainda não foi iniciada."
 
@@ -355,11 +366,11 @@ msgstr "⚠️ Tentativa de 2 pontos não está mais disponível"
 
 #: src/room/manual/game.ts:244
 msgid "⚠️ Unknown flag. Use !flags to list available flags."
-msgstr ""
+msgstr "⚠️ Flag desconhecida. Use !flags para listar as flags disponíveis."
 
 #: src/room/manual/game.ts:232
 msgid "⚠️ Usage: !flag <FLAG_NAME> [VALUE]."
-msgstr ""
+msgstr "⚠️ Uso: !flag <FLAG_NAME> [VALUE]."
 
 #: src/meta/legacy/states/presnap.ts:267
 msgid "⚠️ You are too far from the ball to attempt the field goal."
@@ -392,7 +403,7 @@ msgstr "⚠️ Você não pode chutar punt enquanto um companheiro estiver além
 msgid "⚠️ You cannot snap while a teammate is past the LOS."
 msgstr "⚠️ Você não pode dar hike enquanto um companheiro estiver além da linha de scrimmage."
 
-#: src/room/manual/game.ts:333
+#: src/room/manual/game.ts:340
 msgid "⚠️ You cannot use that command right now."
 msgstr "⚠️ Você não pode usar esse comando agora."
 
@@ -836,7 +847,7 @@ msgstr "🏈 {0} deu o hike"
 msgid "🏈 HaxFootball - American Football 🏈"
 msgstr "🏈 HaxFootball - Futebol Americano 🏈"
 
-#: src/room/manual/game.ts:324
+#: src/room/manual/game.ts:331
 msgid "🏈 HaxFootball 2026"
 msgstr "🏈 HaxFootball 2026"
 
@@ -1235,7 +1246,7 @@ msgstr "bola posicionada na linha de {KICKOFF_OUT_OF_BOUNDS_YARD_LINE} jardas."
 
 #: src/meta/legacy/config.ts:20
 msgid "Blocks player crossings over the LOS during presnap positioning."
-msgstr ""
+msgstr "Bloqueia jogadores de cruzarem a LOS durante o pré-snap."
 
 #: src/meta/legacy/shared/message.ts:11
 msgid "Blue"
@@ -1504,7 +1515,7 @@ msgstr "sem ganho."
 #: src/room/manual/game.ts:216
 #: src/room/manual/game.ts:222
 msgid "none"
-msgstr ""
+msgstr "nenhuma"
 
 #. placeholder {0}: frame.outOfBoundsCatcher!.name
 #: src/meta/legacy/states/snap-in-flight.ts:102

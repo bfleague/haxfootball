@@ -286,15 +286,26 @@ msgstr "⏪ {0} calls for an undo! Rewinding to the last checkpoint..."
 msgid "⏱️ PAT window expired."
 msgstr "⏱️ PAT window expired."
 
-#. placeholder {0}: toFlagState( parsedFlagValue, )
 #: src/room/manual/game.ts:313
-msgid "⚙️ {requestedFlagName} set to {0}."
-msgstr "⚙️ {requestedFlagName} set to {0}."
+#~ msgid "⚙️ {0} set {requestedFlagName} to {1}."
+#~ msgstr "⚙️ {0} set {requestedFlagName} to {1}."
 
-#. placeholder {0}: toFlagState( getConfigFlagValue(gameConfig, requestedFlagName), )
+#. placeholder {0}: player.name
+#: src/room/manual/game.ts:318
+msgid "⚙️ {0} set {requestedFlagName} to {newFlagState}."
+msgstr "⚙️ {0} set {requestedFlagName} to {newFlagState}."
+
+#: src/room/manual/game.ts:313
+#~ msgid "⚙️ {requestedFlagName} set to {0}."
+#~ msgstr "⚙️ {requestedFlagName} set to {0}."
+
 #: src/room/manual/game.ts:256
-msgid "⚙️ {requestedFlagName}: {0}."
-msgstr "⚙️ {requestedFlagName}: {0}."
+#~ msgid "⚙️ {requestedFlagName}: {0}."
+#~ msgstr "⚙️ {requestedFlagName}: {0}."
+
+#: src/room/manual/game.ts:263
+msgid "⚙️ {requestedFlagName}: {flagState}."
+msgstr "⚙️ {requestedFlagName}: {flagState}."
 
 #: src/room/manual/game.ts:210
 msgid "⚙️ Available flags:"
@@ -305,11 +316,11 @@ msgstr "⚙️ Available flags:"
 msgid "⚙️ Available flags: {0}."
 msgstr "⚙️ Available flags: {0}."
 
-#: src/room/manual/game.ts:286
+#: src/room/manual/game.ts:289
 msgid "⚠️ Flags cannot be changed while a game is in progress."
 msgstr "⚠️ Flags cannot be changed while a game is in progress."
 
-#: src/room/manual/game.ts:298
+#: src/room/manual/game.ts:301
 msgid "⚠️ Invalid value. Use true/false, on/off, 1/0, yes/no."
 msgstr "⚠️ Invalid value. Use true/false, on/off, 1/0, yes/no."
 
@@ -325,7 +336,7 @@ msgstr "⚠️ Only admins can call for an undo."
 msgid "⚠️ Only admins can call for repositioning."
 msgstr "⚠️ Only admins can call for repositioning."
 
-#: src/room/manual/game.ts:276
+#: src/room/manual/game.ts:279
 msgid "⚠️ Only admins can modify flags."
 msgstr "⚠️ Only admins can modify flags."
 
@@ -341,7 +352,7 @@ msgstr "⚠️ Only the offense may punt."
 msgid "⚠️ Please provide a new password."
 msgstr "⚠️ Please provide a new password."
 
-#: src/room/manual/game.ts:334
+#: src/room/manual/game.ts:341
 msgid "⚠️ The game has not been started yet."
 msgstr "⚠️ The game has not been started yet."
 
@@ -392,7 +403,7 @@ msgstr "⚠️ You cannot punt while a teammate is past the LOS."
 msgid "⚠️ You cannot snap while a teammate is past the LOS."
 msgstr "⚠️ You cannot snap while a teammate is past the LOS."
 
-#: src/room/manual/game.ts:333
+#: src/room/manual/game.ts:340
 msgid "⚠️ You cannot use that command right now."
 msgstr "⚠️ You cannot use that command right now."
 
@@ -818,7 +829,7 @@ msgstr "🏈 {0} snaps it"
 msgid "🏈 HaxFootball - American Football 🏈"
 msgstr "🏈 HaxFootball - American Football 🏈"
 
-#: src/room/manual/game.ts:324
+#: src/room/manual/game.ts:331
 msgid "🏈 HaxFootball 2026"
 msgstr "🏈 HaxFootball 2026"
 

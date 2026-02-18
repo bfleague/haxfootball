@@ -251,19 +251,22 @@ const gameModule = createModule()
 
                 const requestedFlagValue = command.args[1];
 
+                const flagDescription =
+                    getConfigFlagDescription(requestedFlagName);
+
+                const flagState = toFlagState(
+                    getConfigFlagValue(gameConfig, requestedFlagName),
+                );
+
                 if (requestedFlagValue === undefined) {
                     room.send({
-                        message: t`⚙️ ${requestedFlagName}: ${toFlagState(
-                            getConfigFlagValue(gameConfig, requestedFlagName),
-                        )}.`,
+                        message: t`⚙️ ${requestedFlagName}: ${flagState}.`,
                         color: COLOR.SYSTEM,
                         to: player.id,
                     });
 
                     room.send({
-                        message: `ℹ️ ${getConfigFlagDescription(
-                            requestedFlagName,
-                        )}`,
+                        message: `ℹ️ ${flagDescription}`,
                         color: COLOR.SYSTEM,
                         to: player.id,
                     });
@@ -309,12 +312,16 @@ const gameModule = createModule()
                     parsedFlagValue,
                 );
 
+                const newFlagState = toFlagState(parsedFlagValue);
+
                 room.send({
-                    message: t`⚙️ ${requestedFlagName} set to ${toFlagState(
-                        parsedFlagValue,
-                    )}.`,
-                    color: COLOR.SUCCESS,
-                    to: player.id,
+                    message: t`⚙️ ${player.name} set ${requestedFlagName} to ${newFlagState}.`,
+                    color: COLOR.ALERT,
+                });
+
+                room.send({
+                    message: `ℹ️ ${requestedFlagName}: ${flagDescription}`,
+                    color: COLOR.SYSTEM,
                 });
 
                 return { hideMessage: true };

@@ -2,6 +2,7 @@ import { StadiumObject } from "@haxball/stadium";
 
 type TeamTarget = "teams" | "red" | "blue";
 type ObjectWithId = { id: number };
+type AnnouncementTargetFilter = (player: PlayerObject) => boolean;
 
 export type AnnouncementTarget =
     | number
@@ -10,7 +11,8 @@ export type AnnouncementTarget =
     | "mixed"
     | ObjectWithId
     | number[]
-    | ObjectWithId[];
+    | ObjectWithId[]
+    | AnnouncementTargetFilter;
 
 export type AnnouncementOptions = {
     message: string;
@@ -67,6 +69,22 @@ export class Room {
         style = "normal",
         sound = "normal",
     }: AnnouncementOptions): void {
+        if (typeof to === "function") {
+            this.getPlayerList()
+                .filter((player) => to(player))
+                .forEach((player) => {
+                    this.room.sendAnnouncement(
+                        message,
+                        player.id,
+                        color,
+                        style,
+                        toChatSound(sound),
+                    );
+                });
+
+            return;
+        }
+
         if (to === "mixed") {
             this.getPlayerList().forEach((player) => {
                 const isTeamPlayer = player.team === 1 || player.team === 2;
