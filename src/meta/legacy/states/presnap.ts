@@ -30,7 +30,6 @@ import {
     $setLineOfScrimmage,
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
-    $syncLineOfScrimmageBlocking,
 } from "@meta/legacy/hooks/game";
 import { DownState, MAX_DOWNS } from "@meta/legacy/shared/down";
 import assert from "node:assert";
@@ -42,6 +41,7 @@ import {
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import { COLOR } from "@common/general/color";
 import { type Config } from "@meta/legacy/config";
+import { $syncLineOfScrimmageBlocking } from "@meta/legacy/hooks/los";
 
 const HIKING_DISTANCE_LIMIT = 30;
 
