@@ -41,6 +41,7 @@ export type Transition = {
     wait?: number;
     disposal?: TransitionDisposal;
     isRestore?: boolean;
+    globalStateSnapshot?: unknown;
 };
 
 export type Checkpoint = {
@@ -191,7 +192,12 @@ let RUNTIME: {
     muteEffects: boolean;
     globalStore: GlobalStoreApi<any> | null;
     checkpointDrafts: Array<CheckpointDraft>;
-    resolveCheckpoint: ((args: CheckpointRestoreArgs) => Transition) | null;
+    resolveCheckpoint:
+        | ((args: CheckpointRestoreArgs) => {
+              transition: Transition;
+              globalStateSnapshot?: unknown;
+          })
+        | null;
     listCheckpoints: (() => Array<Checkpoint>) | null;
     isPaused: boolean;
     stateStartedTick: number;
@@ -240,7 +246,10 @@ export function installRuntime(ctx: {
     muteEffects?: boolean;
     globalStore?: GlobalStoreApi<any> | null;
     checkpointDrafts?: Array<CheckpointDraft>;
-    resolveCheckpoint?: (args: CheckpointRestoreArgs) => Transition;
+    resolveCheckpoint?: (args: CheckpointRestoreArgs) => {
+        transition: Transition;
+        globalStateSnapshot?: unknown;
+    };
     listCheckpoints?: () => Array<Checkpoint>;
     isPaused?: boolean;
     stateStartedTick?: number;
@@ -370,15 +379,20 @@ export function $restore(args: CheckpointRestoreArgs = {}): never {
         throw new Error("$restore used without checkpoint resolver");
     }
 
-    const checkpointTransition = RUNTIME.resolveCheckpoint({
+    const restoredCheckpoint = RUNTIME.resolveCheckpoint({
         ...(args.key ? { key: args.key } : {}),
         ...(typeof args.consume === "boolean" ? { consume: args.consume } : {}),
     });
+    const checkpointTransition = restoredCheckpoint.transition;
+
     RUNTIME.transition = {
         to: checkpointTransition.to,
         params: checkpointTransition.params,
         disposal: "IMMEDIATE",
         isRestore: true,
+        ...(restoredCheckpoint.globalStateSnapshot !== undefined
+            ? { globalStateSnapshot: restoredCheckpoint.globalStateSnapshot }
+            : {}),
     };
 
     // eslint-disable-next-line no-throw-literal

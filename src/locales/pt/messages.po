@@ -269,7 +269,7 @@ msgstr "•"
 #. placeholder {0}: player.name
 #: src/meta/legacy/shared/commands.ts:136
 msgid "⏪ {0} calls for an undo! Rewinding to the last checkpoint..."
-msgstr "⏪ {0} pediu um undo! Voltando para o último checkpoint..."
+msgstr "⏪ {0} anulou a jogada! Voltando para o último checkpoint..."
 
 #: src/meta/legacy/states/extra-point-retry.ts:193
 #: src/meta/legacy/states/extra-point.ts:255
@@ -282,7 +282,7 @@ msgstr "⚠️ Nenhum checkpoint disponível para desfazer."
 
 #: src/meta/legacy/shared/commands.ts:113
 msgid "⚠️ Only admins can call for an undo."
-msgstr "⚠️ Apenas admins podem pedir undo."
+msgstr "⚠️ Apenas admins podem pedir anulação."
 
 #: src/meta/legacy/states/presnap.ts:347
 msgid "⚠️ Only admins can call for repositioning."

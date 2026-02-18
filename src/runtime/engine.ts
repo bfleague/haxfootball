@@ -113,9 +113,12 @@ type DelayedTransition = {
     remainingTicks: number;
     disposal: "IMMEDIATE" | "DELAYED" | "AFTER_RESUME";
     isRestore?: boolean;
+    globalStateSnapshot?: unknown;
 };
 
-type CommittedCheckpoint = Checkpoint;
+type CommittedCheckpoint = Checkpoint & {
+    globalStateSnapshot?: unknown;
+};
 
 type PendingCheckpointDrafts = {
     sourceState: string;
@@ -142,7 +145,22 @@ const cloneTransition = (transition: Transition): Transition => ({
     ...(typeof transition.wait === "number" ? { wait: transition.wait } : {}),
     ...(transition.disposal ? { disposal: transition.disposal } : {}),
     ...(transition.isRestore ? { isRestore: true } : {}),
+    ...(transition.globalStateSnapshot !== undefined
+        ? { globalStateSnapshot: transition.globalStateSnapshot }
+        : {}),
 });
+
+const cloneGlobalStateSnapshot = (snapshot: unknown): unknown => {
+    try {
+        if (typeof globalThis.structuredClone === "function") {
+            return globalThis.structuredClone(snapshot);
+        }
+    } catch {
+        // Fall through to JSON clone.
+    }
+
+    return JSON.parse(JSON.stringify(snapshot));
+};
 
 function getBallSnapshot(room: Room): GameStateBall {
     const ballPos = room.getBallPosition();
@@ -256,11 +274,21 @@ export function createEngine<Cfg>(
     ) {
         if (drafts.length === 0) return;
 
+        const globalStateSnapshot = globalStore
+            ? cloneGlobalStateSnapshot(globalStore.getStateSnapshot())
+            : undefined;
+
         const committed = drafts.map((draft) => ({
             ...(draft.key ? { key: draft.key } : {}),
             sourceState,
             tickNumber,
             transition: cloneTransition(draft.transition),
+            ...(globalStateSnapshot !== undefined
+                ? {
+                      globalStateSnapshot:
+                          cloneGlobalStateSnapshot(globalStateSnapshot),
+                  }
+                : {}),
         }));
 
         checkpoints = [...checkpoints, ...committed];
@@ -296,7 +324,10 @@ export function createEngine<Cfg>(
         };
     }
 
-    function resolveCheckpoint(args: CheckpointRestoreArgs): Transition {
+    function resolveCheckpoint(args: CheckpointRestoreArgs): {
+        transition: Transition;
+        globalStateSnapshot?: unknown;
+    } {
         const consume = args.consume ?? true;
         const normalizedKey =
             typeof args.key === "string" && args.key.trim() !== ""
@@ -335,7 +366,16 @@ export function createEngine<Cfg>(
             checkpoints.splice(index, 1);
         }
 
-        return cloneTransition(checkpoint.transition);
+        return {
+            transition: cloneTransition(checkpoint.transition),
+            ...(checkpoint.globalStateSnapshot !== undefined
+                ? {
+                      globalStateSnapshot: cloneGlobalStateSnapshot(
+                          checkpoint.globalStateSnapshot,
+                      ),
+                  }
+                : {}),
+        };
     }
 
     function listCheckpoints(): Array<Checkpoint> {
@@ -567,6 +607,14 @@ export function createEngine<Cfg>(
         }
 
         const factory = ensureFactory(next.to);
+        if (
+            isRestoreTransition &&
+            globalStore &&
+            next.globalStateSnapshot !== undefined
+        ) {
+            globalStore.setStateSnapshot(next.globalStateSnapshot as any);
+        }
+
         const transitionMutations =
             previous && next.disposal !== "AFTER_RESUME"
                 ? createMutationBuffer(room)
@@ -641,6 +689,11 @@ export function createEngine<Cfg>(
                 remainingTicks: wait,
                 disposal,
                 ...(transition.isRestore ? { isRestore: true } : {}),
+                ...(transition.globalStateSnapshot !== undefined
+                    ? {
+                          globalStateSnapshot: transition.globalStateSnapshot,
+                      }
+                    : {}),
             };
 
             if (disposal === "IMMEDIATE") {
@@ -754,6 +807,12 @@ export function createEngine<Cfg>(
                 disposal: delayedTransition.disposal,
                 ...(delayedTransition.isRestore
                     ? { isRestore: true as const }
+                    : {}),
+                ...(delayedTransition.globalStateSnapshot !== undefined
+                    ? {
+                          globalStateSnapshot:
+                              delayedTransition.globalStateSnapshot,
+                      }
                     : {}),
             };
             delayedTransition = null;

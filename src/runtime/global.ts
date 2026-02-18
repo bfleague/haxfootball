@@ -33,12 +33,30 @@ export type GlobalStore<Schema extends GlobalSchema<any, any>> =
 
 export type GlobalStoreApi<Schema extends GlobalSchema<any, any>> = {
     getState: () => GlobalStore<Schema>;
+    getStateSnapshot: () => GlobalSchemaState<Schema>;
+    setStateSnapshot: (snapshot: GlobalSchemaState<Schema>) => void;
+};
+
+const cloneStateSnapshot = <State extends Record<string, any>>(
+    snapshot: State,
+): State => {
+    try {
+        if (typeof globalThis.structuredClone === "function") {
+            return globalThis.structuredClone(snapshot);
+        }
+    } catch {
+        // Fall through to JSON clone.
+    }
+
+    return JSON.parse(JSON.stringify(snapshot)) as State;
 };
 
 export function createGlobalStore<Schema extends GlobalSchema<any, any>>(
     schema: Schema,
 ): GlobalStoreApi<Schema> {
-    let state = schema.state as GlobalSchemaState<Schema>;
+    let state = cloneStateSnapshot(
+        schema.state as GlobalSchemaState<Schema>,
+    );
 
     const actions = {} as GlobalSchemaActions<Schema>;
 
@@ -58,5 +76,10 @@ export function createGlobalStore<Schema extends GlobalSchema<any, any>>(
                 ...(state as GlobalSchemaState<Schema>),
                 ...(actions as GlobalSchemaActions<Schema>),
             }) as GlobalStore<Schema>,
+        getStateSnapshot: () =>
+            cloneStateSnapshot(state as GlobalSchemaState<Schema>),
+        setStateSnapshot: (snapshot: GlobalSchemaState<Schema>) => {
+            state = cloneStateSnapshot(snapshot as GlobalSchemaState<Schema>);
+        },
     };
 }
