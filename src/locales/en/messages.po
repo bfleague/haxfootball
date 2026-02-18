@@ -231,12 +231,12 @@ msgstr "•"
 #~ msgstr "• Ball out of bounds • no gain."
 
 #. placeholder {0}: disabledFlags.join(", ") || t`none`
-#: src/room/manual/game.ts:222
+#: src/room/manual/game.ts:251
 msgid "• Disabled: {0}"
 msgstr "• Disabled: {0}"
 
 #. placeholder {0}: enabledFlags.join(", ") || t`none`
-#: src/room/manual/game.ts:216
+#: src/room/manual/game.ts:245
 msgid "• Enabled: {0}"
 msgstr "• Enabled: {0}"
 
@@ -291,7 +291,7 @@ msgstr "⏱️ PAT window expired."
 #~ msgstr "⚙️ {0} set {requestedFlagName} to {1}."
 
 #. placeholder {0}: player.name
-#: src/room/manual/game.ts:318
+#: src/room/manual/game.ts:347
 msgid "⚙️ {0} set {requestedFlagName} to {newFlagState}."
 msgstr "⚙️ {0} set {requestedFlagName} to {newFlagState}."
 
@@ -303,24 +303,24 @@ msgstr "⚙️ {0} set {requestedFlagName} to {newFlagState}."
 #~ msgid "⚙️ {requestedFlagName}: {0}."
 #~ msgstr "⚙️ {requestedFlagName}: {0}."
 
-#: src/room/manual/game.ts:263
+#: src/room/manual/game.ts:292
 msgid "⚙️ {requestedFlagName}: {flagState}."
 msgstr "⚙️ {requestedFlagName}: {flagState}."
 
-#: src/room/manual/game.ts:210
+#: src/room/manual/game.ts:239
 msgid "⚙️ Available flags:"
 msgstr "⚙️ Available flags:"
 
 #. placeholder {0}: flagNames.join(", ") || t`none`
-#: src/room/manual/game.ts:201
+#: src/room/manual/game.ts:230
 msgid "⚙️ Available flags: {0}."
 msgstr "⚙️ Available flags: {0}."
 
-#: src/room/manual/game.ts:289
+#: src/room/manual/game.ts:318
 msgid "⚠️ Flags cannot be changed while a game is in progress."
 msgstr "⚠️ Flags cannot be changed while a game is in progress."
 
-#: src/room/manual/game.ts:301
+#: src/room/manual/game.ts:330
 msgid "⚠️ Invalid value. Use true/false, on/off, 1/0, yes/no."
 msgstr "⚠️ Invalid value. Use true/false, on/off, 1/0, yes/no."
 
@@ -336,7 +336,7 @@ msgstr "⚠️ Only admins can call for an undo."
 msgid "⚠️ Only admins can call for repositioning."
 msgstr "⚠️ Only admins can call for repositioning."
 
-#: src/room/manual/game.ts:279
+#: src/room/manual/game.ts:308
 msgid "⚠️ Only admins can modify flags."
 msgstr "⚠️ Only admins can modify flags."
 
@@ -352,7 +352,7 @@ msgstr "⚠️ Only the offense may punt."
 msgid "⚠️ Please provide a new password."
 msgstr "⚠️ Please provide a new password."
 
-#: src/room/manual/game.ts:341
+#: src/room/manual/game.ts:370
 msgid "⚠️ The game has not been started yet."
 msgstr "⚠️ The game has not been started yet."
 
@@ -364,11 +364,11 @@ msgstr "⚠️ Two-point try is no longer available"
 #~ msgid "⚠️ Two-point try is no longer available • kick the PAT."
 #~ msgstr "⚠️ Two-point try is no longer available • kick the PAT."
 
-#: src/room/manual/game.ts:244
+#: src/room/manual/game.ts:273
 msgid "⚠️ Unknown flag. Use !flags to list available flags."
 msgstr "⚠️ Unknown flag. Use !flags to list available flags."
 
-#: src/room/manual/game.ts:232
+#: src/room/manual/game.ts:261
 msgid "⚠️ Usage: !flag <FLAG_NAME> [VALUE]."
 msgstr "⚠️ Usage: !flag <FLAG_NAME> [VALUE]."
 
@@ -403,7 +403,7 @@ msgstr "⚠️ You cannot punt while a teammate is past the LOS."
 msgid "⚠️ You cannot snap while a teammate is past the LOS."
 msgstr "⚠️ You cannot snap while a teammate is past the LOS."
 
-#: src/room/manual/game.ts:340
+#: src/room/manual/game.ts:369
 msgid "⚠️ You cannot use that command right now."
 msgstr "⚠️ You cannot use that command right now."
 
@@ -829,7 +829,7 @@ msgstr "🏈 {0} snaps it"
 msgid "🏈 HaxFootball - American Football 🏈"
 msgstr "🏈 HaxFootball - American Football 🏈"
 
-#: src/room/manual/game.ts:331
+#: src/room/manual/game.ts:360
 msgid "🏈 HaxFootball 2026"
 msgstr "🏈 HaxFootball 2026"
 
@@ -1362,6 +1362,10 @@ msgstr "field goal is good!"
 msgid "FIRST DOWN!"
 msgstr "FIRST DOWN!"
 
+#: src/room/manual/game.ts:154
+msgid "Game ended in a tie!"
+msgstr "Game ended in a tie!"
+
 #: src/room/manual/index.ts:228
 #~ msgid "HaxFootball 2026"
 #~ msgstr "HaxFootball 2026"
@@ -1493,9 +1497,9 @@ msgstr "No gain"
 msgid "no gain."
 msgstr "no gain."
 
-#: src/room/manual/game.ts:201
-#: src/room/manual/game.ts:216
-#: src/room/manual/game.ts:222
+#: src/room/manual/game.ts:230
+#: src/room/manual/game.ts:245
+#: src/room/manual/game.ts:251
 msgid "none"
 msgstr "none"
 
@@ -1739,6 +1743,11 @@ msgstr "two-point try is good!"
 #: src/meta/legacy/states/extra-point.ts:346
 msgid "two-point try is no longer available."
 msgstr "two-point try is no longer available."
+
+#. placeholder {0}: formatTeamName(winnerTeam)
+#: src/room/manual/game.ts:165
+msgid "Victory for the {0} team!"
+msgstr "Victory for the {0} team!"
 
 #: src/room/manual/index.ts:136
 #: src/room/manual/index.ts:154

@@ -22,8 +22,8 @@ const LOS_BLOCKING_ON_LINE_DISTANCE_X = 25;
 
 const LOS_BLOCKING_MIN_SLOT_RADIUS = 2;
 const LOS_BLOCKING_LOW_SLOT_RADIUS = 3;
-const LOS_BLOCKING_MEDIUM_SLOT_RADIUS = 4;
-const LOS_BLOCKING_MAX_SLOT_RADIUS = 5;
+const LOS_BLOCKING_MEDIUM_SLOT_RADIUS = 3.5;
+const LOS_BLOCKING_MAX_SLOT_RADIUS = 4;
 
 // TODO: Move this logic to a more appropriate place.
 function getLineOfScrimmageBlockingSlotRadius(

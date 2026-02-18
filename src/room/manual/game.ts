@@ -18,6 +18,30 @@ import { legacyGlobalSchema } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
 import { Room } from "@core/room";
 import { COLOR } from "@common/general/color";
+import { cn, formatTeamName } from "@meta/legacy/shared/message";
+import { type ScoreState } from "@common/game/game";
+import { type GlobalSchemaState } from "@runtime/global";
+
+type LegacyGlobalSnapshot = GlobalSchemaState<typeof legacyGlobalSchema>;
+
+const gameConfig = createConfig(defaultConfig);
+
+const TRUE_FLAG_VALUES = new Set([
+    "1",
+    "true",
+    "on",
+    "yes",
+    "enabled",
+    "enable",
+]);
+const FALSE_FLAG_VALUES = new Set([
+    "0",
+    "false",
+    "off",
+    "no",
+    "disabled",
+    "disable",
+]);
 
 const getPlayerNamePrefix = (team: number): string => {
     switch (team) {
@@ -84,27 +108,7 @@ const broadcastChat = (
     }
 };
 
-let engine: Engine<Config> | null = null;
-const gameConfig = createConfig(defaultConfig);
-
-const TRUE_FLAG_VALUES = new Set([
-    "1",
-    "true",
-    "on",
-    "yes",
-    "enabled",
-    "enable",
-]);
-const FALSE_FLAG_VALUES = new Set([
-    "0",
-    "false",
-    "off",
-    "no",
-    "disabled",
-    "disable",
-]);
-
-function parseFlagName(name: string | undefined): ConfigFlagName | null {
+const parseFlagName = (name: string | undefined): ConfigFlagName | null => {
     if (!name) return null;
 
     const normalizedName = name
@@ -117,9 +121,9 @@ function parseFlagName(name: string | undefined): ConfigFlagName | null {
     }
 
     return normalizedName;
-}
+};
 
-function parseFlagValue(value: string | undefined): boolean | null {
+const parseFlagValue = (value: string | undefined): boolean | null => {
     if (!value) return null;
 
     const normalizedValue = value.trim().toLowerCase();
@@ -133,11 +137,36 @@ function parseFlagValue(value: string | undefined): boolean | null {
     }
 
     return null;
-}
+};
 
-function toFlagState(value: boolean): "ON" | "OFF" {
+const toFlagState = (value: boolean): "ON" | "OFF" => {
     return value ? "ON" : "OFF";
-}
+};
+
+const getFinalScoreAnnouncement = (
+    finalScoreState: ScoreState | null | undefined,
+): string | null => {
+    if (!finalScoreState) {
+        return null;
+    }
+
+    if (finalScoreState[Team.RED] === finalScoreState[Team.BLUE]) {
+        return cn("🏁", finalScoreState, t`Game ended in a tie!`);
+    }
+
+    const winnerTeam =
+        finalScoreState[Team.RED] > finalScoreState[Team.BLUE]
+            ? Team.RED
+            : Team.BLUE;
+
+    return cn(
+        "🏁",
+        finalScoreState,
+        t`Victory for the ${formatTeamName(winnerTeam)} team!`,
+    );
+};
+
+let engine: Engine<Config> | null = null;
 
 const gameModule = createModule()
     .setCommands({
@@ -408,7 +437,25 @@ const gameModule = createModule()
     .onPlayerLeave((_room, player) => {
         engine?.handlePlayerLeave(player);
     })
-    .onGameStop(() => {
+    .onGameStop((room) => {
+        const snapshot = engine?.getGlobalStateSnapshot<LegacyGlobalSnapshot>();
+        const score = snapshot?.scores ?? null;
+
+        const announcement = getFinalScoreAnnouncement(score);
+
+        if (announcement && score) {
+            room.send({
+                message: announcement,
+                color:
+                    score[Team.RED] === score[Team.BLUE]
+                        ? COLOR.SYSTEM
+                        : COLOR.SUCCESS,
+                to: "mixed",
+                sound: "notification",
+                style: "bold",
+            });
+        }
+
         engine?.stop();
         engine = null;
     })
