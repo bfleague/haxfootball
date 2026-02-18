@@ -42,6 +42,7 @@ import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import { COLOR } from "@common/general/color";
 import { type Config } from "@meta/legacy/config";
 import { $syncLineOfScrimmageBlocking } from "@meta/legacy/hooks/los";
+import { BLITZ_BASE_DELAY_IN_SECONDS } from "@meta/legacy/shared/blitz";
 
 const HIKING_DISTANCE_LIMIT = 30;
 
@@ -225,7 +226,8 @@ export function Presnap({ downState }: { downState: DownState }) {
                 $.send({
                     message: cn(
                         t`🏈 ${player.name} snaps it`,
-                        t`ball is live!`,
+                        t`ball is live`,
+                        t`${BLITZ_BASE_DELAY_IN_SECONDS}s until the blitz!`,
                     ),
                     color: COLOR.ACTION,
                 });
