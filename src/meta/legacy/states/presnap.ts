@@ -1,5 +1,5 @@
 import { type FieldTeam, isFieldTeam } from "@runtime/models";
-import type { GameState, GameStatePlayer } from "@runtime/engine";
+import type { GameStatePlayer } from "@runtime/engine";
 import { CommandHandleResult, CommandSpec } from "@runtime/commands";
 import { getDistance } from "@common/math/geometry";
 import {
@@ -12,6 +12,7 @@ import {
 import {
     $before,
     $checkpoint,
+    $config,
     $dispose,
     $effect,
     $next,
@@ -29,6 +30,7 @@ import {
     $setLineOfScrimmage,
     $unsetFirstDownLine,
     $unsetLineOfScrimmage,
+    $syncLineOfScrimmageBlocking,
 } from "@meta/legacy/hooks/game";
 import { DownState, MAX_DOWNS } from "@meta/legacy/shared/down";
 import assert from "node:assert";
@@ -39,6 +41,7 @@ import {
 } from "@meta/legacy/shared/initial-positioning";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import { COLOR } from "@common/general/color";
+import { type Config } from "@meta/legacy/config";
 
 const HIKING_DISTANCE_LIMIT = 30;
 
@@ -145,6 +148,12 @@ export function Presnap({ downState }: { downState: DownState }) {
         $unlockBall();
         $unsetLineOfScrimmage();
         $unsetFirstDownLine();
+
+        const config = $config<Config>();
+
+        if (config.flags.losBlocking) {
+            $syncLineOfScrimmageBlocking({ enabled: false });
+        }
     });
 
     $checkpoint({
@@ -377,8 +386,12 @@ export function Presnap({ downState }: { downState: DownState }) {
         }
     }
 
-    function run(_state: GameState) {
-        // TODO: Prehike logic
+    function run() {
+        const config = $config<Config>();
+
+        if (config.flags.losBlocking) {
+            $syncLineOfScrimmageBlocking();
+        }
     }
 
     return { run, chat, command, join };

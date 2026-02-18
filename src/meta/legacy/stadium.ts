@@ -36,6 +36,8 @@ const COLOR_SCHEMA_RAW = {
     },
 } as const;
 
+const ADD_DIAGONALS_TO_GOAL_POSTS = false;
+
 export const COLOR_SCHEMA = mapNestedRecordValues(
     COLOR_SCHEMA_RAW,
     (color: string) => color.slice(1, 7),
@@ -43,6 +45,7 @@ export const COLOR_SCHEMA = mapNestedRecordValues(
 
 export const BALL_RADIUS = 7.85;
 export const BALL_COLOR = COLOR_SCHEMA.BALL.DEFAULT;
+export const LOS_BLOCKER_DISC_COUNT = 36;
 
 export const PLANE_MASK_BY_NAME = {
     redEndZoneTrap: "c0",
@@ -122,12 +125,14 @@ export const {
                 cMask: [],
             },
             vertex: { cMask: [] },
-            posts: [
-                // { from: [-930, -60], to: [-980, -130] },
-                // { from: [-930, 60], to: [-990, -10] },
-                // { from: [930, -60], to: [980, -130] },
-                // { from: [930, 60], to: [990, -10] },
-            ],
+            posts: ADD_DIAGONALS_TO_GOAL_POSTS
+                ? [
+                      { from: [-930, -60], to: [-980, -130] },
+                      { from: [-930, 60], to: [-990, -10] },
+                      { from: [930, -60], to: [980, -130] },
+                      { from: [930, 60], to: [990, -10] },
+                  ]
+                : [],
             disc: {
                 radius: 4,
                 invMass: 0,
@@ -325,6 +330,18 @@ export const {
                     cGroup: [],
                 },
             },
+            ...repeat(LOS_BLOCKER_DISC_COUNT, (index) => ({
+                name: `losBlocker${index}`,
+                disc: {
+                    radius: 0,
+                    invMass: 0,
+                    bCoef: 1,
+                    pos: SPECIAL_HIDDEN_POSITION,
+                    color: "transparent",
+                    cGroup: mask("wall"),
+                    cMask: mask("red", "blue"),
+                },
+            })),
         ],
     },
 });

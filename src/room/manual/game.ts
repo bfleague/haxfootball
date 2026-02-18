@@ -2,7 +2,17 @@ import { createModule } from "@core/module";
 import { COMMAND_PREFIX } from "@runtime/commands";
 import { createEngine, type Engine } from "@runtime/engine";
 import { registry, stadium } from "@meta/legacy/meta";
-import { defaultConfig, type Config } from "@meta/legacy/config";
+import {
+    createConfig,
+    defaultConfig,
+    getConfigFlagDescription,
+    getConfigFlagNames,
+    getConfigFlagValue,
+    hasConfigFlag,
+    setConfigFlagValue,
+    type Config,
+    type ConfigFlagName,
+} from "@meta/legacy/config";
 import { Team } from "@runtime/models";
 import { legacyGlobalSchema } from "@meta/legacy/global";
 import { t } from "@lingui/core/macro";
@@ -75,6 +85,59 @@ const broadcastChat = (
 };
 
 let engine: Engine<Config> | null = null;
+const gameConfig = createConfig(defaultConfig);
+
+const TRUE_FLAG_VALUES = new Set([
+    "1",
+    "true",
+    "on",
+    "yes",
+    "enabled",
+    "enable",
+]);
+const FALSE_FLAG_VALUES = new Set([
+    "0",
+    "false",
+    "off",
+    "no",
+    "disabled",
+    "disable",
+]);
+
+function parseFlagName(name: string | undefined): ConfigFlagName | null {
+    if (!name) return null;
+
+    const normalizedName = name
+        .trim()
+        .toUpperCase()
+        .replace(/[\s-]+/g, "_");
+
+    if (!hasConfigFlag(normalizedName)) {
+        return null;
+    }
+
+    return normalizedName;
+}
+
+function parseFlagValue(value: string | undefined): boolean | null {
+    if (!value) return null;
+
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (TRUE_FLAG_VALUES.has(normalizedValue)) {
+        return true;
+    }
+
+    if (FALSE_FLAG_VALUES.has(normalizedValue)) {
+        return false;
+    }
+
+    return null;
+}
+
+function toFlagState(value: boolean): "ON" | "OFF" {
+    return value ? "ON" : "OFF";
+}
 
 const gameModule = createModule()
     .setCommands({
@@ -87,11 +150,13 @@ const gameModule = createModule()
             "info",
             "reposition",
             "score",
+            "flag",
+            "flags",
         ],
     })
     .onGameStart((room) => {
         engine = createEngine(room, registry, {
-            config: defaultConfig,
+            config: gameConfig,
             globalSchema: legacyGlobalSchema,
         });
 
@@ -113,6 +178,147 @@ const gameModule = createModule()
         }
 
         switch (command.name) {
+            case "flags": {
+                const flagNames = getConfigFlagNames();
+
+                const [enabledFlags, disabledFlags] = flagNames.reduce<
+                    [ConfigFlagName[], ConfigFlagName[]]
+                >(
+                    (acc, flagName) => {
+                        if (getConfigFlagValue(gameConfig, flagName)) {
+                            acc[0].push(flagName);
+                        } else {
+                            acc[1].push(flagName);
+                        }
+
+                        return acc;
+                    },
+                    [[], []],
+                );
+
+                if (enabledFlags.length === 0) {
+                    room.send({
+                        message: t`⚙️ Available flags: ${flagNames.join(", ") || t`none`}.`,
+                        color: COLOR.SYSTEM,
+                        to: player.id,
+                    });
+
+                    return { hideMessage: true };
+                }
+
+                room.send({
+                    message: t`⚙️ Available flags:`,
+                    color: COLOR.SYSTEM,
+                    to: player.id,
+                });
+
+                room.send({
+                    message: t`• Enabled: ${enabledFlags.join(", ") || t`none`}`,
+                    color: COLOR.SYSTEM,
+                    to: player.id,
+                });
+
+                room.send({
+                    message: t`• Disabled: ${disabledFlags.join(", ") || t`none`}`,
+                    color: COLOR.SYSTEM,
+                    to: player.id,
+                });
+
+                return { hideMessage: true };
+            }
+            case "flag": {
+                if (!command.args[0]) {
+                    room.send({
+                        message: t`⚠️ Usage: !flag <FLAG_NAME> [VALUE].`,
+                        color: COLOR.WARNING,
+                        to: player.id,
+                    });
+
+                    return { hideMessage: true };
+                }
+
+                const requestedFlagName = parseFlagName(command.args[0]);
+
+                if (!requestedFlagName) {
+                    room.send({
+                        message: t`⚠️ Unknown flag. Use !flags to list available flags.`,
+                        color: COLOR.WARNING,
+                        to: player.id,
+                    });
+
+                    return { hideMessage: true };
+                }
+
+                const requestedFlagValue = command.args[1];
+
+                if (requestedFlagValue === undefined) {
+                    room.send({
+                        message: t`⚙️ ${requestedFlagName}: ${toFlagState(
+                            getConfigFlagValue(gameConfig, requestedFlagName),
+                        )}.`,
+                        color: COLOR.SYSTEM,
+                        to: player.id,
+                    });
+
+                    room.send({
+                        message: `ℹ️ ${getConfigFlagDescription(
+                            requestedFlagName,
+                        )}`,
+                        color: COLOR.SYSTEM,
+                        to: player.id,
+                    });
+
+                    return { hideMessage: true };
+                }
+
+                if (!player.admin) {
+                    room.send({
+                        message: t`⚠️ Only admins can modify flags.`,
+                        color: COLOR.WARNING,
+                        to: player.id,
+                    });
+
+                    return { hideMessage: true };
+                }
+
+                if (engine?.isRunning()) {
+                    room.send({
+                        message: t`⚠️ Flags cannot be changed while a game is in progress.`,
+                        color: COLOR.WARNING,
+                        to: player.id,
+                    });
+
+                    return { hideMessage: true };
+                }
+
+                const parsedFlagValue = parseFlagValue(requestedFlagValue);
+
+                if (parsedFlagValue === null) {
+                    room.send({
+                        message: t`⚠️ Invalid value. Use true/false, on/off, 1/0, yes/no.`,
+                        color: COLOR.WARNING,
+                        to: player.id,
+                    });
+
+                    return { hideMessage: true };
+                }
+
+                setConfigFlagValue(
+                    gameConfig,
+                    requestedFlagName,
+                    parsedFlagValue,
+                );
+
+                room.send({
+                    message: t`⚙️ ${requestedFlagName} set to ${toFlagState(
+                        parsedFlagValue,
+                    )}.`,
+                    color: COLOR.SUCCESS,
+                    to: player.id,
+                });
+
+                return { hideMessage: true };
+            }
             case "version":
                 room.send({
                     message: t`🏈 HaxFootball 2026`,

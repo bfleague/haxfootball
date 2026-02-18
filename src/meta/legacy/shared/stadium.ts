@@ -19,6 +19,7 @@ import {
     index,
     legacyMapMeasures as MapMeasures,
     lineIndex,
+    LOS_BLOCKER_DISC_COUNT,
     PlaneMaskName,
     PLANE_MASK_BY_NAME,
 } from "@meta/legacy/stadium";
@@ -70,6 +71,10 @@ const SPECIAL_DISC_IDS = {
     LOS: lineIndex("blue0"),
     FIRST_DOWN: lineIndex("orange0"),
     INTERCEPTION_PATH: lineIndex("ball0"),
+    LOS_BLOCKERS: Array.from(
+        { length: LOS_BLOCKER_DISC_COUNT },
+        (_, blockerIndex) => index(`losBlocker${blockerIndex}`),
+    ),
 };
 
 export const getPlaneMask = (name: PlaneMaskName): CollisionFlag =>
@@ -448,6 +453,10 @@ export function getInterceptionPath(
             position: { x: line.end.x, y: line.end.y },
         },
     ];
+}
+
+export function getLineOfScrimmageBlockers(): { id: number }[] {
+    return SPECIAL_DISC_IDS.LOS_BLOCKERS.map((id) => ({ id }));
 }
 
 type CrowdingPlacement = readonly [number, number, number];
