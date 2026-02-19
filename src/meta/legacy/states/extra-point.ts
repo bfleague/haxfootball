@@ -40,12 +40,14 @@ import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import { SCORES } from "@meta/legacy/shared/scoring";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
+import {
+    HIKING_DISTANCE_LIMIT,
+    MIN_SNAP_DELAY_TICKS,
+} from "@meta/legacy/shared/snap";
 
 const LOADING_DURATION = ticks({ seconds: 0.5 });
 const EXTRA_POINT_DECISION_WINDOW = ticks({ seconds: 10 });
 const EXTRA_POINT_YARD_LINE = 10;
-const HIKING_DISTANCE_LIMIT = 30;
-const MIN_SNAP_DELAY_TICKS = ticks({ seconds: 1 });
 
 const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
     offensive: {

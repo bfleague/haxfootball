@@ -2,7 +2,7 @@ import { type FieldTeam, isFieldTeam } from "@runtime/models";
 import type { GameStatePlayer } from "@runtime/engine";
 import { CommandHandleResult, CommandSpec } from "@runtime/commands";
 import { getDistance } from "@common/math/geometry";
-import { ticks } from "@common/general/time";
+import { opposite } from "@common/game/game";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
@@ -45,9 +45,10 @@ import { COLOR } from "@common/general/color";
 import { type Config } from "@meta/legacy/config";
 import { $syncLineOfScrimmageBlocking } from "@meta/legacy/hooks/los";
 import { BLITZ_BASE_DELAY_IN_SECONDS } from "@meta/legacy/shared/blitz";
-
-const HIKING_DISTANCE_LIMIT = 30;
-const MIN_SNAP_DELAY_TICKS = ticks({ seconds: 1 });
+import {
+    HIKING_DISTANCE_LIMIT,
+    MIN_SNAP_DELAY_TICKS,
+} from "@meta/legacy/shared/snap";
 
 const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
     offensive: {
@@ -270,6 +271,18 @@ export function Presnap({ downState }: { downState: DownState }) {
                     $effect(($) => {
                         $.send({
                             message: t`⚠️ Only the offense may call for a field goal.`,
+                            to: player.id,
+                            color: COLOR.CRITICAL,
+                        });
+                    });
+
+                    return { handled: true };
+                }
+
+                if (fieldPos.side !== opposite(offensiveTeam)) {
+                    $effect(($) => {
+                        $.send({
+                            message: t`⚠️ Field goal is only available from the defensive side of the field.`,
                             to: player.id,
                             color: COLOR.CRITICAL,
                         });

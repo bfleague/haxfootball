@@ -31,11 +31,13 @@ import { $global } from "@meta/legacy/hooks/global";
 import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
+import {
+    HIKING_DISTANCE_LIMIT,
+    MIN_SNAP_DELAY_TICKS,
+} from "@meta/legacy/shared/snap";
 
 const EXTRA_POINT_DECISION_WINDOW = ticks({ seconds: 10 });
 const EXTRA_POINT_YARD_LINE = 10;
-const HIKING_DISTANCE_LIMIT = 40;
-const MIN_SNAP_DELAY_TICKS = ticks({ seconds: 1 });
 
 const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
     offensive: {
