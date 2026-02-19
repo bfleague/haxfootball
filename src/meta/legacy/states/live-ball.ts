@@ -452,15 +452,16 @@ export function LiveBall({
     }
 
     function run(state: GameState) {
-        if (fumbleInfo) {
-            $handleFumble(state);
-        }
-
         const frame = buildFrame(state);
         if (!frame) return;
 
         $handleTouchdown(frame);
         $handleOutOfBounds(frame);
+
+        if (fumbleInfo) {
+            $handleFumble(state);
+        }
+
         $handleTackle(frame);
     }
 
