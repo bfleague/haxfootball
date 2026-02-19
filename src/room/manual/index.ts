@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
-import { modules as roomModules } from "./room";
-import { modules as gameModules } from "./game";
+import { modules as roomModules } from "./modules/room";
+import { modules as gameModules } from "./modules/game";
 
 const PROXY = process.env["PROXY"];
 const IS_DEBUG = process.env["DEBUG"] === "true";
