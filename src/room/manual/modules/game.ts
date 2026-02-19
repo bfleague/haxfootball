@@ -459,8 +459,15 @@ const gameModule = createModule()
     .onGameUnpause((_room, byPlayer) => {
         engine?.handleGameUnpause(byPlayer);
     })
-    .onRoomLink((room, _) => {
+    .onRoomLink((room) => {
         room.setStadium(stadium);
+    })
+    .onStadiumChange((_room, _newStadiumName, byPlayer) => {
+        if (byPlayer) {
+            return { undo: true };
+        }
+
+        return { undo: false };
     });
 
 export const modules = [gameModule];

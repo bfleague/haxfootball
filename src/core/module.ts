@@ -11,6 +11,10 @@ type NormalizedCommandConfig = {
     commands: Set<string>;
 };
 
+export type StadiumChangeHandlerResponse = {
+    undo?: boolean;
+};
+
 export class Module {
     private events: [string, Function][] = [];
     private commandConfig: NormalizedCommandConfig | null = null;
@@ -172,7 +176,7 @@ export class Module {
             room: Room,
             newStadiumName: string,
             byPlayer: PlayerObject | null,
-        ) => void,
+        ) => StadiumChangeHandlerResponse | void,
     ): this {
         this.events.push(["onStadiumChange", handler]);
         return this;
@@ -210,6 +214,17 @@ export class Module {
         return true;
     }
 
+    callWithResponses(eventName: string, ...args: any[]): unknown[] {
+        const responses: unknown[] = [];
+
+        for (const [name, handler] of this.events) {
+            if (name !== eventName) continue;
+            responses.push(handler(...args));
+        }
+
+        return responses;
+    }
+
     callCommand(room: Room, player: PlayerObject, command: CommandSpec) {
         const responses: CommandResponse[] = [];
 
@@ -233,6 +248,7 @@ export function createModule() {
 
 export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
     const room = new Room(roomObject);
+    let ignoreNextStadiumUndo = false;
 
     const commandConfigs = modules
         .map((module) => module.getCommandConfig())
@@ -286,6 +302,48 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
         (...args: any[]) => {
             room.invalidateCaches();
             modules.forEach((module) => module.call(eventName, room, ...args));
+        };
+
+    const shouldUndoStadiumChange = (response: unknown): boolean => {
+        if (!response || typeof response !== "object") return false;
+        if (!("undo" in response)) return false;
+
+        return (response as StadiumChangeHandlerResponse).undo === false;
+    };
+
+    const emitStadiumChange =
+        () =>
+        (...args: any[]) => {
+            room.invalidateCaches();
+
+            const newStadiumName = args[0] as string;
+            const byPlayer = args[1] as PlayerObject | null;
+
+            room.trackStadiumChange(newStadiumName);
+
+            if (ignoreNextStadiumUndo) {
+                ignoreNextStadiumUndo = false;
+                return;
+            }
+
+            const responses = modules.flatMap((module) =>
+                module.callWithResponses(
+                    "onStadiumChange",
+                    room,
+                    newStadiumName,
+                    byPlayer,
+                ),
+            );
+
+            const shouldUndo = responses.some(shouldUndoStadiumChange);
+
+            if (!shouldUndo) return;
+
+            const didUndo = room.undoStadiumChange();
+
+            if (didUndo) {
+                ignoreNextStadiumUndo = true;
+            }
         };
 
     const emitChat =
@@ -389,7 +447,7 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
     roomObject.onGameUnpause = emit("onGameUnpause");
     roomObject.onPositionsReset = emit("onPositionsReset");
     roomObject.onPlayerActivity = emit("onPlayerActivity");
-    roomObject.onStadiumChange = emit("onStadiumChange");
+    roomObject.onStadiumChange = emitStadiumChange();
     roomObject.onRoomLink = emit("onRoomLink");
     roomObject.onKickRateLimitSet = emit("onKickRateLimitSet");
 }

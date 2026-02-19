@@ -22,6 +22,62 @@ export type AnnouncementOptions = {
     sound?: ChatSoundString;
 };
 
+const DEFAULT_STADIUM_NAMES = [
+    "Classic",
+    "Easy",
+    "Small",
+    "Big",
+    "Rounded",
+    "Hockey",
+    "BigHockey",
+    "BigEasy",
+    "BigRounded",
+    "Huge",
+] as const;
+
+type DefaultStadiumName = (typeof DEFAULT_STADIUM_NAMES)[number];
+
+const DEFAULT_STADIUM_NAME_SET = new Set<string>(DEFAULT_STADIUM_NAMES);
+
+const isDefaultStadiumName = (
+    stadiumName: string,
+): stadiumName is DefaultStadiumName =>
+    DEFAULT_STADIUM_NAME_SET.has(stadiumName);
+
+type TrackedStadium =
+    | { kind: "default"; name: DefaultStadiumName }
+    | { kind: "custom"; stadium: StadiumObject }
+    | { kind: "named"; name: string };
+
+const cloneStadiumObject = (stadium: StadiumObject): StadiumObject => {
+    if (typeof globalThis.structuredClone === "function") {
+        return globalThis.structuredClone(stadium);
+    }
+
+    return JSON.parse(JSON.stringify(stadium)) as StadiumObject;
+};
+
+const cloneTrackedStadium = (stadium: TrackedStadium): TrackedStadium => {
+    if (stadium.kind === "custom") {
+        return {
+            kind: "custom",
+            stadium: cloneStadiumObject(stadium.stadium),
+        };
+    }
+
+    return { ...stadium };
+};
+
+const getTrackedStadiumName = (stadium: TrackedStadium): string => {
+    switch (stadium.kind) {
+        case "default":
+        case "named":
+            return stadium.name;
+        case "custom":
+            return stadium.stadium.name ?? "Custom";
+    }
+};
+
 export class Room {
     private playerListCache: PlayerObject[] | null = null;
     private discPropsCache = new Map<number, DiscPropertiesObject | null>();
@@ -29,8 +85,19 @@ export class Room {
         number,
         DiscPropertiesObject | null
     >();
+    private currentStadium: TrackedStadium | null = null;
+    private previousStadium: TrackedStadium | null = null;
+    private pendingStadiumName: string | null = null;
 
     constructor(private room: RoomObject) {}
+
+    private setTrackedStadium(nextStadium: TrackedStadium): void {
+        this.previousStadium = this.currentStadium
+            ? cloneTrackedStadium(this.currentStadium)
+            : null;
+        this.currentStadium = cloneTrackedStadium(nextStadium);
+        this.pendingStadiumName = getTrackedStadiumName(nextStadium);
+    }
 
     private invalidateAllCaches() {
         this.playerListCache = null;
@@ -268,8 +335,75 @@ export class Room {
     }
 
     public setStadium(stadiumFileContents: StadiumObject): void {
+        this.setTrackedStadium({
+            kind: "custom",
+            stadium: stadiumFileContents,
+        });
         this.room.setCustomStadium(JSON.stringify(stadiumFileContents));
         this.invalidateCaches();
+    }
+
+    public setDefaultStadium(stadiumName: DefaultStadiumName): void {
+        this.setTrackedStadium({
+            kind: "default",
+            name: stadiumName,
+        });
+        this.room.setDefaultStadium(stadiumName);
+        this.invalidateCaches();
+    }
+
+    public trackStadiumChange(stadiumName: string): void {
+        if (
+            this.pendingStadiumName !== null &&
+            this.pendingStadiumName === stadiumName
+        ) {
+            this.pendingStadiumName = null;
+            return;
+        }
+
+        this.pendingStadiumName = null;
+        this.previousStadium = this.currentStadium
+            ? cloneTrackedStadium(this.currentStadium)
+            : null;
+        this.currentStadium = isDefaultStadiumName(stadiumName)
+            ? { kind: "default", name: stadiumName }
+            : { kind: "named", name: stadiumName };
+    }
+
+    public undoStadiumChange(): boolean {
+        if (!this.previousStadium) return false;
+
+        const targetStadium = cloneTrackedStadium(this.previousStadium);
+        const currentStadium = this.currentStadium
+            ? cloneTrackedStadium(this.currentStadium)
+            : null;
+
+        switch (targetStadium.kind) {
+            case "custom":
+                this.pendingStadiumName = getTrackedStadiumName(targetStadium);
+                this.room.setCustomStadium(
+                    JSON.stringify(targetStadium.stadium),
+                );
+                break;
+            case "default":
+                this.pendingStadiumName = targetStadium.name;
+                this.room.setDefaultStadium(targetStadium.name);
+                break;
+            case "named":
+                if (!isDefaultStadiumName(targetStadium.name)) {
+                    return false;
+                }
+
+                this.pendingStadiumName = targetStadium.name;
+                this.room.setDefaultStadium(targetStadium.name);
+                break;
+        }
+
+        this.currentStadium = targetStadium;
+        this.previousStadium = currentStadium;
+        this.invalidateCaches();
+
+        return true;
     }
 
     public setTeamsLock(locked: boolean): void {
