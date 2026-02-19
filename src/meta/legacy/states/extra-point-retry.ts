@@ -2,12 +2,10 @@ import type { GameState } from "@runtime/engine";
 import { $checkpoint, $dispose, $effect, $next, $tick } from "@runtime/runtime";
 import { ticks } from "@common/general/time";
 import { opposite, type FieldPosition } from "@common/game/game";
-import { getDistance } from "@common/math/geometry";
 import { type FieldTeam, isFieldTeam } from "@runtime/models";
 import { t } from "@lingui/core/macro";
 import {
     BALL_OFFSET_YARDS,
-    ballWithRadius,
     calculateSnapBallPosition,
 } from "@meta/legacy/shared/stadium";
 import {
@@ -32,7 +30,7 @@ import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 import {
-    HIKING_DISTANCE_LIMIT,
+    isTooFarFromBall,
     MIN_SNAP_DELAY_TICKS,
 } from "@meta/legacy/shared/snap";
 
@@ -49,13 +47,6 @@ const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
         end: { x: -100, y: 100 },
     },
 };
-
-function isTooFarFromBall(position: Position | undefined, ballPos: Position) {
-    return (
-        !position ||
-        getDistance(position, ballWithRadius(ballPos)) > HIKING_DISTANCE_LIMIT
-    );
-}
 
 function $setInitialPlayerPositions(
     offensiveTeam: FieldTeam,

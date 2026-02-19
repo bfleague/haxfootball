@@ -1,11 +1,9 @@
 import { type FieldTeam, isFieldTeam } from "@runtime/models";
 import type { GameStatePlayer } from "@runtime/engine";
 import { CommandHandleResult, CommandSpec } from "@runtime/commands";
-import { getDistance } from "@common/math/geometry";
 import { opposite } from "@common/game/game";
 import {
     BALL_OFFSET_YARDS,
-    ballWithRadius,
     calculateDirectionalGain,
     calculateSnapBallPosition,
     isInRedZone,
@@ -46,7 +44,7 @@ import { type Config } from "@meta/legacy/config";
 import { $syncLineOfScrimmageBlocking } from "@meta/legacy/hooks/los";
 import { BLITZ_BASE_DELAY_IN_SECONDS } from "@meta/legacy/shared/blitz";
 import {
-    HIKING_DISTANCE_LIMIT,
+    isTooFarFromBall,
     MIN_SNAP_DELAY_TICKS,
 } from "@meta/legacy/shared/snap";
 
@@ -60,13 +58,6 @@ const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
         end: { x: -100, y: 100 },
     },
 };
-
-function isTooFarFromBall(position: Position | undefined, ballPos: Position) {
-    return (
-        !position ||
-        getDistance(position, ballWithRadius(ballPos)) > HIKING_DISTANCE_LIMIT
-    );
-}
 
 function $setInitialPlayerPositions(
     offensiveTeam: FieldTeam,
