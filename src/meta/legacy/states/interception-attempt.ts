@@ -22,7 +22,7 @@ import { $createSharedCommandHandler } from "@meta/legacy/shared/commands";
 import type { CommandSpec } from "@runtime/commands";
 import { COLOR } from "@common/general/color";
 
-const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 250 });
+const TIME_TO_CHECK_INTERCEPTION = ticks({ milliseconds: 100 });
 
 export function InterceptionAttempt({
     kickTime,
