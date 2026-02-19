@@ -109,7 +109,7 @@ msgstr "{0}-yard penalty."
 msgid "{0}, and {1}"
 msgstr "{0}, and {1}"
 
-#: src/meta/legacy/states/presnap.ts:230
+#: src/meta/legacy/states/presnap.ts:245
 msgid "{BLITZ_BASE_DELAY_IN_SECONDS}s until the blitz!"
 msgstr "{BLITZ_BASE_DELAY_IN_SECONDS}s until the blitz!"
 
@@ -201,8 +201,8 @@ msgid "{yardsLost}-yard loss"
 msgstr "{yardsLost}-yard loss"
 
 #. placeholder {0}: player.name
-#: src/meta/legacy/states/extra-point-retry.ts:169
-#: src/meta/legacy/states/extra-point.ts:195
+#: src/meta/legacy/states/extra-point-retry.ts:183
+#: src/meta/legacy/states/extra-point.ts:209
 msgid "*️⃣ {0} starts the two-point try!"
 msgstr "*️⃣ {0} starts the two-point try!"
 
@@ -285,8 +285,8 @@ msgstr "• Enabled: {0}"
 msgid "⏪ {0} calls for an undo! Rewinding to the last checkpoint..."
 msgstr "⏪ {0} calls for an undo! Rewinding to the last checkpoint..."
 
-#: src/meta/legacy/states/extra-point-retry.ts:197
-#: src/meta/legacy/states/extra-point.ts:255
+#: src/meta/legacy/states/extra-point-retry.ts:211
+#: src/meta/legacy/states/extra-point.ts:269
 msgid "⏱️ PAT window expired."
 msgstr "⏱️ PAT window expired."
 
@@ -336,7 +336,7 @@ msgstr "⚠️ No checkpoints available to undo."
 msgid "⚠️ Only admins can call for an undo."
 msgstr "⚠️ Only admins can call for an undo."
 
-#: src/meta/legacy/states/presnap.ts:358
+#: src/meta/legacy/states/presnap.ts:373
 msgid "⚠️ Only admins can call for repositioning."
 msgstr "⚠️ Only admins can call for repositioning."
 
@@ -344,11 +344,11 @@ msgstr "⚠️ Only admins can call for repositioning."
 msgid "⚠️ Only admins can modify flags."
 msgstr "⚠️ Only admins can modify flags."
 
-#: src/meta/legacy/states/presnap.ts:257
+#: src/meta/legacy/states/presnap.ts:272
 msgid "⚠️ Only the offense may call for a field goal."
 msgstr "⚠️ Only the offense may call for a field goal."
 
-#: src/meta/legacy/states/presnap.ts:294
+#: src/meta/legacy/states/presnap.ts:309
 msgid "⚠️ Only the offense may punt."
 msgstr "⚠️ Only the offense may punt."
 
@@ -360,7 +360,7 @@ msgstr "⚠️ Please provide a new password."
 msgid "⚠️ The game has not been started yet."
 msgstr "⚠️ The game has not been started yet."
 
-#: src/meta/legacy/states/extra-point.ts:170
+#: src/meta/legacy/states/extra-point.ts:184
 msgid "⚠️ Two-point try is no longer available"
 msgstr "⚠️ Two-point try is no longer available"
 
@@ -376,17 +376,29 @@ msgstr "⚠️ Unknown flag. Use !flags to list available flags."
 msgid "⚠️ Usage: !flag <FLAG_NAME> [VALUE]."
 msgstr "⚠️ Usage: !flag <FLAG_NAME> [VALUE]."
 
-#: src/meta/legacy/states/presnap.ts:269
+#: src/meta/legacy/states/extra-point-retry.ts:159
+#: src/meta/legacy/states/extra-point.ts:170
+#: src/meta/legacy/states/presnap.ts:197
+#~ msgid "⚠️ Wait 1 second before snapping."
+#~ msgstr "⚠️ Wait 1 second before snapping."
+
+#: src/meta/legacy/states/extra-point-retry.ts:160
+#: src/meta/legacy/states/extra-point.ts:171
+#: src/meta/legacy/states/presnap.ts:197
+msgid "⚠️ Wait a moment before snapping."
+msgstr "⚠️ Wait a moment before snapping."
+
+#: src/meta/legacy/states/presnap.ts:284
 msgid "⚠️ You are too far from the ball to attempt the field goal."
 msgstr "⚠️ You are too far from the ball to attempt the field goal."
 
-#: src/meta/legacy/states/presnap.ts:306
+#: src/meta/legacy/states/presnap.ts:321
 msgid "⚠️ You are too far from the ball to punt."
 msgstr "⚠️ You are too far from the ball to punt."
 
-#: src/meta/legacy/states/extra-point-retry.ts:158
-#: src/meta/legacy/states/extra-point.ts:184
-#: src/meta/legacy/states/presnap.ts:194
+#: src/meta/legacy/states/extra-point-retry.ts:172
+#: src/meta/legacy/states/extra-point.ts:198
+#: src/meta/legacy/states/presnap.ts:209
 msgid "⚠️ You are too far from the ball to snap it."
 msgstr "⚠️ You are too far from the ball to snap it."
 
@@ -395,15 +407,15 @@ msgstr "⚠️ You are too far from the ball to snap it."
 msgid "⚠️ You cannot kick while a teammate is past the ball line."
 msgstr "⚠️ You cannot kick while a teammate is past the ball line."
 
-#: src/meta/legacy/states/presnap.ts:318
+#: src/meta/legacy/states/presnap.ts:333
 msgid "⚠️ You cannot punt from the opponent red zone."
 msgstr "⚠️ You cannot punt from the opponent red zone."
 
-#: src/meta/legacy/states/presnap.ts:333
+#: src/meta/legacy/states/presnap.ts:348
 msgid "⚠️ You cannot punt while a teammate is past the LOS."
 msgstr "⚠️ You cannot punt while a teammate is past the LOS."
 
-#: src/meta/legacy/states/presnap.ts:209
+#: src/meta/legacy/states/presnap.ts:224
 msgid "⚠️ You cannot snap while a teammate is past the LOS."
 msgstr "⚠️ You cannot snap while a teammate is past the LOS."
 
@@ -415,7 +427,7 @@ msgstr "⚠️ You cannot use that command right now."
 msgid "⚠️ You must get back behind the ball line to allow the punt!"
 msgstr "⚠️ You must get back behind the ball line to allow the punt!"
 
-#: src/meta/legacy/states/presnap.ts:215
+#: src/meta/legacy/states/presnap.ts:230
 msgid "⚠️ You must get back behind the line of scrimmage to allow the snap!"
 msgstr "⚠️ You must get back behind the line of scrimmage to allow the snap!"
 
@@ -681,7 +693,7 @@ msgstr "❌ Kickoff out of bounds"
 #~ msgid "❌ Kickoff out of bounds • ball spotted at the {KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line."
 #~ msgstr "❌ Kickoff out of bounds • ball spotted at the {KICKOFF_OUT_OF_BOUNDS_YARD_LINE}-yard line."
 
-#: src/meta/legacy/states/extra-point.ts:345
+#: src/meta/legacy/states/extra-point.ts:359
 msgid "❌ Offense crossed the LOS"
 msgstr "❌ Offense crossed the LOS"
 
@@ -811,7 +823,7 @@ msgid "🏈 {0} loses it on contact by {catcherNames}"
 msgstr "🏈 {0} loses it on contact by {catcherNames}"
 
 #. placeholder {0}: player.name
-#: src/meta/legacy/states/presnap.ts:228
+#: src/meta/legacy/states/presnap.ts:243
 msgid "🏈 {0} snaps it"
 msgstr "🏈 {0} snaps it"
 
@@ -986,7 +998,7 @@ msgstr "💬 Join our Discord server: {DISCORD_LINK}"
 #~ msgstr "📉 {yardsLost}-yard loss"
 
 #. placeholder {0}: player.name
-#: src/meta/legacy/states/presnap.ts:369
+#: src/meta/legacy/states/presnap.ts:384
 msgid "📍 {0} repositions the players and ball."
 msgstr "📍 {0} repositions the players and ball."
 
@@ -1014,12 +1026,12 @@ msgstr "📍 {0} repositions the players and ball."
 #~ msgstr "🔥 TOUCHDOWN by {0}!"
 
 #. placeholder {0}: player.name
-#: src/meta/legacy/states/presnap.ts:280
+#: src/meta/legacy/states/presnap.ts:295
 msgid "🥅 {0} sets up for the field goal!"
 msgstr "🥅 {0} sets up for the field goal!"
 
 #. placeholder {0}: player.name
-#: src/meta/legacy/states/presnap.ts:344
+#: src/meta/legacy/states/presnap.ts:359
 msgid "🦵 {0} punts it away!"
 msgstr "🦵 {0} punts it away!"
 
@@ -1196,7 +1208,7 @@ msgstr "automatic touchdown."
 #~ msgid "Ball crossed the LOS before the kick"
 #~ msgstr "Ball crossed the LOS before the kick"
 
-#: src/meta/legacy/states/presnap.ts:229
+#: src/meta/legacy/states/presnap.ts:244
 msgid "ball is live"
 msgstr "ball is live"
 
@@ -1298,7 +1310,7 @@ msgstr "defensive illegal touch by {offenderNames}"
 #~ msgid "Defensive illegal touch by {offenderNames}"
 #~ msgstr "Defensive illegal touch by {offenderNames}"
 
-#: src/meta/legacy/states/extra-point.ts:283
+#: src/meta/legacy/states/extra-point.ts:297
 msgid "Defensive kick foul"
 msgstr "Defensive kick foul"
 
@@ -1325,11 +1337,11 @@ msgstr "defensive offside"
 #: src/meta/legacy/states/extra-point-kick.ts:47
 #: src/meta/legacy/states/extra-point-pass-deflection.ts:46
 #: src/meta/legacy/states/extra-point-quarterback-run.ts:212
-#: src/meta/legacy/states/extra-point-retry.ts:213
+#: src/meta/legacy/states/extra-point-retry.ts:227
 #: src/meta/legacy/states/extra-point-run.ts:226
 #: src/meta/legacy/states/extra-point-snap-in-flight.ts:179
 #: src/meta/legacy/states/extra-point-snap.ts:732
-#: src/meta/legacy/states/extra-point.ts:359
+#: src/meta/legacy/states/extra-point.ts:373
 msgid "Extra point"
 msgstr "Extra point"
 
@@ -1421,7 +1433,7 @@ msgstr "Interception"
 #~ msgid "Join our Discord server: {DISCORD_LINK}"
 #~ msgstr "Join our Discord server: {DISCORD_LINK}"
 
-#: src/meta/legacy/states/extra-point.ts:171
+#: src/meta/legacy/states/extra-point.ts:185
 msgid "kick the PAT."
 msgstr "kick the PAT."
 
@@ -1538,7 +1550,7 @@ msgstr "pass batted by {0}"
 #~ msgstr "Password updated successfully."
 
 #: src/meta/legacy/states/extra-point-kick.ts:69
-#: src/meta/legacy/states/extra-point.ts:284
+#: src/meta/legacy/states/extra-point.ts:298
 msgid "PAT is good!"
 msgstr "PAT is good!"
 
@@ -1748,7 +1760,7 @@ msgstr "two-point try failed."
 msgid "two-point try is good!"
 msgstr "two-point try is good!"
 
-#: src/meta/legacy/states/extra-point.ts:346
+#: src/meta/legacy/states/extra-point.ts:360
 msgid "two-point try is no longer available."
 msgstr "two-point try is no longer available."
 

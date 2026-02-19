@@ -34,7 +34,9 @@ import { COLOR } from "@common/general/color";
 
 const EXTRA_POINT_DECISION_WINDOW = ticks({ seconds: 10 });
 const EXTRA_POINT_YARD_LINE = 10;
-const HIKING_DISTANCE_LIMIT = 30;
+const HIKING_DISTANCE_LIMIT = 40;
+const MIN_SNAP_DELAY_TICKS = ticks({ seconds: 1 });
+
 const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
     offensive: {
         start: { x: 100, y: -100 },
@@ -151,6 +153,18 @@ export function ExtraPointRetry({
         const isHikeCommand = normalizedMessage.includes("hike");
 
         if (!isHikeCommand || player.team !== offensiveTeam) return;
+
+        if ($tick().current < MIN_SNAP_DELAY_TICKS) {
+            $effect(($) => {
+                $.send({
+                    message: t`⚠️ Wait a moment before snapping.`,
+                    to: player.id,
+                    color: COLOR.CRITICAL,
+                });
+            });
+
+            return;
+        }
 
         if (isTooFarFromBall(player.position, ballPosWithOffset)) {
             $effect(($) => {

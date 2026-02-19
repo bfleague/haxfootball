@@ -2,6 +2,7 @@ import { type FieldTeam, isFieldTeam } from "@runtime/models";
 import type { GameStatePlayer } from "@runtime/engine";
 import { CommandHandleResult, CommandSpec } from "@runtime/commands";
 import { getDistance } from "@common/math/geometry";
+import { ticks } from "@common/general/time";
 import {
     BALL_OFFSET_YARDS,
     ballWithRadius,
@@ -16,6 +17,7 @@ import {
     $dispose,
     $effect,
     $next,
+    $tick,
 } from "@runtime/runtime";
 import {
     $lockBall,
@@ -45,6 +47,7 @@ import { $syncLineOfScrimmageBlocking } from "@meta/legacy/hooks/los";
 import { BLITZ_BASE_DELAY_IN_SECONDS } from "@meta/legacy/shared/blitz";
 
 const HIKING_DISTANCE_LIMIT = 30;
+const MIN_SNAP_DELAY_TICKS = ticks({ seconds: 1 });
 
 const DEFAULT_INITIAL_RELATIVE_POSITIONS: InitialPositioningRelativeLines = {
     offensive: {
@@ -186,6 +189,18 @@ export function Presnap({ downState }: { downState: DownState }) {
         if (isHikeCommand) {
             if (player.team !== offensiveTeam) {
                 return;
+            }
+
+            if ($tick().current < MIN_SNAP_DELAY_TICKS) {
+                $effect(($) => {
+                    $.send({
+                        message: t`⚠️ Wait a moment before snapping.`,
+                        to: player.id,
+                        color: COLOR.CRITICAL,
+                    });
+                });
+
+                return false;
             }
 
             if (isTooFarFromBall(player.position, ballPosWithOffset)) {
