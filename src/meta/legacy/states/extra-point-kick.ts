@@ -2,7 +2,7 @@ import type { GameState } from "@runtime/engine";
 import { ticks } from "@common/general/time";
 import { opposite } from "@common/game/game";
 import { t } from "@lingui/core/macro";
-import { $dispose, $effect, $next } from "@runtime/runtime";
+import { $dispose, $effect, $next, $tick } from "@runtime/runtime";
 import { $global } from "@meta/legacy/hooks/global";
 import { $setBallActive } from "@meta/legacy/hooks/game";
 import { $lockBall, $unlockBall } from "@meta/legacy/hooks/physics";
@@ -21,6 +21,7 @@ import { COLOR } from "@common/general/color";
 
 const EXTRA_POINT_RESULT_DELAY = ticks({ seconds: 2 });
 const EXTRA_POINT_SUCCESS_DELAY = ticks({ seconds: 2 });
+const TOO_WEAK_CHECK_DELAY = ticks({ seconds: 1 });
 const BALL_STOPPED_SPEED = 0.05;
 const BALL_STOPPED_SPEED_SQUARED = BALL_STOPPED_SPEED * BALL_STOPPED_SPEED;
 
@@ -120,7 +121,9 @@ export function ExtraPointKick({
             state.ball.xspeed * state.ball.xspeed +
             state.ball.yspeed * state.ball.yspeed;
         const isStopped = speedSquared <= BALL_STOPPED_SPEED_SQUARED;
+        const { self: elapsedTicks } = $tick();
 
+        if (elapsedTicks < TOO_WEAK_CHECK_DELAY) return;
         if (isStopped) {
             $effect(($) => {
                 $.send({
