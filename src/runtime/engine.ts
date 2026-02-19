@@ -666,6 +666,10 @@ export function createEngine<Cfg>(
     }
 
     function scheduleTransition(transition: Transition) {
+        // Any newly scheduled transition supersedes queued deferred transitions.
+        delayedTransition = null;
+        afterResumeTransition = null;
+
         const wait =
             typeof transition.wait === "number" && transition.wait > 0
                 ? transition.wait
