@@ -31,6 +31,7 @@ const mainModule = createModule()
             "clearpassword",
             "discord",
             "tutorial",
+            "clearbans",
         ],
     })
     .onRoomLink((room, url) => {
