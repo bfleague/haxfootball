@@ -109,7 +109,7 @@ jobs:
                   )
                   PY
 
-                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 1-4 concise bullets as plain text, max 700 chars. Mention what changed from a user-facing, gameplay standpoint, not a technical one. Use the file-area context to avoid vague summaries. Do not use marketing terms or language, just clear descriptions, we are not trying to hype the changes, just summarize them.'"
+                  SYSTEM_PROMPT="You write CI changelog blurbs for Discord. Return 1-4 concise bullets as plain text, max 700 chars. Mention what changed from a user-facing, gameplay standpoint, not a technical one. Use the file-area context to avoid vague summaries. Do not use marketing terms or language, just clear descriptions, we are not trying to hype the changes, just summarize them. Do not talk about changes in translation that are being done as part of a gameplay feature update, only do it if doesn't accompany a gameplay change."
                   USER_PROMPT="$(cat <<'EOF'
                   Changed files:
                   EOF
