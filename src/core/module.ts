@@ -308,7 +308,7 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
         if (!response || typeof response !== "object") return false;
         if (!("undo" in response)) return false;
 
-        return (response as StadiumChangeHandlerResponse).undo === false;
+        return (response as StadiumChangeHandlerResponse).undo === true;
     };
 
     const emitStadiumChange =
