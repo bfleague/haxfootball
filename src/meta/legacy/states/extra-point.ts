@@ -286,7 +286,7 @@ export function ExtraPoint({
         $setBallInactive();
 
         $global((state) =>
-            state.incrementScore(offensiveTeam, SCORES.EXTRA_POINT),
+            state.incrementScore(offensiveTeam, SCORES.TWO_POINT),
         );
 
         const { scores } = $global();
@@ -297,7 +297,7 @@ export function ExtraPoint({
                     "🚫",
                     scores,
                     t`Defensive kick foul`,
-                    t`PAT is good!`,
+                    t`TWO POINTS!`,
                 ),
                 color: COLOR.WARNING,
                 to: "mixed",

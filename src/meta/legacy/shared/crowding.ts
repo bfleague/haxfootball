@@ -5,11 +5,12 @@ import { DownState } from "@meta/legacy/shared/down";
 import { formatNames } from "@meta/legacy/shared/message";
 import { applyDefensivePenalty } from "@meta/legacy/shared/penalty";
 import {
+    intersectsEndZone,
     isInCrowdingArea,
     isInInnerCrowdingArea,
 } from "@meta/legacy/shared/stadium";
 import { unique } from "@common/general/helpers";
-import { FieldTeam } from "@runtime/models";
+import { FieldTeam, Team } from "@runtime/models";
 import { FieldPosition } from "@common/game/game";
 
 const CROWDING_OUTER_FOUL_TICKS = ticks({ seconds: 3 });
@@ -61,6 +62,9 @@ type DefenderCrowdingState = {
     inInner: boolean;
     inCrowding: boolean;
 };
+
+const isInAnyEndZone = (player: GameStatePlayer): boolean =>
+    intersectsEndZone(player, Team.RED) || intersectsEndZone(player, Team.BLUE);
 
 const createEmptyCrowdingData = (startedAt?: number): CrowdingData =>
     startedAt === undefined
@@ -212,10 +216,10 @@ export const evaluateCrowding = ({
         (player) => player.id !== quarterbackId,
     );
     const offensePlayers = nonQuarterbacks.filter(
-        (player) => player.team === offensiveTeam,
+        (player) => player.team === offensiveTeam && !isInAnyEndZone(player),
     );
     const defensePlayers = nonQuarterbacks.filter(
-        (player) => player.team !== offensiveTeam,
+        (player) => player.team !== offensiveTeam && !isInAnyEndZone(player),
     );
 
     const offenseInCrowdingArea = offensePlayers.some((player) =>
