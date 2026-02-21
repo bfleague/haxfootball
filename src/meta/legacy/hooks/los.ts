@@ -8,29 +8,7 @@ import { SPECIAL_HIDDEN_DISC_POSITION } from "@common/stadium-builder/consts";
 import { computeBlockingPlan } from "@meta/legacy/shared/los-blocking";
 
 const LOS_BLOCKING_VERTICAL_EXTENSION = 2000;
-const LOS_BLOCKING_ON_LINE_DISTANCE_X = 25;
-
-const LOS_BLOCKING_MIN_SLOT_RADIUS = 3;
-const LOS_BLOCKING_LOW_SLOT_RADIUS = 4;
-const LOS_BLOCKING_MEDIUM_SLOT_RADIUS = 5;
-const LOS_BLOCKING_MAX_SLOT_RADIUS = 6;
-
-const getLineOfScrimmageBlockingSlotRadius = (
-    players: ReadonlyArray<{ position: { x: number } }>,
-    lineX: number,
-): number => {
-    const playersOnLineCount = players.filter(
-        (player) =>
-            Math.abs(player.position.x - lineX) <=
-            LOS_BLOCKING_ON_LINE_DISTANCE_X,
-    ).length;
-
-    if (playersOnLineCount <= 1) return LOS_BLOCKING_MIN_SLOT_RADIUS;
-    if (playersOnLineCount <= 3) return LOS_BLOCKING_LOW_SLOT_RADIUS;
-    if (playersOnLineCount <= 8) return LOS_BLOCKING_MEDIUM_SLOT_RADIUS;
-
-    return LOS_BLOCKING_MAX_SLOT_RADIUS;
-};
+const LOS_BLOCKING_SLOT_RADIUS = 4;
 
 export function $syncLineOfScrimmageBlocking({
     enabled = true,
@@ -118,10 +96,7 @@ export function $syncLineOfScrimmageBlocking({
             },
             players,
             blockers,
-            blockerRadius: getLineOfScrimmageBlockingSlotRadius(
-                players,
-                topDisc.x,
-            ),
+            blockerRadius: LOS_BLOCKING_SLOT_RADIUS,
         });
 
         plan.moves.forEach((move) => {
