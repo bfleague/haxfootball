@@ -12,6 +12,8 @@ const ADMIN_PASSWORD = randomBytes(4).toString("hex");
 
 const admins = new Set<number>();
 
+const blacklist = new Set<string>(["179.124.199.163"]);
+
 const manageAdmin = (room: Room) => {
     if (!room.getPlayerList().some((p) => p.admin)) {
         const player = room.getPlayerList()[0];
@@ -163,6 +165,11 @@ const mainModule = createModule()
     })
     .onPlayerJoin((room, player) => {
         console.log(`${player.name} has joined (${connToIp(player.conn)})`);
+
+        if (blacklist.has(connToIp(player.conn))) {
+            room.ban(player.id);
+            return;
+        }
 
         const duplicate = room
             .getPlayerList()
