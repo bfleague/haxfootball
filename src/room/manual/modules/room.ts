@@ -159,6 +159,15 @@ const mainModule = createModule()
         }
     })
     .onPlayerJoin((room, player) => {
+        const duplicate = room
+            .getPlayerList()
+            .find((p) => p.id !== player.id && p.conn === player.conn);
+
+        if (duplicate) {
+            room.kick(player, t` Already connected (${duplicate.name}).`);
+            return;
+        }
+
         if (IS_DEBUG) {
             room.setAdmin(player, true);
         } else {
