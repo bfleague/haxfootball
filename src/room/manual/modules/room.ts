@@ -22,6 +22,9 @@ const manageAdmin = (room: Room) => {
     }
 };
 
+const connToIp = (conn: string) =>
+    decodeURIComponent(conn.replace(/(..)/g, "%$1"));
+
 const mainModule = createModule()
     .setCommands({
         spec: { prefix: COMMAND_PREFIX },
@@ -159,6 +162,8 @@ const mainModule = createModule()
         }
     })
     .onPlayerJoin((room, player) => {
+        console.log(`${player.name} has joined (${connToIp(player.conn)})`);
+
         const duplicate = room
             .getPlayerList()
             .find((p) => p.id !== player.id && p.conn === player.conn);
@@ -192,8 +197,6 @@ const mainModule = createModule()
             to: player.id,
             sound: "none",
         });
-
-        console.log(`${player.name} has joined`);
     })
     .onPlayerLeave((room, player) => {
         manageAdmin(room);
