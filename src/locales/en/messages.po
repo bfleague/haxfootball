@@ -774,7 +774,7 @@ msgstr "❌ Two-point try failed."
 #~ msgstr "➖ No gain"
 
 #: src/room/manual/modules/room.ts:131
-#: src/room/manual/modules/room.ts:175
+#: src/room/manual/modules/room.ts:184
 msgid "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 
@@ -878,7 +878,7 @@ msgstr "🏈 Safety-kick return by {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Two-point pass complete to {0}!"
 
-#: src/room/manual/modules/room.ts:169
+#: src/room/manual/modules/room.ts:178
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Welcome to HaxFootball!"
 
@@ -981,7 +981,7 @@ msgstr "💥 {0} brought down by {catcherNames}!"
 #~ msgstr "💥 QB {0} sacked by {catcherNames} • TURNOVER ON DOWNS!"
 
 #: src/room/manual/modules/room.ts:123
-#: src/room/manual/modules/room.ts:181
+#: src/room/manual/modules/room.ts:190
 msgid "💬 Join our Discord server: {DISCORD_LINK}"
 msgstr "💬 Join our Discord server: {DISCORD_LINK}"
 
@@ -1195,6 +1195,11 @@ msgstr "🛑 {0} is down in the end zone"
 #: src/meta/legacy/states/interception-attempt.ts:63
 msgid "🛡️ INTERCEPTION by {0}!"
 msgstr "🛡️ INTERCEPTION by {0}!"
+
+#. placeholder {0}: duplicate.name
+#: src/room/manual/modules/room.ts:167
+msgid "Already connected ({0})."
+msgstr "Already connected ({0})."
 
 #: src/meta/legacy/states/snap.ts:348
 #: src/meta/legacy/states/snap.ts:468

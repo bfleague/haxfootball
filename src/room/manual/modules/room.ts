@@ -164,7 +164,7 @@ const mainModule = createModule()
             .find((p) => p.id !== player.id && p.conn === player.conn);
 
         if (duplicate) {
-            room.kick(player, t` Already connected (${duplicate.name}).`);
+            room.kick(player, t`Already connected (${duplicate.name}).`);
             return;
         }
 

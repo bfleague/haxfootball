@@ -792,7 +792,7 @@ msgstr "❌ Conversão de 2 pontos falhou."
 #~ msgstr "➖ Sem ganho"
 
 #: src/room/manual/modules/room.ts:131
-#: src/room/manual/modules/room.ts:175
+#: src/room/manual/modules/room.ts:184
 msgid "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "🎬 Assista ao tutorial: {TUTORIAL_LINK}"
 
@@ -896,7 +896,7 @@ msgstr "🏈 Retorno de chute de safety de {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Passe completo na conversão para {0}!"
 
-#: src/room/manual/modules/room.ts:169
+#: src/room/manual/modules/room.ts:178
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Seja bem-vindo à Brazilian HaxFootball League (BFL)!"
 
@@ -999,7 +999,7 @@ msgstr "💥 {0} derrubado por {catcherNames}!"
 #~ msgstr "💥 Sack do QB {0} por {catcherNames} • TURNOVER ON DOWNS!"
 
 #: src/room/manual/modules/room.ts:123
-#: src/room/manual/modules/room.ts:181
+#: src/room/manual/modules/room.ts:190
 msgid "💬 Join our Discord server: {DISCORD_LINK}"
 msgstr "💬 Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
@@ -1213,6 +1213,11 @@ msgstr "🛑 {0} foi derrubado na end zone"
 #: src/meta/legacy/states/interception-attempt.ts:63
 msgid "🛡️ INTERCEPTION by {0}!"
 msgstr "🛡️ INTERCEPTAÇÃO de {0}!"
+
+#. placeholder {0}: duplicate.name
+#: src/room/manual/modules/room.ts:167
+msgid "Already connected ({0})."
+msgstr "Você já está conectado ({0})."
 
 #: src/meta/legacy/states/snap.ts:348
 #: src/meta/legacy/states/snap.ts:468
