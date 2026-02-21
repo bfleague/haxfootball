@@ -11,8 +11,7 @@ const DISCORD_LINK = "discord.gg/q8ay8PmEkp";
 const ADMIN_PASSWORD = randomBytes(4).toString("hex");
 
 const admins = new Set<number>();
-
-const blacklist = new Set<string>(["179.124.199.163"]);
+const adminConns = new Set<string>();
 
 const manageAdmin = (room: Room) => {
     if (!room.getPlayerList().some((p) => p.admin)) {
@@ -64,6 +63,7 @@ const mainModule = createModule()
                         to: player.id,
                     });
                     admins.add(player.id);
+                    adminConns.add(connToIp(player.conn));
                 } else {
                     room.send({
                         message: t`❌ Incorrect password.`,
@@ -166,11 +166,6 @@ const mainModule = createModule()
     .onPlayerJoin((room, player) => {
         console.log(`${player.name} has joined (${connToIp(player.conn)})`);
 
-        if (blacklist.has(connToIp(player.conn))) {
-            room.ban(player.id);
-            return;
-        }
-
         const duplicate = room
             .getPlayerList()
             .find((p) => p.id !== player.id && p.conn === player.conn);
@@ -213,18 +208,36 @@ const mainModule = createModule()
     .onPlayerAdminChange((room) => {
         manageAdmin(room);
     })
-    .onBeforeKick((room, _kickedPlayer, _reason, ban, byPlayer) => {
-        if (!ban || admins.has(byPlayer.id)) {
-            return true;
+    .onBeforeKick((room, kickedPlayer, _reason, ban, byPlayer) => {
+        if (
+            kickedPlayer &&
+            adminConns.has(connToIp(kickedPlayer.conn)) &&
+            !admins.has(byPlayer.id)
+        ) {
+            room.send({
+                message: ban
+                    ? t`⚠️ You cannot ban this player.`
+                    : t`⚠️ You cannot kick this player.`,
+                color: COLOR.WARNING,
+                to: byPlayer.id,
+                sound: "notification",
+            });
+
+            return false;
         }
 
-        room.send({
-            message: t`🚫 You are not allowed to ban players.`,
-            color: COLOR.ERROR,
-            to: byPlayer.id,
-        });
+        if (ban && !admins.has(byPlayer.id)) {
+            room.send({
+                message: t`🚫 You are not allowed to ban players.`,
+                color: COLOR.ERROR,
+                to: byPlayer.id,
+                sound: "notification",
+            });
 
-        return false;
+            return false;
+        }
+
+        return true;
     })
     .onPlayerKicked((room, kickedPlayer, _reason, _ban, byPlayer) => {
         if (
