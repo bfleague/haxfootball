@@ -406,6 +406,14 @@ msgstr "⚠️ Você está longe demais da bola para chutar o punt."
 msgid "⚠️ You are too far from the ball to snap it."
 msgstr "⚠️ Você está longe demais da bola para dar hike."
 
+#: src/room/manual/modules/room.ts:219
+msgid "⚠️ You cannot ban this player."
+msgstr "⚠️ Você não pode banir esse jogador."
+
+#: src/room/manual/modules/room.ts:220
+msgid "⚠️ You cannot kick this player."
+msgstr "⚠️ Você não pode expulsar esse jogador."
+
 #: src/meta/legacy/states/punt.ts:120
 #: src/meta/legacy/states/safety.ts:123
 msgid "⚠️ You cannot kick while a teammate is past the ball line."
@@ -465,7 +473,7 @@ msgstr "✅ Senha atualizada com sucesso."
 #~ msgid "✅ Two-point try is good!"
 #~ msgstr "✅ Conversão de 2 pontos convertida!"
 
-#: src/room/manual/modules/room.ts:62
+#: src/room/manual/modules/room.ts:61
 msgid "✅ You are now an admin."
 msgstr "✅ Você agora é admin."
 
@@ -792,7 +800,7 @@ msgstr "❌ Conversão de 2 pontos falhou."
 #~ msgstr "➖ Sem ganho"
 
 #: src/room/manual/modules/room.ts:136
-#: src/room/manual/modules/room.ts:196
+#: src/room/manual/modules/room.ts:191
 msgid "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "🎬 Assista ao tutorial: {TUTORIAL_LINK}"
 
@@ -896,7 +904,7 @@ msgstr "🏈 Retorno de chute de safety de {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Passe completo na conversão para {0}!"
 
-#: src/room/manual/modules/room.ts:190
+#: src/room/manual/modules/room.ts:185
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Seja bem-vindo à Brazilian HaxFootball League (BFL)!"
 
@@ -999,7 +1007,7 @@ msgstr "💥 {0} derrubado por {catcherNames}!"
 #~ msgstr "💥 Sack do QB {0} por {catcherNames} • TURNOVER ON DOWNS!"
 
 #: src/room/manual/modules/room.ts:128
-#: src/room/manual/modules/room.ts:202
+#: src/room/manual/modules/room.ts:197
 msgid "💬 Join our Discord server: {DISCORD_LINK}"
 msgstr "💬 Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
@@ -1178,7 +1186,7 @@ msgstr "🚪 Punt fora de campo"
 #~ msgid "🚪 QB {0} went out in the end zone • SAFETY!"
 #~ msgstr "🚪 QB {0} saiu na end zone • SAFETY!"
 
-#: src/room/manual/modules/room.ts:222
+#: src/room/manual/modules/room.ts:231
 msgid "🚫 You are not allowed to ban players."
 msgstr "🚫 Você não tem permissão para banir jogadores."
 
@@ -1219,7 +1227,7 @@ msgid "🛡️ INTERCEPTION by {0}!"
 msgstr "🛡️ INTERCEPTAÇÃO de {0}!"
 
 #. placeholder {0}: duplicate.name
-#: src/room/manual/modules/room.ts:179
+#: src/room/manual/modules/room.ts:174
 msgid "Already connected ({0})."
 msgstr "Você já está conectado ({0})."
 

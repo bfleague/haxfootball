@@ -239,16 +239,6 @@ const mainModule = createModule()
 
         return true;
     })
-    .onPlayerKicked((room, kickedPlayer, _reason, _ban, byPlayer) => {
-        if (
-            byPlayer &&
-            admins.has(kickedPlayer.id) &&
-            !admins.has(byPlayer.id)
-        ) {
-            room.clearBan(kickedPlayer.id);
-            room.setAdmin(byPlayer, false);
-        }
-    })
     .onPlayerChat((_, player, message) => {
         const time = new Date().toLocaleTimeString();
         console.log(`[${time}] ${player.name}: ${message}`);
