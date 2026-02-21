@@ -356,7 +356,7 @@ msgstr "⚠️ Apenas o ataque pode pedir field goal."
 msgid "⚠️ Only the offense may punt."
 msgstr "⚠️ Apenas o ataque pode pedir punt."
 
-#: src/room/manual/modules/room.ts:86
+#: src/room/manual/modules/room.ts:91
 msgid "⚠️ Please provide a new password."
 msgstr "⚠️ Informe uma nova senha."
 
@@ -440,7 +440,7 @@ msgstr "⚠️ Você deve voltar para trás da linha de scrimmage para permitir 
 msgid "⚡ Early blitz will be available in {BLITZ_EARLY_NOTICE_REMAINING_SECONDS}s."
 msgstr "⚡ Blitz antecipada ficará disponível em {BLITZ_EARLY_NOTICE_REMAINING_SECONDS}s."
 
-#: src/room/manual/modules/room.ts:150
+#: src/room/manual/modules/room.ts:155
 msgid "✅ All bans cleared successfully."
 msgstr ""
 
@@ -448,11 +448,11 @@ msgstr ""
 #~ msgid "✅ Field goal is good!"
 #~ msgstr "✅ Field goal convertido!"
 
-#: src/room/manual/modules/room.ts:114
+#: src/room/manual/modules/room.ts:119
 msgid "✅ Password cleared successfully."
 msgstr "✅ Senha removida com sucesso."
 
-#: src/room/manual/modules/room.ts:95
+#: src/room/manual/modules/room.ts:100
 msgid "✅ Password updated successfully."
 msgstr "✅ Senha atualizada com sucesso."
 
@@ -465,7 +465,7 @@ msgstr "✅ Senha atualizada com sucesso."
 #~ msgid "✅ Two-point try is good!"
 #~ msgstr "✅ Conversão de 2 pontos convertida!"
 
-#: src/room/manual/modules/room.ts:57
+#: src/room/manual/modules/room.ts:62
 msgid "✅ You are now an admin."
 msgstr "✅ Você agora é admin."
 
@@ -703,7 +703,7 @@ msgstr "❌ Toque ilegal por {offenderNames} antes do chute"
 #~ msgid "❌ Illegal touch by {offenderNames} before the kick • field goal is dead."
 #~ msgstr "❌ Toque ilegal por {offenderNames} antes do chute • field goal anulado."
 
-#: src/room/manual/modules/room.ts:64
+#: src/room/manual/modules/room.ts:69
 msgid "❌ Incorrect password."
 msgstr "❌ Senha incorreta."
 
@@ -791,8 +791,8 @@ msgstr "❌ Conversão de 2 pontos falhou."
 #~ msgid "➖ No gain"
 #~ msgstr "➖ Sem ganho"
 
-#: src/room/manual/modules/room.ts:131
-#: src/room/manual/modules/room.ts:184
+#: src/room/manual/modules/room.ts:136
+#: src/room/manual/modules/room.ts:196
 msgid "🎬 Watch the tutorial: {TUTORIAL_LINK}"
 msgstr "🎬 Assista ao tutorial: {TUTORIAL_LINK}"
 
@@ -896,7 +896,7 @@ msgstr "🏈 Retorno de chute de safety de {0}!"
 msgid "🏈 Two-point pass complete to {0}!"
 msgstr "🏈 Passe completo na conversão para {0}!"
 
-#: src/room/manual/modules/room.ts:178
+#: src/room/manual/modules/room.ts:190
 msgid "🏈 Welcome to HaxFootball!"
 msgstr "🏈 Seja bem-vindo à Brazilian HaxFootball League (BFL)!"
 
@@ -998,8 +998,8 @@ msgstr "💥 {0} derrubado por {catcherNames}!"
 #~ msgid "💥 QB {0} sacked by {catcherNames} • TURNOVER ON DOWNS!"
 #~ msgstr "💥 Sack do QB {0} por {catcherNames} • TURNOVER ON DOWNS!"
 
-#: src/room/manual/modules/room.ts:123
-#: src/room/manual/modules/room.ts:190
+#: src/room/manual/modules/room.ts:128
+#: src/room/manual/modules/room.ts:202
 msgid "💬 Join our Discord server: {DISCORD_LINK}"
 msgstr "💬 Entre no nosso servidor do Discord: {DISCORD_LINK}"
 
@@ -1178,9 +1178,13 @@ msgstr "🚪 Punt fora de campo"
 #~ msgid "🚪 QB {0} went out in the end zone • SAFETY!"
 #~ msgstr "🚪 QB {0} saiu na end zone • SAFETY!"
 
-#: src/room/manual/modules/room.ts:77
-#: src/room/manual/modules/room.ts:105
-#: src/room/manual/modules/room.ts:140
+#: src/room/manual/modules/room.ts:222
+msgid "🚫 You are not allowed to ban players."
+msgstr "🚫 Você não tem permissão para banir jogadores."
+
+#: src/room/manual/modules/room.ts:82
+#: src/room/manual/modules/room.ts:110
+#: src/room/manual/modules/room.ts:145
 msgid "🚫 You must be an admin to use this command."
 msgstr "🚫 Você precisa ser admin para usar este comando."
 
@@ -1215,7 +1219,7 @@ msgid "🛡️ INTERCEPTION by {0}!"
 msgstr "🛡️ INTERCEPTAÇÃO de {0}!"
 
 #. placeholder {0}: duplicate.name
-#: src/room/manual/modules/room.ts:167
+#: src/room/manual/modules/room.ts:179
 msgid "Already connected ({0})."
 msgstr "Você já está conectado ({0})."
 

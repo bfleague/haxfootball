@@ -576,6 +576,17 @@ declare global {
             byPlayer: PlayerObject | null,
         ): void;
         /**
+         * Event called before a player-initiated kick or ban is applied.
+         *
+         * Return `false` to cancel the kick/ban.
+         */
+        onBeforeKick(
+            kickedPlayer: PlayerObject | null,
+            reason: string,
+            ban: boolean,
+            byPlayer: PlayerObject,
+        ): boolean | void;
+        /**
          * Event called when a player has been kicked from the room. This is always called after the onPlayerLeave event.
          *
          * byPlayer is the player which caused the event (can be null if the event wasn't caused by a player).

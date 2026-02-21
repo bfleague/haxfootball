@@ -213,6 +213,19 @@ const mainModule = createModule()
     .onPlayerAdminChange((room) => {
         manageAdmin(room);
     })
+    .onBeforeKick((room, _kickedPlayer, _reason, ban, byPlayer) => {
+        if (!ban || admins.has(byPlayer.id)) {
+            return true;
+        }
+
+        room.send({
+            message: t`🚫 You are not allowed to ban players.`,
+            color: COLOR.ERROR,
+            to: byPlayer.id,
+        });
+
+        return false;
+    })
     .onPlayerKicked((room, kickedPlayer, _reason, _ban, byPlayer) => {
         if (
             byPlayer &&

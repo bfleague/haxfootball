@@ -127,6 +127,19 @@ export class Module {
         return this;
     }
 
+    onBeforeKick(
+        handler: (
+            room: Room,
+            kickedPlayer: PlayerObject | null,
+            reason: string,
+            ban: boolean,
+            byPlayer: PlayerObject,
+        ) => boolean | void,
+    ): this {
+        this.events.push(["onBeforeKick", handler]);
+        return this;
+    }
+
     onPlayerKicked(
         handler: (
             room: Room,
@@ -431,6 +444,17 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
             }, true);
         };
 
+    const emitBeforeKick =
+        () =>
+        (...args: any[]) => {
+            room.invalidateCaches();
+
+            return modules.reduce((allow, module) => {
+                const moduleAllows = module.call("onBeforeKick", room, ...args);
+                return allow && moduleAllows;
+            }, true);
+        };
+
     roomObject.onPlayerJoin = emit("onPlayerJoin");
     roomObject.onPlayerLeave = emit("onPlayerLeave");
     roomObject.onTeamVictory = emit("onTeamVictory");
@@ -441,6 +465,7 @@ export function updateRoomModules(roomObject: RoomObject, modules: Module[]) {
     roomObject.onGameStop = emit("onGameStop");
     roomObject.onPlayerAdminChange = emit("onPlayerAdminChange");
     roomObject.onPlayerTeamChange = emit("onPlayerTeamChange");
+    roomObject.onBeforeKick = emitBeforeKick();
     roomObject.onPlayerKicked = emit("onPlayerKicked");
     roomObject.onGameTick = emit("onGameTick");
     roomObject.onGamePause = emit("onGamePause");

@@ -484,6 +484,10 @@ const onHBLoaded = function (cb) {
         let v = J.onPlayerChat;
         return null == v ? !0 : 0 != v(f(h), n);
       };
+      y.beforeKick = function (h, n, v, F) {
+        let H = J.onBeforeKick;
+        return null == H ? !0 : !1 !== H(f(h), n, v, f(F));
+      };
       y.wf = function (h) {
         let n = J.onPlayerBallKick;
         null != n && n(f(h));
@@ -4738,6 +4742,11 @@ const onHBLoaded = function (cb) {
     Aa() {
       this.pd = !1;
       super.Aa();
+    }
+    eg(a) {
+      if (0 == this.B || null == a.beforeKick) return !0;
+      let b = a.R(this.B);
+      return null == b ? !0 : a.beforeKick(a.R(this.ma), this.qb, this.pd, b);
     }
     apply(a) {
       if (0 != this.ma && a.za(this.B)) {
