@@ -11,7 +11,7 @@ const DISCORD_LINK = "discord.gg/q8ay8PmEkp";
 const ADMIN_PASSWORD = randomBytes(4).toString("hex");
 
 const admins = new Set<number>();
-const adminConns = new Set<string>();
+const adminIps = new Set<string>();
 
 const manageAdmin = (room: Room) => {
     if (!room.getPlayerList().some((p) => p.admin)) {
@@ -22,9 +22,6 @@ const manageAdmin = (room: Room) => {
         }
     }
 };
-
-const connToIp = (conn: string) =>
-    decodeURIComponent(conn.replace(/(..)/g, "%$1"));
 
 const mainModule = createModule()
     .setCommands({
@@ -63,7 +60,7 @@ const mainModule = createModule()
                         to: player.id,
                     });
                     admins.add(player.id);
-                    adminConns.add(connToIp(player.conn));
+                    adminIps.add(player.ip);
                 } else {
                     room.send({
                         message: t`❌ Incorrect password.`,
@@ -164,12 +161,12 @@ const mainModule = createModule()
         }
     })
     .onPlayerJoin((room, player) => {
-        console.log(`${player.name} has joined (${connToIp(player.conn)})`);
+        console.log(`${player.name} has joined (${player.ip})`);
 
         if (!IS_DEBUG) {
             const duplicate = room
                 .getPlayerList()
-                .find((p) => p.id !== player.id && p.conn === player.conn);
+                .find((p) => p.id !== player.id && p.ip === player.ip);
 
             if (duplicate) {
                 room.kick(player, t`Already connected (${duplicate.name}).`);
@@ -211,7 +208,7 @@ const mainModule = createModule()
     .onBeforeKick((room, kickedPlayer, _reason, ban, byPlayer) => {
         if (
             kickedPlayer &&
-            adminConns.has(connToIp(kickedPlayer.conn)) &&
+            adminIps.has(kickedPlayer.ip) &&
             !admins.has(byPlayer.id)
         ) {
             room.send({

@@ -187,9 +187,9 @@ declare global {
          */
         auth?: string;
         /**
-         * A string that uniquely identifies the player's connection, if two players join using the same network this string will be equal.
+         * Player IP address.
          */
-        conn: string;
+        ip: string;
     }
 
     /**

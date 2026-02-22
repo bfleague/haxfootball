@@ -188,6 +188,16 @@ const onHBLoaded = function (cb) {
               timeLimit: 60 * y.D.Na,
             };
       }
+      function decodeIp(h) {
+        if (null == h) return "";
+        h = String(h);
+        if ("" == h) return "";
+        try {
+          return decodeURIComponent(h.replace(/(..)/g, "%$1"));
+        } catch (n) {
+          return h;
+        }
+      }
       function f(h) {
         if (null == h) return null;
         let n = null,
@@ -196,14 +206,14 @@ const onHBLoaded = function (cb) {
         let F = null,
           H = "",
           Y = D.wb.get(h.ma);
-        null != Y && ((F = Y.Jg), (H = null != Y.jc.gb ? Y.jc.gb : ""));
+        null != Y && ((F = Y.Jg), (H = decodeIp(Y.jc.gb)));
         h = {
           name: h.oa,
           team: h.ja.S,
           id: h.ma,
           admin: h.Ub,
           position: n,
-          conn: H,
+          ip: H,
         };
         null != F && (h.auth = F);
         return h;
