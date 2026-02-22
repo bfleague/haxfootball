@@ -166,19 +166,19 @@ const mainModule = createModule()
     .onPlayerJoin((room, player) => {
         console.log(`${player.name} has joined (${connToIp(player.conn)})`);
 
-        const duplicate = room
-            .getPlayerList()
-            .find((p) => p.id !== player.id && p.conn === player.conn);
+        if (!IS_DEBUG) {
+            const duplicate = room
+                .getPlayerList()
+                .find((p) => p.id !== player.id && p.conn === player.conn);
 
-        if (duplicate) {
-            room.kick(player, t`Already connected (${duplicate.name}).`);
-            return;
-        }
+            if (duplicate) {
+                room.kick(player, t`Already connected (${duplicate.name}).`);
+                return;
+            }
 
-        if (IS_DEBUG) {
-            room.setAdmin(player, true);
-        } else {
             manageAdmin(room);
+        } else {
+            room.setAdmin(player, true);
         }
 
         room.send({

@@ -183,15 +183,11 @@ declare global {
          *
          * The public ID is useful to validate that a player is who he claims to be, but can't be used to verify that a player isn't someone else. Which means it's useful for implementing user accounts, but not useful for implementing a banning system.
          *
-         * Can be null if the ID validation fails.
-         *
-         * This property is only set in the RoomObject.onPlayerJoin event.
+         * This property is available when ID validation succeeds.
          */
         auth?: string;
         /**
          * A string that uniquely identifies the player's connection, if two players join using the same network this string will be equal.
-         *
-         * This property is only set in the RoomObject.onPlayerJoin event.
          */
         conn: string;
     }

@@ -193,7 +193,20 @@ const onHBLoaded = function (cb) {
         let n = null,
           v = h.N;
         null != v && (n = { x: v.a.x, y: v.a.y });
-        return { name: h.oa, team: h.ja.S, id: h.ma, admin: h.Ub, position: n };
+        let F = null,
+          H = "",
+          Y = D.wb.get(h.ma);
+        null != Y && ((F = Y.Jg), (H = null != Y.jc.gb ? Y.jc.gb : ""));
+        h = {
+          name: h.oa,
+          team: h.ja.S,
+          id: h.ma,
+          admin: h.Ub,
+          position: n,
+          conn: H,
+        };
+        null != F && (h.auth = F);
+        return h;
       }
       function g(h, n) {
         h = a[h];
@@ -466,13 +479,8 @@ const onHBLoaded = function (cb) {
         }
       };
       y.Hh = function (h) {
-        var n = D.wb.get(h.ma),
-          v = null,
-          F = null;
-        null != n && ((v = n.Jg), (F = n.jc.gb));
-        n = v;
-        v = J.onPlayerJoin;
-        null != v && ((h = f(h)), (h.auth = n), (h.conn = F), v(h));
+        let n = J.onPlayerJoin;
+        null != n && n(f(h));
       };
       y.Nf = function () {
         {
