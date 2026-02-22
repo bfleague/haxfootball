@@ -4,10 +4,8 @@ import { t } from "@lingui/core/macro";
 import { randomBytes } from "node:crypto";
 import { Room } from "@core/room";
 import { COLOR } from "@common/general/color";
+import { env } from "@env";
 
-const IS_DEBUG = process.env["DEBUG"] === "true";
-const TUTORIAL_LINK = "youtube.com/watch?v=Z09dlI3MR28";
-const DISCORD_LINK = "discord.gg/q8ay8PmEkp";
 const ADMIN_PASSWORD = randomBytes(4).toString("hex");
 
 const admins = new Set<number>();
@@ -36,7 +34,7 @@ const mainModule = createModule()
         ],
     })
     .onRoomLink((room, url) => {
-        if (IS_DEBUG) {
+        if (env.DEBUG) {
             console.warn("Running in debug mode.");
         }
 
@@ -122,7 +120,7 @@ const mainModule = createModule()
             }
             case "discord": {
                 room.send({
-                    message: t`💬 Join our Discord server: ${DISCORD_LINK}`,
+                    message: t`💬 Join our Discord server: ${env.DISCORD_LINK}`,
                     color: COLOR.ACTION,
                 });
 
@@ -130,7 +128,7 @@ const mainModule = createModule()
             }
             case "tutorial": {
                 room.send({
-                    message: t`🎬 Watch the tutorial: ${TUTORIAL_LINK}`,
+                    message: t`🎬 Watch the tutorial: ${env.TUTORIAL_LINK}`,
                     color: COLOR.ACTION,
                 });
 
@@ -163,7 +161,7 @@ const mainModule = createModule()
     .onPlayerJoin((room, player) => {
         console.log(`${player.name} has joined (${player.ip})`);
 
-        if (!IS_DEBUG) {
+        if (!env.DEBUG) {
             const duplicate = room
                 .getPlayerList()
                 .find((p) => p.id !== player.id && p.ip === player.ip);
@@ -185,13 +183,13 @@ const mainModule = createModule()
             sound: "notification",
         });
         room.send({
-            message: t`🎬 Watch the tutorial: ${TUTORIAL_LINK}`,
+            message: t`🎬 Watch the tutorial: ${env.TUTORIAL_LINK}`,
             color: COLOR.HIGHLIGHT,
             to: player.id,
             sound: "none",
         });
         room.send({
-            message: t`💬 Join our Discord server: ${DISCORD_LINK}`,
+            message: t`💬 Join our Discord server: ${env.DISCORD_LINK}`,
             color: COLOR.ACTION,
             to: player.id,
             sound: "none",
